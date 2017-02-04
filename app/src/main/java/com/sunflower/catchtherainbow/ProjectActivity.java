@@ -3,6 +3,7 @@ package com.sunflower.catchtherainbow;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.ActionMenuView;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -16,6 +17,7 @@ import android.view.MenuItem;
 public class ProjectActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener
 {
+    private ActionMenuView amvMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -25,6 +27,7 @@ public class ProjectActivity extends AppCompatActivity
 
         // Init toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        amvMenu=  (ActionMenuView) findViewById(R.id.amvMenu);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(null);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -70,7 +73,7 @@ public class ProjectActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu)
     {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.project, menu);
+        getMenuInflater().inflate(R.menu.project, amvMenu.getMenu() /*menu*/); // adds menu items to the left side. If it's not needed replace second param with default menu
         return true;
     }
 

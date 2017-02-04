@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context="com.sunflower.catchtherainbow.AudioChooserFragment">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              tools:context="com.sunflower.catchtherainbow.AudioChooserFragment"
+              android:background="@drawable/background_fragment">
 
-    <RelativeLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/add_company_frag"
         android:background="@drawable/background_fragment">
 
-                <Button
-                    android:text="Ok"
-                    android:layout_width="match_parent"
-                    android:onClick="onClick"
-                    android:id="@+id/bOk"
-                    android:background="@drawable/background_button"
-                    android:layout_marginTop="15dp"
-                    android:layout_marginBottom="5dp"
-                    android:layout_height="45dp"
-                    android:gravity="center"/>
+        <Button
+            android:text="@string/conformation"
+            android:layout_width="match_parent"
+            android:onClick="onClick"
+            android:id="@+id/bOk"
+            android:background="@drawable/background_button"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="5dp"
+            android:layout_height="45dp"
+            android:gravity="center"/>
 
-                <Button
-                    android:text="Cancel"
+        <Button
+                    android:text="@string/deny"
                     android:layout_width="match_parent"
                     android:onClick="onClick"
                     android:id="@+id/bCancel"
@@ -33,5 +33,5 @@
                     android:layout_height="45dp"
                     android:gravity="center"/>
 
-    </RelativeLayout>
-</FrameLayout>
+    </LinearLayout>
+</LinearLayout>
