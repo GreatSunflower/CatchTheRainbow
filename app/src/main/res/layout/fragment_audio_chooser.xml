@@ -3,15 +3,32 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              tools:context="com.sunflower.catchtherainbow.AudioChooserFragment"
-              android:background="@drawable/background_fragment">
+              tools:context="com.sunflower.catchtherainbow.Views.AudioChooserFragment">
 
     <LinearLayout
         android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/add_company_frag"
-        android:background="@drawable/background_fragment">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/MainLayout"
+        android:background="@drawable/background_fragment"
+        android:layout_margin="5dp">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <SearchView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            </SearchView>
+
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+        </LinearLayout>
 
         <Button
             android:text="@string/conformation"
@@ -19,8 +36,6 @@
             android:onClick="onClick"
             android:id="@+id/bOk"
             android:background="@drawable/background_button"
-            android:layout_marginTop="15dp"
-            android:layout_marginBottom="5dp"
             android:layout_height="45dp"
             android:gravity="center"/>
 
@@ -34,4 +49,5 @@
                     android:gravity="center"/>
 
     </LinearLayout>
+
 </LinearLayout>
