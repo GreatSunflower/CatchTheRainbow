@@ -1,11 +1,13 @@
 package com.sunflower.catchtherainbow;
 
-import android.app.Application;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.widget.ImageView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -73,6 +75,56 @@ public class Helper
         finally
         {
             if (cur != null) cur.close();
+        }
+
+        return  songs;
+    }
+
+    public static ArrayList<String> getAllAudioOnDevice(Context context)
+    {
+        ArrayList<String> songs = new ArrayList<>();
+        Cursor cursorMusic = null;
+        try
+        {
+            ContentResolver cr =  context.getContentResolver();
+
+            Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+            String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
+            String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
+            String album = MediaStore.Audio.Albums._ID+ "=?";
+            cursorMusic = cr.query(uri, null, selection, null, sortOrder);
+            int count = 0;
+
+            if (cursorMusic != null) {
+                count = cursorMusic.getCount();
+
+                if (count > 0)
+                {
+                    while (cursorMusic.moveToNext())
+                    {
+                        String fullPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DATA));
+                        String path = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+
+                        int x = cursorMusic.getColumnIndex(android.provider.MediaStore.Audio.Albums.ALBUM_ART);
+                        String thisArt = cursorMusic.getString(x);
+
+                        Bitmap bm= BitmapFactory.decodeFile(thisArt);
+                        //ImageView image=(ImageView)findViewById(R.id.image);
+                        //image.setImageBitmap(bm);
+
+                        songs.add(fullPath);
+                    }
+                } // count > 0
+            }
+        }
+        catch (Exception ex)
+        {
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            System.out.println(ex.getMessage());/* ex.printStackTrace();*/
+        }
+        finally
+        {
+            if (cursorMusic != null) cursorMusic.close();
         }
 
         return  songs;

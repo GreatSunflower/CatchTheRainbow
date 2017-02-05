@@ -42,4 +42,15 @@
         android:layout_marginTop="20dp"
         android:id="@+id/audioProgressView"/>
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/b_getAudio"
+        android:text="@string/getAudio"
+        android:layout_above="@+id/audioProgressView"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="24dp"
+        android:layout_marginEnd="24dp"/>
+
 </RelativeLayout>

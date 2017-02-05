@@ -77,7 +77,7 @@
                 android:textAlignment="textEnd"/>
 
             <TextView
-                android:text="@string/CountMusics"
+                android:text="@string/countMusics"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.9"
