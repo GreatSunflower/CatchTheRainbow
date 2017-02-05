@@ -4,4 +4,10 @@
     <color name="colorPrimaryDark">#394dd1</color>
     <color name="colorAccent">#FF4081</color>
     <color name="colorForeground">#ffffff</color>
+    <color name="buttonOkAndCancel">#566efd</color>
+    <color name="backgroundTextView">#ffffff</color>
+    <color name="strokeView">#33439f</color>
+    <color name="textButton">#ffffff</color>
+    <color name="iconFolder">#d9d4c2</color>
+    <color name="iconMusic">#d9d4c2</color>
 </resources>

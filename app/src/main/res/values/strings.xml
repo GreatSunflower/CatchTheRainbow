@@ -9,6 +9,8 @@
     <string name="conformation">OK</string>
     <string name="deny">Cancel</string>
 
+    <string name="CountMusics">Musics</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
