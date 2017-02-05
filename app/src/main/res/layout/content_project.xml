@@ -12,7 +12,8 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.sunflower.catchtherainbow.ProjectActivity"
-    tools:showIn="@layout/app_bar_project">
+    tools:showIn="@layout/app_bar_project"
+    android:background="@color/colorPrimary">
 
     <TextView
         android:layout_width="wrap_content"
@@ -31,5 +32,14 @@
         android:layout_below="@+id/textView2"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
+
+    <com.sunflower.catchtherainbow.Views.AudioProgressView
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_below="@+id/Sacha"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="20dp"
+        android:id="@+id/audioProgressView"/>
 
 </RelativeLayout>

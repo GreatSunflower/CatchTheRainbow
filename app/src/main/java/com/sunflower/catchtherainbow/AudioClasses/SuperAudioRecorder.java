@@ -182,7 +182,7 @@ public class SuperAudioRecorder implements AudioProcessor
         STOPPED
     }
 
-    interface RecorderListener
+    public interface RecorderListener
     {
         void OnInitialized();
         void OnUpdate(AudioEvent audioEvent);

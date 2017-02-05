@@ -1,5 +1,6 @@
 package com.sunflower.catchtherainbow;
 
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -13,11 +14,32 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.Toast;
+
+import com.sunflower.catchtherainbow.AudioClasses.SuperAudioPlayer;
+import com.sunflower.catchtherainbow.Views.AudioProgressView;
+
+import java.io.File;
+import java.util.List;
+import java.util.Random;
+
+import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.AudioEvent;
+import be.tarsos.dsp.io.android.AndroidFFMPEGLocator;
+import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 
 public class ProjectActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener
 {
     private ActionMenuView amvMenu;
+    private Button playStopButt;
+    private AudioProgressView progressView;
+
+    // temp
+    boolean isPlaying = false;
+    SuperAudioPlayer player;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -53,6 +75,101 @@ public class ProjectActivity extends AppCompatActivity
         // Init nav view
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        // -----------------------------------------------------FOR TESTING PURPOSES---------------------------------------
+        playStopButt = (Button)findViewById(R.id.Sacha);
+        progressView = (AudioProgressView)findViewById(R.id.audioProgressView);
+        progressView.setOnSeekBar(new SeekBar.OnSeekBarChangeListener()
+        {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean b)
+            {
+
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar)
+            {
+
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar)
+            {
+
+            }
+        });
+
+        new AndroidFFMPEGLocator(this);
+
+        AudioDispatcher tempDisp = AudioDispatcherFactory.fromDefaultMicrophone(44100, 2048, 0);
+        player = new SuperAudioPlayer(this);
+        player.addPlayerListener(new SuperAudioPlayer.AudioPlayerListener()
+        {
+            @Override
+            public void OnInitialized()
+            {
+                runOnUiThread(new Runnable()
+                {
+                    public void run()
+                    {
+                        progressView.setMax((float) player.getDurationInSeconds());
+                    }
+                });
+            }
+
+            @Override
+            public void OnUpdate(AudioEvent audioEvent)
+            {
+              //  final float duration = (float) audioEvent.getFrameLength() / audioEvent.getfra();
+                final float currentTime = (float) audioEvent.getTimeStamp();
+                runOnUiThread(new Runnable()
+                {
+                    public void run()
+                    {
+                        //progressView.setMax(duration);
+                        progressView.setCurrent(currentTime);
+                    }
+                });
+            }
+
+            @Override
+            public void OnFinish()
+            {
+
+            }
+        });
+
+        playStopButt.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                if(!isPlaying)
+                {
+                    Random rand = new Random();
+                    List<String> songs = Helper.getAllSongsOnDevice(ProjectActivity.this);
+                    String file = songs.get(rand.nextInt(songs.size()));
+                    try
+                    {
+                        player.load(new File(file));
+                        isPlaying = true;
+                        playStopButt.setText("Stop");
+                        player.play();
+                    }
+                    catch (Exception e)
+                    {
+                        Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+                }
+                else
+                {
+                    player.stop();
+                    isPlaying = false;
+                    playStopButt.setText("Play");
+                }
+            }
+        });
+
     }
 
     @Override

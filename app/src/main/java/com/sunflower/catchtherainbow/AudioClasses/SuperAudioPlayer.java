@@ -1,8 +1,16 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
+import android.media.AudioTimestamp;
+import android.media.AudioTrack;
+import android.media.MediaMetadataRetriever;
+import android.util.Log;
+
+import com.sunflower.catchtherainbow.Helper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,13 +24,16 @@ import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.AudioGenerator;
 import be.tarsos.dsp.AudioProcessor;
 import be.tarsos.dsp.DetermineDurationProcessor;
+import be.tarsos.dsp.io.PipeDecoder;
 import be.tarsos.dsp.io.PipedAudioStream;
 import be.tarsos.dsp.io.TarsosDSPAudioFormat;
 import be.tarsos.dsp.io.TarsosDSPAudioInputStream;
 import be.tarsos.dsp.io.UniversalAudioInputStream;
 import be.tarsos.dsp.io.android.AndroidAudioInputStream;
 import be.tarsos.dsp.io.android.AndroidAudioPlayer;
+import be.tarsos.dsp.io.android.AndroidFFMPEGLocator;
 import be.tarsos.dsp.io.android.AudioDispatcherFactory;
+import be.tarsos.dsp.util.AudioResourceUtils;
 
 /**
  * Created by SuperComputer on 1/31/2017.
@@ -30,6 +41,8 @@ import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 
 public class SuperAudioPlayer implements AudioProcessor
 {
+    protected Context context;
+
     private ArrayList<AudioPlayerListener> playerListeners = new ArrayList<>();
     private PlayerState state = PlayerState.NO_FILE_LOADED;
     private File loadedFile;
@@ -42,9 +55,10 @@ public class SuperAudioPlayer implements AudioProcessor
 
     AudioDispatcher dispatcher;
 
-    public SuperAudioPlayer(TarsosDSPAudioFormat audioFormat, int bufferSizeInSamples, int streamType)
+    public SuperAudioPlayer(Context context/*, TarsosDSPAudioFormat audioFormat, int bufferSizeInSamples, int streamType*/)
     {
         //super(audioFormat, bufferSizeInSamples, streamType);
+        this.context = context;
         state = PlayerState.NO_FILE_LOADED;
     }
 
@@ -61,12 +75,23 @@ public class SuperAudioPlayer implements AudioProcessor
 
         if(file.exists() == false) throw new Exception("File does not exist!");
 
-        AudioDispatcher audioDispatcher = AudioDispatcherFactory.fromPipe(file.getAbsolutePath(), sampleRate, 2048, 0);
+        /*AudioDispatcher audioDispatcher = AudioDispatcherFactory.fromPipe(file.getAbsolutePath(), sampleRate, 2048, 0);
         DetermineDurationProcessor ddp = new DetermineDurationProcessor();
         audioDispatcher.addAudioProcessor(ddp);
-        audioDispatcher.run();
+        audioDispatcher.run();*/
+        //audioDispatcher.getFormat().properties()
 
-        durationInSeconds = ddp.getDurationInSeconds();
+        durationInSeconds = new PipeDecoder().getDuration(AudioResourceUtils.sanitizeResource(file.getAbsolutePath()));// ddp.getDurationInSeconds();
+        Log.d("aaa", durationInSeconds+"");
+
+        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+        mmr.setDataSource(file.getAbsolutePath());
+        String duration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+        mmr.release();
+
+        durationInSeconds = Helper.millisecondsToSeconds(Double.parseDouble(duration));
+        Log.d("aaa", "New duration: " +  durationInSeconds+"");
+
         pausedAt = 0;
         currentTime = 0;
         setState(PlayerState.FILE_LOADED);
@@ -126,7 +151,7 @@ public class SuperAudioPlayer implements AudioProcessor
         }
         else if(state != PlayerState.STOPPED)
         {
-            throw new IllegalStateException("Can not stopRecording when nothing is playing");
+            throw new IllegalStateException("Can not Stop Playing when nothing is playing. Crap(");
         }
 
     }
@@ -219,7 +244,7 @@ public class SuperAudioPlayer implements AudioProcessor
         return pausedAt;
     }
 
-    interface AudioPlayerListener
+    public interface AudioPlayerListener
     {
         void OnInitialized();
         void OnUpdate(AudioEvent audioEvent);

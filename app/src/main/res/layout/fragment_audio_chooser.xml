@@ -28,7 +28,8 @@
                     android:id="@android:id/tabs"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:animateLayoutChanges="false"/>
+                    android:animateLayoutChanges="false"
+                    android:orientation="horizontal"/>
 
                 <FrameLayout
                     android:id="@android:id/tabcontent"
@@ -36,7 +37,7 @@
                     android:layout_height="match_parent">
 
                     <LinearLayout
-                        android:id="@+id/Musics"
+                        android:id="@+id/AudioFiles"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical">
@@ -65,8 +66,8 @@
                         <LinearLayout
                             android:orientation="horizontal"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1">
+                            android:layout_height="50dp"
+                            >
 
                             <Button
                                 android:text="@string/conformation"
