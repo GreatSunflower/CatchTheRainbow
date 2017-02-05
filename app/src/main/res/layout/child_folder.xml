@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.supercomputer.superlistview.CheckableListItem xmlns:android="http://schemas.android.com/apk/res/android"
-                                                   xmlns:app="http://schemas.android.com/apk/res-auto"
-                                                   xmlns:tools="http://schemas.android.com/tools"
-                                                   android:orientation="horizontal"
-                                                   android:layout_width="wrap_content"
-                                                   android:layout_height="wrap_content"
-                                                   android:descendantFocusability="blocksDescendants"
-                                                   android:padding="5dp">
+<com.sunflower.catchtherainbow.Views.CheckableListItem
+    xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
+   xmlns:tools="http://schemas.android.com/tools"
+   android:orientation="horizontal"
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"
+   android:descendantFocusability="blocksDescendants"
+   android:padding="5dp">
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -95,4 +96,4 @@
 
     </LinearLayout>
 </LinearLayout>
-</com.supercomputer.superlistview.CheckableListItem>
+</com.sunflower.catchtherainbow.Views.CheckableListItem>

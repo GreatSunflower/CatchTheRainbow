@@ -1,21 +1,39 @@
 package com.sunflower.catchtherainbow.Adapters;
 
+import android.app.Activity;
+import android.content.Context;
+import android.database.Cursor;
+import android.provider.MediaStore;
+import android.support.v4.widget.CursorAdapter;
+import android.support.v4.widget.SimpleCursorAdapter;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FilterQueryProvider;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
+import com.sunflower.catchtherainbow.Helper;
+import com.sunflower.catchtherainbow.R;
+
+import java.util.HashMap;
+
 /**
  * Created by Alexandr on 05.02.2017.
  */
-/*
-public class SimpleAdapterAudioFiles extends SimpleCursorAdapter
+
+public class SimpleAdapterAudioFiles extends CursorAdapter
 {
     private final Activity context;
     private HashMap<Long, Boolean> selection = new HashMap<>();
     private String filter = "";
 
-    public SimpleAdapterAudioFiles(Activity context, int layout, Cursor c,
-                             String[] from, int[] to, int flags)
-    {
-        super(context, layout, c, from, to, flags);
+    private LayoutInflater inflater;
 
-        sqlHelper = ((SuperApplication)context.getApplication()).helper;
+    public SimpleAdapterAudioFiles(final Activity context, Cursor c, int flags)
+    {
+        super(context, c, flags);
 
         this.context = context;
         this.setFilterQueryProvider(new FilterQueryProvider()
@@ -23,12 +41,62 @@ public class SimpleAdapterAudioFiles extends SimpleCursorAdapter
             @Override
             public Cursor runQuery(CharSequence charSequence)
             {
-                return sqlHelper.fetchPeople(charSequence.toString());
+                return Helper.getSongsAudioCursor(context, charSequence.toString());
             }
         });
+
+        inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    public void refeshData()
+    public AudioFile getPersonFromPosition(int position)
+    {
+        Cursor cur = getCursor();
+        cur.moveToPosition(position);
+        return Helper.getAudioFileById(cur.getLong(cur.getColumnIndex(MediaStore.Audio.Media._ID)), cur);
+    }
+
+    @Override
+    public View newView(Context context, Cursor cursor, ViewGroup parent)
+    {
+        return inflater.inflate(R.layout.child_music, parent, false);
+    }
+
+    @Override
+    public void bindView(View view, Context context, Cursor cursor)
+    {
+        View rowView;
+        final AudioFile file = getPersonFromPosition(cursor.getPosition());
+        // if the view isn't generated
+        if(view == null)
+        {
+            rowView = inflater.inflate(R.layout.child_music, null, true);
+        }
+        else rowView = view;
+
+        //View itemView = rowView.findViewById(R.id.itemVIew);
+
+        // ----- Tint -----
+        /*int color = R.color.oddListViewItemColor;
+        if(position % 2 != 0) color = R.color.evenListViewItemColor;
+
+        itemView.getBackground().setColorFilter(context.getResources().getColor(color), PorterDuff.Mode.SRC_ATOP);
+        // -----Tint-end------
+        */
+
+        ImageView albumImage = (ImageView)rowView.findViewById(R.id.imageView);
+        TextView nameLayout = (TextView)rowView.findViewById(R.id.tvName);
+        TextView artistLayout = (TextView)rowView.findViewById(R.id.tvArtist);
+        TextView timesLayout = (TextView)rowView.findViewById(R.id.tvTimes);
+
+        /*if(file.image != null) personImage.setImageBitmap(file.getBitmapImage());
+        else personImage.setImageResource(R.drawable.ic_person_black_24dp);*/
+
+        nameLayout.setText(file.getTitle());
+        artistLayout.setText(file.getArtist());
+        timesLayout.setText(Helper.secondToString(0));
+    }
+
+   /* public void refeshData()
     {
         updateFilter(filter);
         getFilter().filter(filter);
@@ -118,28 +186,6 @@ public class SimpleAdapterAudioFiles extends SimpleCursorAdapter
         notifyDataSetChanged();
     }
 
-    public void add(AudioFile p)
-    {
-        sqlHelper.addPerson(p);
-        // Not selected
-        selection.put(p.id, false);
-        // Refresh the list
-        refeshData();
-        //notifyDataSetChanged();
-    }
-
-    public int remove(Long p, boolean shouldUpdate)
-    {
-        int res = sqlHelper.removePerson(p);
-        // remove from selection map
-        selection.remove(p);
-        // Refresh the list
-        if(shouldUpdate)
-            refeshData();
-
-        return res;
-    }
-
     public void notifyDataSetChanged()
     {
         super.notifyDataSetChanged();
@@ -150,45 +196,6 @@ public class SimpleAdapterAudioFiles extends SimpleCursorAdapter
         Cursor cur = getCursor();
         cur.moveToPosition(position);
         return sqlHelper.getPersonById(cur.getLong(cur.getColumnIndex(SuperDatabaseHelper.KEY_PERSON_ID)));
-    }
-
-    @NonNull
-    public View getView(int position, View view, ViewGroup parent)
-    {
-        //return super.getView(position, view, parent);
-        View rowView;
-        final AudioFile file = getPersonFromPosition(position);
-        // if the view isn't generated
-        if(view == null)
-        {
-            LayoutInflater inflater = context.getLayoutInflater();
-            rowView = inflater.inflate(R.layout.child_music, null, true);
-        }
-        else rowView = view;
-
-        View itemView = rowView.findViewById(R.id.itemVIew);
-
-        // ----- Tint -----
-        /*int color = R.color.oddListViewItemColor;
-        if(position % 2 != 0) color = R.color.evenListViewItemColor;
-
-        itemView.getBackground().setColorFilter(context.getResources().getColor(color), PorterDuff.Mode.SRC_ATOP);
-        // -----Tint-end------
-        */
-
-        /*ImageView albumImage = (ImageView)rowView.findViewById(R.id.imageView);
-        TextView nameLayout = (TextView)rowView.findViewById(R.id.tvName);
-        TextView artistLayout = (TextView)rowView.findViewById(R.id.tvArtist);
-        TextView timesLayout = (TextView)rowView.findViewById(R.id.tvTimes);
-
-        /*if(file.image != null) personImage.setImageBitmap(file.getBitmapImage());
-        else personImage.setImageResource(R.drawable.ic_person_black_24dp);*/
-
-        /*nameLayout.setText(file. + " " + file.lastName);
-        artistLayout.setText(file.age+"");
-        timesLayout.setText(file.address);*/
-
-        /*return rowView;
     }
 
     /*public ArrayList<Long> getDisplayedDudesIds()
@@ -203,4 +210,4 @@ public class SimpleAdapterAudioFiles extends SimpleCursorAdapter
         while(cursor.moveToNext());
         return res;
     }*/
-//}
+}

@@ -4,7 +4,8 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             android:background="@android:color/transparent">
+             android:background="@android:color/transparent"
+    >
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                   xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -17,7 +18,7 @@
                   android:minHeight="1000dp"
                   android:id="@+id/SuperAudioChooser"
                   android:background="@drawable/background_fragment"
-        >
+                      android:layout_margin="10dp">
 
         <android.support.design.widget.TabLayout
             android:layout_width="match_parent"

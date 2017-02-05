@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.widget.ImageView;
 
+import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,7 +25,7 @@ public class Helper
 {
     public static String secondToString(double seconds)
     {
-        Date date = new Date((long)(seconds*1000));
+        Date date = new Date((long) (seconds * 1000));
         String formattedDate = new SimpleDateFormat("mm:ss").format(date);
         return formattedDate;
     }
@@ -31,7 +33,7 @@ public class Helper
     public static int secondsToMilliseconds(double currentTime)
     {
         long millis = TimeUnit.SECONDS.toMillis((long) currentTime);
-        return (int)millis;
+        return (int) millis;
     }
 
     public static double millisecondsToSeconds(Number milliseconds)
@@ -45,7 +47,7 @@ public class Helper
         Cursor cur = null;
         try
         {
-            ContentResolver cr =  context.getContentResolver();
+            ContentResolver cr = context.getContentResolver();
 
             Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
             String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
@@ -53,7 +55,8 @@ public class Helper
             cur = cr.query(uri, null, selection, null, sortOrder);
             int count = 0;
 
-            if (cur != null) {
+            if (cur != null)
+            {
                 count = cur.getCount();
 
                 if (count > 0)
@@ -66,23 +69,57 @@ public class Helper
                     }
                 } // count > 0
             }
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             System.out.println(ex.getMessage());/* ex.printStackTrace();*/
-        }
-        finally
+        } finally
         {
             if (cur != null) cur.close();
         }
 
-        return  songs;
+        return songs;
     }
 
-    public static ArrayList<String> getAllAudioOnDevice(Context context)
+    public static Cursor getSongsAudioCursor(Context context, String filter)
     {
-        ArrayList<String> songs = new ArrayList<>();
+        Cursor cursorMusic = null;
+        ContentResolver cr =  context.getContentResolver();
+
+        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
+        String sortOrder = MediaStore.Audio.Media.TITLE + " LIKE ?  ASC";
+        String album = MediaStore.Audio.Albums._ID+ "=?";
+        cursorMusic = cr.query(uri, null, selection, new String[]{ filter }, sortOrder);
+
+        return cursorMusic;
+    }
+    public static AudioFile getAudioFileById(long id, Cursor cursorMusic)
+    {
+        //cursorMusic.moveToFirst();
+        //while (cursorMusic.moveToNext())
+        {
+            String title = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.TITLE));
+            String artist = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+            String fullPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DATA));
+
+            Bitmap art = null;
+            try
+            {
+                String artPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+                art = BitmapFactory.decodeFile(artPath);
+            }
+            catch(Exception ex){}
+
+            AudioFile audioFile = new AudioFile(title, artist, fullPath, art);
+            return  audioFile;
+        }
+      //  return null;
+    }
+
+    public static ArrayList<AudioFile> getAllAudioOnDevice(Context context)
+    {
+        ArrayList<AudioFile> songs = new ArrayList<>();
         Cursor cursorMusic = null;
         try
         {
@@ -102,17 +139,22 @@ public class Helper
                 {
                     while (cursorMusic.moveToNext())
                     {
+                        long id = cursorMusic.getLong(cursorMusic.getColumnIndex(MediaStore.Audio.Media._ID));
+                        String title = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.TITLE));
+                        String artist = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ARTIST));
                         String fullPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DATA));
-                        String path = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
 
-                        int x = cursorMusic.getColumnIndex(android.provider.MediaStore.Audio.Albums.ALBUM_ART);
-                        String thisArt = cursorMusic.getString(x);
+                        Bitmap art = null;
+                        try
+                        {
+                            String artPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+                            art = BitmapFactory.decodeFile(artPath);
+                        }
+                        catch(Exception ex){}
 
-                        Bitmap bm= BitmapFactory.decodeFile(thisArt);
-                        //ImageView image=(ImageView)findViewById(R.id.image);
-                        //image.setImageBitmap(bm);
+                        AudioFile audioFile = new AudioFile(title, artist, fullPath, art);
 
-                        songs.add(fullPath);
+                        songs.add(audioFile);
                     }
                 } // count > 0
             }

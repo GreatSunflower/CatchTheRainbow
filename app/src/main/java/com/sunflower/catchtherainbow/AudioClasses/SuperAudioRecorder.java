@@ -11,6 +11,7 @@ import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.AudioProcessor;
 import be.tarsos.dsp.SilenceDetector;
+import be.tarsos.dsp.io.android.AndroidAudioPlayer;
 import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 import be.tarsos.dsp.writer.WriterProcessor;
 
@@ -92,6 +93,7 @@ public class SuperAudioRecorder implements AudioProcessor
             // add them to the dispatcher
             dispatcher.addAudioProcessor(silenceDetector);
             dispatcher.addAudioProcessor(writerProcessor);
+            dispatcher.addAudioProcessor(new AndroidAudioPlayer(dispatcher.getFormat()));
             dispatcher.addAudioProcessor(this);
 
             new Thread(dispatcher, "Audio Recorder Thread").start();

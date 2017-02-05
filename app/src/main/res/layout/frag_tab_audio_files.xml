@@ -21,15 +21,15 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="5dp"
-            android:id="@+id/listViewAudioFiles"/>
+            android:id="@+id/listViewAudioFiles"
+            android:background="@color/backgroundTextView"/>
 
     </LinearLayout>
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        >
+        android:layout_height="55dp">
 
         <Button
             android:text="@string/conformation"

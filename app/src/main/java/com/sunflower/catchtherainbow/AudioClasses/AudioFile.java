@@ -12,14 +12,27 @@ import java.io.IOException;
 
 public class AudioFile
 {
-    private String name, artist, path;
+    private long id = 1;
+    private String title;
+    private String artist;
+    private String path;
     private byte[] image;
-    public AudioFile(String name, String artist, String path, byte[] image)
+
+    public AudioFile(long id, String title, String artist, String path, byte[] image)
     {
-        this.name = name;
-        this.artist = artist;
-        this.path = path;
+        this.id = id;
+        this.setTitle(title);
+        this.setArtist(artist);
+        this.setPath(path);
         this.image = image;
+    }
+
+    public AudioFile(String name, String artist, String path, Bitmap image)
+    {
+        this.setTitle(name);
+        this.setArtist(artist);
+        this.setPath(path);
+        this.image = imageToByteArray(image);
     }
 
     public void setImage(Bitmap img) throws IOException
@@ -35,7 +48,7 @@ public class AudioFile
         return bitmap;
     }
 
-    public static byte[] imageToByteArray(Bitmap image) throws IOException
+    public static byte[] imageToByteArray(Bitmap image)
     {
         if(image == null) return null;
 
@@ -74,5 +87,35 @@ public class AudioFile
         }
         resizedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, false);
         return resizedBitmap;
+    }
+
+    public String getArtist()
+    {
+        return artist;
+    }
+
+    public void setArtist(String artist)
+    {
+        this.artist = artist;
+    }
+
+    public String getTitle()
+    {
+        return title;
+    }
+
+    public void setTitle(String name)
+    {
+        this.title = name;
+    }
+
+    public String getPath()
+    {
+        return path;
+    }
+
+    public void setPath(String path)
+    {
+        this.path = path;
     }
 }

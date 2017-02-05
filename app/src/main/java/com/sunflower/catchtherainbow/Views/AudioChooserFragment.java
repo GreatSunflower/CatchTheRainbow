@@ -1,6 +1,9 @@
 package com.sunflower.catchtherainbow.Views;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
@@ -10,10 +13,13 @@ import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ListView;
 
 import com.sunflower.catchtherainbow.Adapters.CustomAdapterFragPager;
+import com.sunflower.catchtherainbow.Adapters.SimpleAdapterAudioFiles;
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
+import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.R;
 
 import java.util.ArrayList;
@@ -85,21 +91,22 @@ public class AudioChooserFragment extends DialogFragment
     private TabLayout tabLayout;
     private ViewPager viewPager;
 
-    private List<AudioFile> dudes = new ArrayList<>();
-    //private SimpleAdapterAudioFiles adapter;
-    private ListView superListView;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
+        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+
         // Inflate the layout for this fragment
         View resView = inflater.inflate(R.layout.fragment_audio_chooser, container, false);
 
         viewPager = (ViewPager) resView.findViewById(R.id.viewPager);
-        //viewPager.setAdapter(new CustomAdapterFragPager(getSupportFragmentManager(), getApplicationContext()));
-        viewPager.setAdapter(new CustomAdapterFragPager(getChildFragmentManager(), getActivity()));
         tabLayout = (TabLayout) resView.findViewById(R.id.tabLayout);
+
+        //viewPager.setAdapter(new CustomAdapterFragPager(getSupportFragmentManager(), getApplicationContext()));
+        viewPager.setAdapter(new CustomAdapterFragPager(getChildFragmentManager(), getActivity(), tabLayout));
+
         tabLayout.setupWithViewPager(viewPager);
 
         tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -118,27 +125,6 @@ public class AudioChooserFragment extends DialogFragment
                 viewPager.setCurrentItem(tab.getPosition());
             }
         });
-
-        // --------------------------------ADAPTER----------------------------------
-        /*Cursor cursor = sqlHelper.fetchPeople("");
-        String[] columns = new String[] {
-                SuperDatabaseHelper.KEY_PERSON_FIRST_NAME,
-                SuperDatabaseHelper.KEY_PERSON_LAST_NAME,
-                SuperDatabaseHelper.KEY_PERSON_AGE,
-                SuperDatabaseHelper.KEY_PERSON_ADDRESS,
-                SuperDatabaseHelper.KEY_PERSON_IMAGE
-        };
-        int[] to = new int[]{
-                R.id.imageView,
-                R.id.tvName,
-                R.id.tvArtist,
-                R.id.tvTimes
-        };
-        adapter = new SimpleAdapterAudioFiles(getActivity(), R.layout.child_music, cursor, columns, to, 0);
-        superListView = (ListView)resView.findViewById(R.id.listViewAudioFiles);
-        superListView.setAdapter(adapter);*/
-        // --------------------------------ADAPTER-END----------------------------------
-
 
 
         return resView;
