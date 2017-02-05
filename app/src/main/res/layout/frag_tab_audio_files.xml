@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical" android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <SearchView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/background_textview"
+            android:layout_marginTop="5dp">
+
+        </SearchView>
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="5dp"
+            android:id="@+id/listViewAudioFiles"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        >
+
+        <Button
+            android:text="@string/conformation"
+            android:layout_width="wrap_content"
+            android:onClick="onClick (ProjectActivity)"
+            android:id="@+id/bOk"
+            android:background="@drawable/background_button"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/colorForeground"
+            android:textSize="16sp"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:text="@string/deny"
+            android:layout_width="wrap_content"
+            android:onClick="onClick"
+            android:id="@+id/bCancel"
+            android:background="@drawable/background_button"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/colorForeground"
+            android:textSize="16sp"/>
+    </LinearLayout>
+</LinearLayout>

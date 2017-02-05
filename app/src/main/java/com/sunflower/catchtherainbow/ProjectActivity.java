@@ -2,8 +2,10 @@ package com.sunflower.catchtherainbow;
 
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -12,7 +14,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -47,7 +48,7 @@ public class ProjectActivity extends AppCompatActivity
     private Button playStopButt, bGetAudio;
     private AudioProgressView progressView;
     private View viewContentProject;
-    private static final int PERMISSION_REQUEST_CODE = 1;
+    private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
 
     // temp
     boolean isPlaying = false;
@@ -59,6 +60,19 @@ public class ProjectActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_project);
         viewContentProject = (View)findViewById(R.id.content_project);
+
+        ////////////////////////////////////////////////////permission
+        int PERMISSION_ALL = 1;
+        String[] PERMISSIONS = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAPTURE_AUDIO_OUTPUT,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.MEDIA_CONTENT_CONTROL};
+
+        if(!hasPermissions(this, PERMISSIONS))
+        {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
+        }
+        //////////////////////////////////////////////////////////end permission
+
+
         // Init toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         amvMenu=  (ActionMenuView) findViewById(R.id.amvMenu);
@@ -114,8 +128,7 @@ public class ProjectActivity extends AppCompatActivity
 
         new AndroidFFMPEGLocator(this);
 
-        if (!checkPermission()) requestPermission();
-        else
+        //if (checkAndRequestPermissions())
         {
             AudioDispatcher tempDisp = AudioDispatcherFactory.fromDefaultMicrophone(44100, 2048, 0);
             player = new SuperAudioPlayer(this);
@@ -189,6 +202,21 @@ public class ProjectActivity extends AppCompatActivity
         }
     }
 
+    public static boolean hasPermissions(Context context, String... permissions)
+    {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null)
+        {
+            for (String permission : permissions)
+            {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     @Override
     public void onClick(View v)
     {
@@ -197,7 +225,7 @@ public class ProjectActivity extends AppCompatActivity
             case R.id.b_getAudio:
             {
                 FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                Fragment prev = getSupportFragmentManager().findFragmentById(R.id.MainLayout);
+                Fragment prev = getSupportFragmentManager().findFragmentById(R.id.SuperAudioChooser);
                 if (prev != null) {  ft.remove(prev); }
                 ft.addToBackStack(null);
                 // Create and show the dialog.
@@ -290,45 +318,115 @@ public class ProjectActivity extends AppCompatActivity
 
 
     /////////////////////////////////////////Permission///////////////////////////////////
-
-    private boolean checkPermission()
+    /*<uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.CAPTURE_AUDIO_OUTPUT"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL"/>*/
+    /*private  boolean checkAndRequestPermissions()
     {
-        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
-        if (result == PackageManager.PERMISSION_GRANTED)
-        {
-            return true;
-        } else
-        {
+        int permissionRECORD_AUDIO = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.RECORD_AUDIO);
+        int permissionCAPTURE_AUDIO_OUTPUT = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.CAPTURE_AUDIO_OUTPUT);
+        int permissionWRITE_EXTERNAL_STORAGE = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int permissionMEDIA_CONTENT_CONTROL = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.MEDIA_CONTENT_CONTROL);
+
+        List<String> listPermissionsNeeded = new ArrayList<>();
+
+        if (permissionRECORD_AUDIO != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.RECORD_AUDIO);
+        }
+        if (permissionCAPTURE_AUDIO_OUTPUT != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.CAPTURE_AUDIO_OUTPUT);
+        }
+        if (permissionWRITE_EXTERNAL_STORAGE != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        if (permissionMEDIA_CONTENT_CONTROL != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.MEDIA_CONTENT_CONTROL);
+        }
+        if (!listPermissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]),REQUEST_ID_MULTIPLE_PERMISSIONS);
             return false;
         }
-    }
-
-    private void requestPermission()
-    {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION))
-        {
-            Toast.makeText(this,"GPS permission allows us to access location data. Please allow in App Settings for additional functionality.",Toast.LENGTH_LONG).show();
-        }
-        else
-        {
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},PERMISSION_REQUEST_CODE);
-        }
+        return true;
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        //Log.d(TAG, "Permission callback called-------");
         switch (requestCode)
         {
-            case PERMISSION_REQUEST_CODE:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
-                    Snackbar.make(viewContentProject,"Permission Granted, Now you can access location data.",Snackbar.LENGTH_LONG).show();
+            case REQUEST_ID_MULTIPLE_PERMISSIONS:
+            {
+                Map<String, Integer> perms = new HashMap<>();
+                // Initialize the map with both permissions
+                perms.put(Manifest.permission.RECORD_AUDIO, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.CAPTURE_AUDIO_OUTPUT, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.WRITE_EXTERNAL_STORAGE, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.MEDIA_CONTENT_CONTROL, PackageManager.PERMISSION_GRANTED);
+                // Fill with actual results from user
+                if (grantResults.length > 0) {
+                    for (int i = 0; i < permissions.length; i++)
+                        perms.put(permissions[i], grantResults[i]);
+                    // Check for both permissions
+                    if (perms.get(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                            && perms.get(Manifest.permission.CAPTURE_AUDIO_OUTPUT) == PackageManager.PERMISSION_GRANTED
+                            && perms.get(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                            && perms.get(Manifest.permission.MEDIA_CONTENT_CONTROL) == PackageManager.PERMISSION_GRANTED){
+                        //Log.d(TAG, "sms & location services permission granted");
+                        // process the normal flow
+                        //else any one or both the permissions are not granted
+                    } else {
+                        //Log.d(TAG, "Some permissions are not granted ask again ");
+                        //permission is denied (this is the first time, when "never ask again" is not checked) so ask again explaining the usage of permission
+//                        // shouldShowRequestPermissionRationale will return true
+                        //show the dialog or snackbar saying its necessary and try again otherwise proceed with setup.
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)
+                                || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAPTURE_AUDIO_OUTPUT)
+                                || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.MEDIA_CONTENT_CONTROL))
+                        {
+                            showDialogOK("Permission required for this app",
+                                    new DialogInterface.OnClickListener()
+                                    {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which)
+                                        {
+                                            switch (which) {
+                                                case DialogInterface.BUTTON_POSITIVE:
+                                                    checkAndRequestPermissions();
+                                                    break;
+                                                case DialogInterface.BUTTON_NEGATIVE:
+                                                    // proceed with logic by disabling the related features or quit the app.
+                                                    break;
+                                            }
+                                        }
+                                    });
+                        }
+                        //permission is denied (and never ask again is  checked)
+                        //shouldShowRequestPermissionRationale will return false
+                        else {
+                            Toast.makeText(this, "Go to settings and enable permissions", Toast.LENGTH_LONG)
+                                    .show();
+                            //                            //proceed with logic by disabling the related features or quit the app.
+                        }
+                    }
                 }
-                else
-                {
-                    Snackbar.make(viewContentProject,"Permission Denied, You cannot access location data.",Snackbar.LENGTH_LONG).show();
-                }
-                break;
+            }
         }
+
     }
+
+    private void showDialogOK(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(this)
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", okListener)
+                .create()
+                .show();
+    }*/
 }

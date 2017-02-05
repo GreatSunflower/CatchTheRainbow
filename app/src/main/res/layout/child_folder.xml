@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<com.supercomputer.superlistview.CheckableListItem xmlns:android="http://schemas.android.com/apk/res/android"
+                                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                                   xmlns:tools="http://schemas.android.com/tools"
+                                                   android:orientation="horizontal"
+                                                   android:layout_width="wrap_content"
+                                                   android:layout_height="wrap_content"
+                                                   android:descendantFocusability="blocksDescendants"
+                                                   android:padding="5dp">
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto"
               xmlns:tools="http://schemas.android.com/tools"
@@ -73,8 +82,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/tVCountMusics"
                 android:layout_weight="1"
-                android:layout_marginRight="5dp"
-                android:textAlignment="textEnd"/>
+                android:layout_marginRight="5dp"/>
 
             <TextView
                 android:text="@string/countMusics"
@@ -83,16 +91,8 @@
                 android:layout_weight="0.9"
                 android:layout_marginRight="5dp"/>
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/checkBox"
-                android:duplicateParentState="false"/>
-
         </LinearLayout>
 
     </LinearLayout>
-
-
-
 </LinearLayout>
+</com.supercomputer.superlistview.CheckableListItem>

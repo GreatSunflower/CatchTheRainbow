@@ -2,14 +2,22 @@ package com.sunflower.catchtherainbow.Views;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
+import com.sunflower.catchtherainbow.Adapters.CustomAdapterFragPager;
+import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 import com.sunflower.catchtherainbow.R;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -41,8 +49,8 @@ public class AudioChooserFragment extends DialogFragment
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     //* @param param1 Parameter 1.
+     //* @param param2 Parameter 2.
      //* @return A new instance of fragment AudioChooserFragment.
      */
     // TODO: Rename and change types and number of parameters
@@ -66,6 +74,7 @@ public class AudioChooserFragment extends DialogFragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
         /*if (getArguments() != null)
         {
             mParam1 = getArguments().getString(ARG_PARAM1);
@@ -73,12 +82,66 @@ public class AudioChooserFragment extends DialogFragment
         }*/
     }
 
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
+
+    private List<AudioFile> dudes = new ArrayList<>();
+    //private SimpleAdapterAudioFiles adapter;
+    private ListView superListView;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_audio_chooser, container, false);
+        View resView = inflater.inflate(R.layout.fragment_audio_chooser, container, false);
+
+        viewPager = (ViewPager) resView.findViewById(R.id.viewPager);
+        //viewPager.setAdapter(new CustomAdapterFragPager(getSupportFragmentManager(), getApplicationContext()));
+        viewPager.setAdapter(new CustomAdapterFragPager(getChildFragmentManager(), getActivity()));
+        tabLayout = (TabLayout) resView.findViewById(R.id.tabLayout);
+        tabLayout.setupWithViewPager(viewPager);
+
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+        });
+
+        // --------------------------------ADAPTER----------------------------------
+        /*Cursor cursor = sqlHelper.fetchPeople("");
+        String[] columns = new String[] {
+                SuperDatabaseHelper.KEY_PERSON_FIRST_NAME,
+                SuperDatabaseHelper.KEY_PERSON_LAST_NAME,
+                SuperDatabaseHelper.KEY_PERSON_AGE,
+                SuperDatabaseHelper.KEY_PERSON_ADDRESS,
+                SuperDatabaseHelper.KEY_PERSON_IMAGE
+        };
+        int[] to = new int[]{
+                R.id.imageView,
+                R.id.tvName,
+                R.id.tvArtist,
+                R.id.tvTimes
+        };
+        adapter = new SimpleAdapterAudioFiles(getActivity(), R.layout.child_music, cursor, columns, to, 0);
+        superListView = (ListView)resView.findViewById(R.id.listViewAudioFiles);
+        superListView.setAdapter(adapter);*/
+        // --------------------------------ADAPTER-END----------------------------------
+
+
+
+        return resView;
     }
 
     // TODO: Rename method, update argument and hook method into UI event

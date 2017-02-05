@@ -1,91 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:weightSum="1"
-              android:orientation="vertical"
-              android:descendantFocusability="blocksDescendants">
+<com.supercomputer.superlistview.CheckableListItem xmlns:android="http://schemas.android.com/apk/res/android"
+                                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                                   xmlns:tools="http://schemas.android.com/tools"
+                                                   android:orientation="horizontal"
+                                                   android:layout_width="wrap_content"
+                                                   android:layout_height="wrap_content"
+                                                   android:descendantFocusability="blocksDescendants"
+                                                   android:padding="5dp">
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:padding="10dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:id="@+id/imageView"
-            android:layout_weight="1"
-            android:src="@drawable/ic_music_note"/>
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1">
-
-            <TextView
-                android:id="@+id/tvName"
-                android:layout_alignParentLeft="true"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="false"
-                android:clickable="false"
-                android:text="Name Music"
-                android:textSize="20sp"
-                android:textColor="@android:color/black"
-                android:layout_marginLeft="4dp"
-                />
-
-            <TextView
-                android:id="@+id/tvArtist"
-                android:layout_alignParentLeft="true"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:focusable="false"
-                android:clickable="false"
-                android:layout_marginLeft="1dp"
-                android:layout_marginRight="0dp"
-                android:layout_marginTop="0dp"
-                android:text="Unknown Artist"
-                android:paddingLeft="5dp"
-                android:textSize="16sp"
-                tools:textStyle="normal"
-                android:textColor="@android:color/black"
-                />
-        </LinearLayout>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto"
+                  xmlns:tools="http://schemas.android.com/tools"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:weightSum="1"
+                  android:orientation="vertical"
+                  android:descendantFocusability="blocksDescendants">
 
         <LinearLayout
             android:orientation="horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:radius="10dip"
-            android:gravity="center_vertical|right"
-            android:layout_weight="1">
+            android:layout_width="match_parent"
+            android:padding="10dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp">
 
-            <TextView
-                android:text="03:45"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/tvTimes"
-                android:layout_weight="1"
-                android:layout_marginRight="5dp"
-                android:textAlignment="textEnd"/>
-
-            <CheckBox
+            <ImageView
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/checkBox"
-                />
+                android:layout_height="match_parent"
+                android:id="@+id/imageView"
+                android:layout_weight="1"
+                android:src="@drawable/ic_music_note"/>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/tvName"
+                    android:layout_alignParentLeft="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:clickable="false"
+                    android:text="Name Music"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/black"
+                    android:layout_marginLeft="4dp"
+                    />
+
+                <TextView
+                    android:id="@+id/tvArtist"
+                    android:layout_alignParentLeft="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:focusable="false"
+                    android:clickable="false"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginRight="0dp"
+                    android:layout_marginTop="0dp"
+                    android:text="Unknown Artist"
+                    android:paddingLeft="5dp"
+                    android:textSize="16sp"
+                    tools:textStyle="normal"
+                    android:textColor="@android:color/black"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:radius="10dip"
+                android:gravity="center_vertical|right"
+                android:layout_weight="1">
+
+                <TextView
+                    android:text="03:45"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvTimes"
+                    android:layout_weight="1"
+                    android:layout_marginRight="5dp"
+                    android:textAlignment="textEnd"/>
+
+            </LinearLayout>
 
         </LinearLayout>
-
     </LinearLayout>
-
-
-
-</LinearLayout>
+</com.supercomputer.superlistview.CheckableListItem>
