@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#4d63e6</color>
-    <color name="colorPrimaryDark">#394dd1</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimary">#373645</color>
+    <!--<color name="colorPrimary">#4d63e6</color>-->
+    <color name="colorPrimaryDark">#252430</color>
+    <color name="colorAccent">#33439f</color>
     <color name="colorForeground">#ffffff</color>
-    <color name="buttonOkAndCancel">#566efd</color>
-    <color name="backgroundTextView">#ffffff</color>
+    <color name="colorForegroundSecond">#bfbdc0</color>
+    <color name="buttonOkAndCancel">#373645</color>
+    <color name="backgroundTextView">#bfbdc0</color>
+    <color name="backgroundListView">#373645</color>
+    <color name="backgroundButton">#252430</color>
     <color name="strokeView">#33439f</color>
     <color name="textButton">#ffffff</color>
-    <color name="iconFolder">#d9d4c2</color>
-    <color name="iconMusic">#d9d4c2</color>
+    <color name="iconFolder">#bfbdc0</color>
+    <color name="iconMusic">#bfbdc0</color>
 </resources>

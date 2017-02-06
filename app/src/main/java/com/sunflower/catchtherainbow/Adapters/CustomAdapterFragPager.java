@@ -9,7 +9,6 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.view.View;
 import android.view.ViewGroup;
 
 import com.sunflower.catchtherainbow.R;
@@ -20,11 +19,11 @@ public class CustomAdapterFragPager extends FragmentPagerAdapter
 {
     private String fragments [] = {"Audio Files", "Folders"};
     private TabLayout tabLayout;
-
-    public CustomAdapterFragPager(FragmentManager supportFragmentManager, Context applicationContext, TabLayout tabLayout)
+    private FragTabAudioFiles.FragAudioListener  frAudioLis;
+    public CustomAdapterFragPager(FragmentManager supportFragmentManager, Context applicationContext, TabLayout tabLayout, FragTabAudioFiles.FragAudioListener frAudioLis)
     {
         super(supportFragmentManager);
-
+        this.frAudioLis = frAudioLis;
         this.tabLayout = tabLayout;
     }
 
@@ -34,6 +33,8 @@ public class CustomAdapterFragPager extends FragmentPagerAdapter
         switch (position)
         {
             case 0:
+                FragTabAudioFiles fr = new FragTabAudioFiles();
+                fr.addAudioListener(frAudioLis);
                 return new FragTabAudioFiles();
             case 1:
                 return new FragTabFolders();
@@ -48,6 +49,7 @@ public class CustomAdapterFragPager extends FragmentPagerAdapter
         super.startUpdate(container);
 
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_music_note);
+        tabLayout.getTabAt(1).setIcon(R.drawable.ic_folder);
     }
 
     @Override
@@ -59,7 +61,6 @@ public class CustomAdapterFragPager extends FragmentPagerAdapter
     @Override
     public CharSequence getPageTitle(int position)
     {
-       // tabLayout.getTabAt(0).setIcon(ICONS[0]);
         return fragments[position];
     }
 }

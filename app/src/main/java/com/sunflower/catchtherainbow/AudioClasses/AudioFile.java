@@ -16,21 +16,24 @@ public class AudioFile
     private String title;
     private String artist;
     private String path;
+    private double duration;
     private byte[] image;
 
-    public AudioFile(long id, String title, String artist, String path, byte[] image)
+    public AudioFile(long id, String title, String artist, double duration, String path, byte[] image)
     {
         this.id = id;
         this.setTitle(title);
         this.setArtist(artist);
+        this.setDuration(duration);
         this.setPath(path);
         this.image = image;
     }
 
-    public AudioFile(String name, String artist, String path, Bitmap image)
+    public AudioFile(String name, String artist, double duration, String path, Bitmap image)
     {
         this.setTitle(name);
         this.setArtist(artist);
+        this.setDuration(duration);
         this.setPath(path);
         this.image = imageToByteArray(image);
     }
@@ -107,6 +110,16 @@ public class AudioFile
     public void setTitle(String name)
     {
         this.title = name;
+    }
+
+    public double getDuration()
+    {
+        return duration;
+    }
+
+    public void setDuration(double duration)
+    {
+        this.duration = duration;
     }
 
     public String getPath()

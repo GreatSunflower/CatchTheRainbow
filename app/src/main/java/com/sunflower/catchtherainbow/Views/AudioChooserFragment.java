@@ -1,10 +1,8 @@
 package com.sunflower.catchtherainbow.Views;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.DialogFragment;
@@ -14,16 +12,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.ListView;
 
 import com.sunflower.catchtherainbow.Adapters.CustomAdapterFragPager;
-import com.sunflower.catchtherainbow.Adapters.SimpleAdapterAudioFiles;
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
-import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.R;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -33,7 +27,7 @@ import java.util.List;
  * Use the {@link AudioChooserFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class AudioChooserFragment extends DialogFragment
+public class AudioChooserFragment extends DialogFragment  implements FragTabAudioFiles.FragAudioListener
 {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -105,7 +99,7 @@ public class AudioChooserFragment extends DialogFragment
         tabLayout = (TabLayout) resView.findViewById(R.id.tabLayout);
 
         //viewPager.setAdapter(new CustomAdapterFragPager(getSupportFragmentManager(), getApplicationContext()));
-        viewPager.setAdapter(new CustomAdapterFragPager(getChildFragmentManager(), getActivity(), tabLayout));
+        viewPager.setAdapter(new CustomAdapterFragPager(getChildFragmentManager(), getActivity(), tabLayout, this));
 
         tabLayout.setupWithViewPager(viewPager);
 
@@ -130,15 +124,6 @@ public class AudioChooserFragment extends DialogFragment
         return resView;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri)
-    {
-        if (mListener != null)
-        {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     @Override
     public void onAttach(Context context)
     {
@@ -160,6 +145,22 @@ public class AudioChooserFragment extends DialogFragment
         mListener = null;
     }
 
+    @Override
+    public void onOk(ArrayList<AudioFile> selectedAudioFiles)
+    {
+        if(mListener != null) mListener.onOk(selectedAudioFiles);
+        // Закрытие текущего фрагмента
+        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+    }
+
+    @Override
+    public void onCancel()
+    {
+        if(mListener != null) mListener.onCancel();
+        // Закрытие текущего фрагмента
+        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -172,9 +173,7 @@ public class AudioChooserFragment extends DialogFragment
      */
     public interface OnFragmentInteractionListener
     {
-        void onClick(View v);
-
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        void onOk(ArrayList<AudioFile> selectedAudioFiles);
+        void onCancel();
     }
 }

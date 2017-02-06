@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.support.v4.widget.CursorAdapter;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +16,9 @@ import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.R;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Alexandr on 05.02.2017.
@@ -28,7 +29,6 @@ public class SimpleAdapterAudioFiles extends CursorAdapter
     private final Activity context;
     private HashMap<Long, Boolean> selection = new HashMap<>();
     private String filter = "";
-
     private LayoutInflater inflater;
 
     public SimpleAdapterAudioFiles(final Activity context, Cursor c, int flags)
@@ -46,6 +46,39 @@ public class SimpleAdapterAudioFiles extends CursorAdapter
         });
 
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    }
+
+    public ArrayList<AudioFile> getSelectionAudioFiles()
+    {
+        ArrayList<AudioFile> selectedAudio = new ArrayList<>();
+        for(Map.Entry<Long, Boolean> entry : selection.entrySet())
+        {
+            Long key = entry.getKey();
+            Boolean value = entry.getValue();
+            if(value == true)
+            {
+                selectedAudio.add(getPersonFromPosition(key.intValue()));
+            }
+        }
+        return selectedAudio;
+    }
+
+    public void setNewSelection(Long id)
+    {
+        if(isPersonChecked(id)) selection.put(id, false);
+        else selection.put(id, true);
+        notifyDataSetChanged();
+    }
+
+    public boolean isPersonChecked(Long row)
+    {
+        Boolean result = selection.get(row);
+        return result == null ? false : result;
+    }
+
+    public void notifyDataSetChanged()
+    {
+        super.notifyDataSetChanged();
     }
 
     public AudioFile getPersonFromPosition(int position)
@@ -73,27 +106,31 @@ public class SimpleAdapterAudioFiles extends CursorAdapter
         }
         else rowView = view;
 
-        //View itemView = rowView.findViewById(R.id.itemVIew);
+        View itemView = rowView.findViewById(R.id.musicLayout);
 
         // ----- Tint -----
-        /*int color = R.color.oddListViewItemColor;
-        if(position % 2 != 0) color = R.color.evenListViewItemColor;
+        int color = 0;
 
-        itemView.getBackground().setColorFilter(context.getResources().getColor(color), PorterDuff.Mode.SRC_ATOP);
+        if (isPersonChecked((long)cursor.getPosition()))
+        {
+            itemView.setBackgroundColor(context.getResources().getColor(R.color.colorAccent));
+        }
+        else
+        {
+            itemView.setBackgroundColor(context.getResources().getColor(R.color.backgroundListView));
+        }
         // -----Tint-end------
-        */
 
         ImageView albumImage = (ImageView)rowView.findViewById(R.id.imageView);
         TextView nameLayout = (TextView)rowView.findViewById(R.id.tvName);
         TextView artistLayout = (TextView)rowView.findViewById(R.id.tvArtist);
         TextView timesLayout = (TextView)rowView.findViewById(R.id.tvTimes);
 
-        /*if(file.image != null) personImage.setImageBitmap(file.getBitmapImage());
-        else personImage.setImageResource(R.drawable.ic_person_black_24dp);*/
+        if(file.getBitmapImage() != null) albumImage.setImageBitmap(file.getBitmapImage());
 
         nameLayout.setText(file.getTitle());
         artistLayout.setText(file.getArtist());
-        timesLayout.setText(Helper.secondToString(0));
+        timesLayout.setText(Helper.secondToString(file.getDuration()));
     }
 
    /* public void refeshData()

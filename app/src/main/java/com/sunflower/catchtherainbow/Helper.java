@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.widget.ImageView;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 
@@ -99,8 +98,10 @@ public class Helper
         //cursorMusic.moveToFirst();
         //while (cursorMusic.moveToNext())
         {
+            long idAudio = cursorMusic.getLong(cursorMusic.getColumnIndex(MediaStore.Audio.Media._ID));
             String title = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.TITLE));
             String artist = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+            double duration = cursorMusic.getDouble(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DURATION));
             String fullPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DATA));
 
             Bitmap art = null;
@@ -111,7 +112,7 @@ public class Helper
             }
             catch(Exception ex){}
 
-            AudioFile audioFile = new AudioFile(title, artist, fullPath, art);
+            AudioFile audioFile = new AudioFile(idAudio, title, artist, duration, fullPath, AudioFile.imageToByteArray(art));
             return  audioFile;
         }
       //  return null;
@@ -142,6 +143,7 @@ public class Helper
                         long id = cursorMusic.getLong(cursorMusic.getColumnIndex(MediaStore.Audio.Media._ID));
                         String title = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.TITLE));
                         String artist = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                        double duration = cursorMusic.getDouble(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DURATION));
                         String fullPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DATA));
 
                         Bitmap art = null;
@@ -152,7 +154,7 @@ public class Helper
                         }
                         catch(Exception ex){}
 
-                        AudioFile audioFile = new AudioFile(title, artist, fullPath, art);
+                        AudioFile audioFile = new AudioFile(title, artist, duration, fullPath, art);
 
                         songs.add(audioFile);
                     }

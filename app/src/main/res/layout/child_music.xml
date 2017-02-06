@@ -15,7 +15,9 @@
                   android:layout_height="wrap_content"
                   android:weightSum="1"
                   android:orientation="vertical"
-                  android:descendantFocusability="blocksDescendants">
+                  android:descendantFocusability="blocksDescendants"
+                  android:id="@+id/musicLayout"
+                  android:background="@android:color/transparent">
 
         <LinearLayout
             android:orientation="horizontal"
@@ -50,8 +52,8 @@
                     android:focusable="false"
                     android:clickable="false"
                     android:text="Name Music"
-                    android:textSize="20sp"
-                    android:textColor="@android:color/black"
+                    android:textSize="14sp"
+                    android:textColor="@color/colorForeground"
                     android:layout_marginLeft="4dp"
                     />
 
@@ -67,9 +69,9 @@
                     android:layout_marginTop="0dp"
                     android:text="Unknown Artist"
                     android:paddingLeft="5dp"
-                    android:textSize="16sp"
+                    android:textSize="14sp"
                     tools:textStyle="normal"
-                    android:textColor="@android:color/black"
+                    android:textColor="@color/colorForegroundSecond"
                     />
             </LinearLayout>
 
@@ -87,7 +89,9 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/tvTimes"
                     android:layout_marginRight="5dp"
-                    android:textAlignment="textEnd"/>
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/colorForegroundSecond"
+                    android:textSize="14sp"/>
 
             </LinearLayout>
 

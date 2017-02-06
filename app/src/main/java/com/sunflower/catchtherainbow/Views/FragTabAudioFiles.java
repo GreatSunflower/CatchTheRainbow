@@ -11,7 +11,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.sunflower.catchtherainbow.Adapters.SimpleAdapterAudioFiles;
@@ -20,14 +20,12 @@ import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.R;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by filip on 8/21/2015.
  */
-public class FragTabAudioFiles extends Fragment
+public class FragTabAudioFiles extends Fragment implements View.OnClickListener
 {
-    private List<AudioFile> dudes = new ArrayList<>();
     private SimpleAdapterAudioFiles adapter;
     private ListView superListView;
 
@@ -54,10 +52,61 @@ public class FragTabAudioFiles extends Fragment
         };
         adapter = new SimpleAdapterAudioFiles(getActivity(), cursor, 0);
         superListView = (ListView)resView.findViewById(R.id.listViewAudioFiles);
-        superListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
         superListView.setAdapter(adapter);
+        superListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         // --------------------------------ADAPTER-END----------------------------------
 
+        superListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+            {
+                adapter.setNewSelection((long)position);
+            }
+        });
+
         return resView;
+    }
+
+    @Override
+    public void onClick(View v)
+    {
+        switch(v.getId())
+        {
+            case R.id.bOk:
+            {
+                for(FragAudioListener listener : audioFragListeners)
+                {
+                    listener.onOk(adapter.getSelectionAudioFiles());
+                }
+                break;
+            }
+            case R.id.bCancel:
+            {
+                for(FragAudioListener listener : audioFragListeners)
+                {
+                    listener.onCancel();
+                }
+                break;
+            }
+        }
+    }
+
+    private ArrayList<FragAudioListener> audioFragListeners = new ArrayList<>();
+
+    public ArrayList<FragAudioListener> getAudioFragListeners()
+    {
+        return audioFragListeners;
+    }
+
+    public void addAudioListener(FragAudioListener audioListener)
+    {
+        audioFragListeners.add(audioListener);
+    }
+
+    public interface FragAudioListener
+    {
+        void onOk(ArrayList<AudioFile> selectedAudioFiles);
+        void onCancel();
     }
 }

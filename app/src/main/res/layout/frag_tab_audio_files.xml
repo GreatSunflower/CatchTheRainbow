@@ -22,7 +22,7 @@
             android:layout_height="match_parent"
             android:layout_marginTop="5dp"
             android:id="@+id/listViewAudioFiles"
-            android:background="@color/backgroundTextView"/>
+            android:background="@color/backgroundListView"/>
 
     </LinearLayout>
 
@@ -34,7 +34,7 @@
         <Button
             android:text="@string/conformation"
             android:layout_width="wrap_content"
-            android:onClick="onClick (ProjectActivity)"
+            android:onClick="onClick"
             android:id="@+id/bOk"
             android:background="@drawable/background_button"
             android:gravity="center"
