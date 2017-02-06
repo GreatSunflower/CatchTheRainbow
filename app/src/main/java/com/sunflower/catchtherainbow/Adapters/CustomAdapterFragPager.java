@@ -35,7 +35,7 @@ public class CustomAdapterFragPager extends FragmentPagerAdapter
             case 0:
                 FragTabAudioFiles fr = new FragTabAudioFiles();
                 fr.addAudioListener(frAudioLis);
-                return new FragTabAudioFiles();
+                return fr;
             case 1:
                 return new FragTabFolders();
             default:

@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.sunflower.catchtherainbow.Adapters.SimpleAdapterAudioFiles;
@@ -36,20 +37,8 @@ public class FragTabAudioFiles extends Fragment implements View.OnClickListener
         View resView = inflater.inflate(R.layout.frag_tab_audio_files,container,false);
 
         // --------------------------------ADAPTER----------------------------------
-        Cursor cursor = Helper.getSongsAudioCursor(getActivity(), "");// sqlHelper.fetchPeople("");
-        String[] columns = new String[] {
-             /*   SuperDatabaseHelper.KEY_PERSON_FIRST_NAME,
-                SuperDatabaseHelper.KEY_PERSON_LAST_NAME,
-                SuperDatabaseHelper.KEY_PERSON_AGE,
-                SuperDatabaseHelper.KEY_PERSON_ADDRESS,
-                SuperDatabaseHelper.KEY_PERSON_IMAGE*/
-        };
-        int[] to = new int[]{
-                R.id.imageView,
-                R.id.tvName,
-                R.id.tvArtist,
-                R.id.tvTimes
-        };
+        Cursor cursor = Helper.getSongsAudioCursor(getActivity(), "");
+
         adapter = new SimpleAdapterAudioFiles(getActivity(), cursor, 0);
         superListView = (ListView)resView.findViewById(R.id.listViewAudioFiles);
         superListView.setAdapter(adapter);
@@ -64,6 +53,12 @@ public class FragTabAudioFiles extends Fragment implements View.OnClickListener
                 adapter.setNewSelection((long)position);
             }
         });
+
+        Button ok = (Button)resView.findViewById(R.id.bOk);
+        Button cancel = (Button)resView.findViewById(R.id.bCancel);
+
+        ok.setOnClickListener(this);
+        cancel.setOnClickListener(this);
 
         return resView;
     }

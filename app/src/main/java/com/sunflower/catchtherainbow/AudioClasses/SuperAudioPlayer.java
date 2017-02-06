@@ -18,7 +18,11 @@ import java.util.concurrent.TimeUnit;
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.AudioProcessor;
+import be.tarsos.dsp.DetermineDurationProcessor;
+import be.tarsos.dsp.StopAudioProcessor;
 import be.tarsos.dsp.WaveformSimilarityBasedOverlapAdd;
+import be.tarsos.dsp.io.PipedAudioStream;
+import be.tarsos.dsp.io.TarsosDSPAudioInputStream;
 import be.tarsos.dsp.io.android.AndroidAudioPlayer;
 import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 
@@ -32,15 +36,16 @@ public class SuperAudioPlayer implements AudioProcessor
 
     protected Context context;
 
-    private ArrayList<AudioPlayerListener> playerListeners = new ArrayList<>();
-    private PlayerState state = PlayerState.NO_FILE_LOADED;
-    private File loadedFile;
+    protected ArrayList<AudioPlayerListener> playerListeners = new ArrayList<>();
+    protected PlayerState state = PlayerState.NO_FILE_LOADED;
+    protected File loadedFile;
 
-    private AndroidAudioPlayer audioPlayer;
+    protected AndroidAudioPlayer audioPlayer;
+    protected DetermineDurationProcessor durationProc;
 
-    private double durationInSeconds;
-    private double currentTime;
-    private double pausedAt;
+    protected double durationInSeconds;
+    protected double currentTime;
+    protected double pausedAt;
 
     AudioDispatcher dispatcher;
 
@@ -80,7 +85,8 @@ public class SuperAudioPlayer implements AudioProcessor
         String duration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
         mmr.release();
 
-        durationInSeconds = Helper.millisecondsToSeconds(Double.parseDouble(duration));
+        durationInSeconds =  Helper.millisecondsToSeconds(Double.parseDouble(duration));
+
         Log.d("aaa", "New duration: " +  durationInSeconds+"");
 
         pausedAt = 0;
@@ -124,26 +130,27 @@ public class SuperAudioPlayer implements AudioProcessor
         {
             if (state == PlayerState.PLAYING) stop();
 
-            try
-            {
-                dispatcher = AudioDispatcherFactory.fromPipe(loadedFile.getAbsolutePath(), sampleRate, 4096, 2048);
+            pausedAt = startTime;
 
-                audioPlayer = new AndroidAudioPlayer(dispatcher.getFormat(), 4096, AudioManager.STREAM_MUSIC);
-                dispatcher.skip(startTime);
+            PipedAudioStream file = new PipedAudioStream(loadedFile.getPath());
+            TarsosDSPAudioInputStream stream = file.getMonoStream(sampleRate, startTime);
 
-                dispatcher.addAudioProcessor(this);
-                dispatcher.addAudioProcessor(audioPlayer);
+            dispatcher = new AudioDispatcher(stream, sampleRate, 4096); //AudioDispatcherFactory.fromPipe(loadedFile.getAbsolutePath(), sampleRate, 4096, 2048);
+            //dispatcher.skip(startTime);
 
-                Thread th = new Thread(dispatcher, "Audio Player Thread");
-                th.setPriority(Thread.MAX_PRIORITY);
-                th.setUncaughtExceptionHandler(dispatcherExceptionHandler);
-                th.start();
-                state = PlayerState.PLAYING;
-            }
-            catch (AndroidRuntimeException e)
-            {
-                //throw new Error("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA!!! CRAPPPP!!!!");
-            }
+            audioPlayer = new AndroidAudioPlayer(dispatcher.getFormat());
+            durationProc = new DetermineDurationProcessor();
+
+            dispatcher.addAudioProcessor(durationProc);
+            dispatcher.addAudioProcessor(this);
+            dispatcher.addAudioProcessor(audioPlayer);
+
+            Thread th = new Thread(dispatcher, "Audio Player Thread");
+            th.setPriority(Thread.MAX_PRIORITY);
+            th.setUncaughtExceptionHandler(dispatcherExceptionHandler);
+            th.start();
+            state = PlayerState.PLAYING;
+
         }
     }
 
@@ -157,7 +164,7 @@ public class SuperAudioPlayer implements AudioProcessor
         if(state == PlayerState.PLAYING || state == PlayerState.PAUZED)
         {
             setState(PlayerState.PAUZED);
-            dispatcher.stop();
+            if(dispatcher != null) dispatcher.stop();
             pausedAt = pauseAt;
         }
         else
@@ -172,8 +179,8 @@ public class SuperAudioPlayer implements AudioProcessor
         {
             dispatcher.removeAudioProcessor(this);
             dispatcher.removeAudioProcessor(audioPlayer);
-            dispatcher.stop();
             dispatcher = null;
+            pausedAt = 0;
             state = PlayerState.STOPPED;
         }
         else if(state != PlayerState.STOPPED)
@@ -187,9 +194,9 @@ public class SuperAudioPlayer implements AudioProcessor
     @Override
     public boolean process(AudioEvent audioEvent)
     {
-        currentTime = audioEvent.getTimeStamp();
+        currentTime = audioEvent.getTimeStamp() + pausedAt;
         for(AudioPlayerListener listener: playerListeners)
-            listener.OnUpdate(audioEvent);
+            listener.OnUpdate(audioEvent, currentTime);
 
         return true;
     }
@@ -201,8 +208,14 @@ public class SuperAudioPlayer implements AudioProcessor
         {
             state = PlayerState.STOPPED;
         }
+
+        double realProcessedSeconds =  dispatcher.secondsProcessed();
+
+        if(currentTime == durationInSeconds)
         for (AudioPlayerListener listener : playerListeners)
             listener.OnFinish();
+
+
     }
 
     Thread.UncaughtExceptionHandler dispatcherExceptionHandler = new Thread.UncaughtExceptionHandler()
@@ -297,7 +310,7 @@ public class SuperAudioPlayer implements AudioProcessor
     public interface AudioPlayerListener
     {
         void OnInitialized();
-        void OnUpdate(AudioEvent audioEvent);
+        void OnUpdate(AudioEvent audioEvent, double realCurrentTime);
         void OnFinish();
     }
 

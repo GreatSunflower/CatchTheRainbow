@@ -33,6 +33,7 @@ import com.sunflower.catchtherainbow.AudioClasses.SuperAudioPlayer;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment.OnFragmentInteractionListener;
 import com.sunflower.catchtherainbow.Views.AudioProgressView;
+import com.sunflower.catchtherainbow.Views.AudioVisualizerView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -49,10 +50,10 @@ public class ProjectActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, View.OnClickListener
 {
     private ActionMenuView amvMenu;
-    private Button playStopButt, bGetAudio, bNext, bPrev;
+    private Button playStopButt, bNext, bPrev;
     private AudioProgressView progressView;
     private View viewContentProject;
-    private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
+    private AudioVisualizerView visualizerView;
 
     // temp
     boolean isPlaying = false, isDragging = false;
@@ -108,12 +109,11 @@ public class ProjectActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         // -----------------------------------------------------FOR TESTING PURPOSES---------------------------------------
+        visualizerView = (AudioVisualizerView) findViewById(R.id.audioVisualizerView);
         playStopButt = (Button)findViewById(R.id.Sacha);
-        bGetAudio = (Button)findViewById(R.id.b_getAudio);
         bNext = (Button)findViewById(R.id.playNext);
         bPrev = (Button)findViewById(R.id.playPrev);
 
-        bGetAudio.setOnClickListener(this);
         bPrev.setOnClickListener(this);
         bNext.setOnClickListener(this);
 
@@ -143,83 +143,70 @@ public class ProjectActivity extends AppCompatActivity
 
         new AndroidFFMPEGLocator(this);
 
-       // if (!checkPermission()) requestPermission();
-      //  else
+        player = new PlayListPlayer(this);
+        player.addPlayerListener(new SuperAudioPlayer.AudioPlayerListener()
         {
-            player = new PlayListPlayer(this);
-            player.addPlayerListener(new SuperAudioPlayer.AudioPlayerListener()
+            @Override
+            public void OnInitialized()
             {
-                @Override
-                public void OnInitialized()
+                runOnUiThread(new Runnable()
                 {
-                    runOnUiThread(new Runnable()
+                    public void run()
                     {
-                        public void run()
-                        {
-                            progressView.setMax((float) player.getDurationInSeconds());
-                        }
-                    });
-                }
-
-                @Override
-                public void OnUpdate(AudioEvent audioEvent)
-                {
-                    //  final float duration = (float) audioEvent.getFrameLength() / audioEvent.getfra();
-                    final float currentTime = (float) audioEvent.getTimeStamp();
-                    runOnUiThread(new Runnable()
-                    {
-                        public void run()
-                        {
-                            //progressView.setMax(duration);
-                            if(!isDragging) progressView.setCurrent(currentTime);
-                        }
-                    });
-                }
-
-                @Override
-                public void OnFinish()
-                {
-
-                }
-            });
-
-            playStopButt.setOnClickListener(new View.OnClickListener()
-            {
-                @Override
-                public void onClick(View view)
-                {
-                    if (!isPlaying)
-                    {
-                        Random rand = new Random();
-                       // List<String> songs = Helper.getAllSongsOnDevice(ProjectActivity.this);
-                        ArrayList<AudioFile> songs = Helper.getAllAudioOnDevice(ProjectActivity.this);
-                        long seed = System.nanoTime();
-                        Collections.shuffle(songs, new Random(seed));
-                        ///String file = songs.get(rand.nextInt(songs.size()));
-                        try
-                        {
-                            //player.load(new File(file));
-                            player.setAudioFiles(songs);
-                            isPlaying = true;
-                            playStopButt.setText("Stop");
-                            player.play();
-                        }
-                        catch (Exception e)
-                        {
-                            Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                            e.printStackTrace();
-                        }
+                        progressView.setMax((float) player.getDurationInSeconds());
                     }
-                    else
+                });
+            }
+
+            @Override
+            public void OnUpdate(AudioEvent audioEvent, double realCurrentTime)
+            {
+                //  final float duration = (float) audioEvent.getFrameLength() / audioEvent.getfra();
+                final double currentTime = realCurrentTime;// (float) audioEvent.getTimeStamp();
+                final byte []audioData = audioEvent.getByteBuffer();
+
+                runOnUiThread(new Runnable()
+                {
+                    public void run()
                     {
-                        player.stop();
-                        isPlaying = false;
-                        playStopButt.setText("Play");
+                        //progressView.setMax(duration);
+                        if(!isDragging) progressView.setCurrent((float)currentTime);
+                        visualizerView.updateVisualizer(audioData);
+                    }
+                });
+            }
+
+            @Override
+            public void OnFinish(){}
+        });
+
+        playStopButt.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                if (!isPlaying)
+                {
+                    try
+                    {
+                        isPlaying = true;
+                        playStopButt.setText("Pause");
+                        player.play();
+                    }
+                    catch (Exception e)
+                    {
+                        Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
                     }
                 }
-            });
-
-        }
+                else
+                {
+                    player.pause();
+                    isPlaying = false;
+                    playStopButt.setText("Play");
+                }
+            }
+        });
     }
 
     public static boolean hasPermissions(Context context, String... permissions)
@@ -242,17 +229,6 @@ public class ProjectActivity extends AppCompatActivity
     {
         switch(v.getId())
         {
-            case R.id.b_getAudio:
-            {
-                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                Fragment prev = getSupportFragmentManager().findFragmentById(R.id.SuperAudioChooser);
-                if (prev != null) {  ft.remove(prev); }
-                ft.addToBackStack(null);
-                // Create and show the dialog.
-                DialogFragment newFragment = AudioChooserFragment.newInstance();
-                newFragment.show(ft, "dialog");
-                break;
-            }
             case R.id.playNext:
             {
                 if(player != null)
@@ -304,7 +280,7 @@ public class ProjectActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu)
     {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.project, amvMenu.getMenu() /*menu*/); // adds menu items to the left side. If it's not needed replace second param with default menu
+        getMenuInflater().inflate(R.menu.project, /*amvMenu.getMenu() /**/menu); // adds menu items to the left side. If it's not needed replace second param with default menu
         return true;
     }
 
@@ -319,6 +295,13 @@ public class ProjectActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings)
         {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            Fragment prev = getSupportFragmentManager().findFragmentById(R.id.SuperAudioChooser);
+            if (prev != null) {  ft.remove(prev); }
+            ft.addToBackStack(null);
+            // Create and show the dialog.
+            AudioChooserFragment newFragment = AudioChooserFragment.newInstance();
+            newFragment.show(ft, "dialog");
             return true;
         }
 
@@ -361,8 +344,32 @@ public class ProjectActivity extends AppCompatActivity
         return true;
     }
 
+    // ---------------------------------SONG CHOOSER LISTENER INTERFACE----------------------------------
+
     @Override
-    public void onFragmentInteraction(Uri uri)
+    public void onOk(ArrayList<AudioFile> selectedAudioFiles)
+    {
+        //Random rand = new Random();
+        // List<String> songs = Helper.getAllSongsOnDevice(ProjectActivity.this);
+        ArrayList<AudioFile> songs = selectedAudioFiles;
+        long seed = System.nanoTime();
+        Collections.shuffle(songs, new Random(seed));
+        try
+        {
+            player.setAudioFiles(songs);
+            isPlaying = true;
+            playStopButt.setText("Pause");
+            player.play();
+        }
+        catch (Exception e)
+        {
+            Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onCancel()
     {
 
     }
