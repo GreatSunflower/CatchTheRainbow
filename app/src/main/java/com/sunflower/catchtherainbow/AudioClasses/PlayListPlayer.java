@@ -1,5 +1,6 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
+import android.app.Activity;
 import android.content.Context;
 import android.preference.PreferenceActivity;
 
@@ -17,7 +18,7 @@ public class PlayListPlayer extends SuperAudioPlayer
     private ArrayList<AudioFile> audioFiles = new ArrayList<>();
     private AudioFile currentFile;
 
-    public PlayListPlayer(Context context)
+    public PlayListPlayer(Activity context)
     {
         super(context);
     }

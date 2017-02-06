@@ -114,7 +114,7 @@ public class Helper
             }
             catch(Exception ex){}
 
-            AudioFile audioFile = new AudioFile(idAudio, title, artist, duration, fullPath, AudioFile.imageToByteArray(art));
+            AudioFile audioFile = new AudioFile(idAudio, title, artist, Helper.millisecondsToSeconds(duration), fullPath, AudioFile.imageToByteArray(art));
             return  audioFile;
         }
       //  return null;
@@ -156,7 +156,7 @@ public class Helper
                         }
                         catch(Exception ex){}
 
-                        AudioFile audioFile = new AudioFile(title, artist, duration, fullPath, art);
+                        AudioFile audioFile = new AudioFile(title, artist, Helper.millisecondsToSeconds(duration), fullPath, art);
 
                         songs.add(audioFile);
                     }

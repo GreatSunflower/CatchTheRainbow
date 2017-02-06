@@ -25,16 +25,15 @@
             android:layout_width="match_parent"
             class="com.sunflower.catchtherainbow.Views.AudioVisualizerView"
             android:id="@+id/audioVisualizerView"
-            android:layout_height="150dp"
             android:layout_centerHorizontal="true"
             android:layout_centerInParent="true"
-            android:layout_centerVertical="true"/>
+            android:layout_centerVertical="true"
+            android:layout_height="match_parent"/>
     </RelativeLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
         android:id="@+id/audioInfoTextView"
         android:gravity="start"
         android:foregroundGravity="center"

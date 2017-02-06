@@ -3,13 +3,11 @@ package com.sunflower.catchtherainbow.Views;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
-
-import java.util.Arrays;
 
 /**
  * Created by SuperComputer on 2/6/2017.
@@ -17,8 +15,12 @@ import java.util.Arrays;
 
 public class AudioVisualizerView extends View
 {
-    private byte[] mBytes;
+    // keeps wave data in normalized form(from -1 to 1)
+    private float[] floatBuffer;
+
+    // actual points to draw
     private float[] mPoints;
+
     private Rect mRect = new Rect();
     private Paint mForePaint = new Paint();
 
@@ -42,15 +44,19 @@ public class AudioVisualizerView extends View
 
     private void init()
     {
-        mBytes = null;
-        mForePaint.setStrokeWidth(1f);
+        floatBuffer = null;
+        // make ihe wave beautiful(or not)
+        mForePaint.setStrokeWidth(1.5f);
         mForePaint.setAntiAlias(true);
+        mForePaint.setStrokeJoin(Paint.Join.ROUND);
+        mForePaint.setStrokeCap(Paint.Cap.ROUND);
         mForePaint.setColor(Color.rgb(255, 255, 255));
     }
 
-    public void updateVisualizer(byte[] bytes)
+    // actual method that updates the view
+    public void updateVisualizer(float[] newFloatBuffer)
     {
-        mBytes = bytes;
+        floatBuffer = newFloatBuffer;
         invalidate();
     }
 
@@ -59,24 +65,29 @@ public class AudioVisualizerView extends View
     {
         super.onDraw(canvas);
 
-        if (mBytes == null)
+        // no need to update yet
+        if (floatBuffer == null)
         {
             return;
         }
 
-        int dividerFactor = 50;
-
-        if (mPoints == null || mPoints.length < mBytes.length/dividerFactor * 4)
+        // if there are no points or they are less than buffer size
+        if (mPoints == null || mPoints.length < floatBuffer.length * 4)
         {
-            mPoints = new float[mBytes.length/dividerFactor * 4];
+            mPoints = new float[floatBuffer.length * 4];
         }
+
+        // size of the view
         mRect.set(0, 0, getWidth(), getHeight());
-        for (int i = 0; i < mBytes.length/dividerFactor - 1; i++)
+
+        for (int i = 0; i < floatBuffer.length - 1; i++)
         {
-            mPoints[i * 4] = mRect.width() * i / (mBytes.length/dividerFactor - 1);
-            mPoints[i * 4 + 1] = mRect.height() / 2  + ((byte) (mBytes[i] + 128)) * (mRect.height() / 2) / 128;
-            mPoints[i * 4 + 2] = mRect.width() * (i + 1) / (mBytes.length/dividerFactor - 1);
-            mPoints[i * 4 + 3] = mRect.height() / 2 + ((byte) (mBytes[i + 1] + 128)) * (mRect.height() / 2) / 128;
+            //to set two points of the line we need to fill 4 cells of the array
+
+            mPoints[i * 4] = mRect.width() * i / (floatBuffer.length - 1);
+            mPoints[i * 4 + 1] = mRect.height() / 2  + floatBuffer[i] * (mRect.height() / 2);
+            mPoints[i * 4 + 2] = mRect.width() * (i + 1) / (floatBuffer.length - 1);
+            mPoints[i * 4 + 3] = mRect.height() / 2 + floatBuffer[i + 1] * (mRect.height() / 2);
         }
         canvas.drawLines(mPoints, mForePaint);
 

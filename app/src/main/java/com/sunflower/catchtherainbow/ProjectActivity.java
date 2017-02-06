@@ -178,17 +178,11 @@ public class ProjectActivity extends AppCompatActivity
             {
                 //  final float duration = (float) audioEvent.getFrameLength() / audioEvent.getfra();
                 final double currentTime = realCurrentTime;// (float) audioEvent.getTimeStamp();
-                final byte []audioData = audioEvent.getByteBuffer();
+                final float []audioData = audioEvent.getFloatBuffer();
 
-                runOnUiThread(new Runnable()
-                {
-                    public void run()
-                    {
-                        //progressView.setMax(duration);
-                        if(!isDragging) progressView.setCurrent((float)currentTime);
-                        visualizerView.updateVisualizer(audioData);
-                    }
-                });
+                //progressView.setMax(duration);
+                if(!isDragging) progressView.setCurrent((float)currentTime);
+                visualizerView.updateVisualizer(audioData);
             }
 
             @Override
