@@ -15,5 +15,5 @@
     <color name="iconFolder">#bfbdc0</color>
     <color name="iconMusic">#bfbdc0</color>
 
-    <color name="selectedSongItem">#bfbdc0</color>
+    <color name="selectedSongItem">#999999</color>
 </resources>

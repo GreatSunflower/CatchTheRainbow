@@ -43,7 +43,7 @@ public class AudioVisualizerView extends View
     private void init()
     {
         mBytes = null;
-        mForePaint.setStrokeWidth(0.5f);
+        mForePaint.setStrokeWidth(1f);
         mForePaint.setAntiAlias(true);
         mForePaint.setColor(Color.rgb(255, 255, 255));
     }
@@ -64,12 +64,7 @@ public class AudioVisualizerView extends View
             return;
         }
 
-        if (mBytes == null)
-        {
-            return;
-        }
-
-        int dividerFactor = 125;
+        int dividerFactor = 50;
 
         if (mPoints == null || mPoints.length < mBytes.length/dividerFactor * 4)
         {

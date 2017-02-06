@@ -16,15 +16,6 @@
     android:paddingLeft="2dp"
     android:paddingRight="2dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:id="@+id/audioInfoTextView"
-        android:gravity="center"
-        android:foregroundGravity="center"
-        android:textColor="@color/colorForeground"/>
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -40,6 +31,19 @@
             android:layout_centerVertical="true"/>
     </RelativeLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Hello World!"
+        android:id="@+id/audioInfoTextView"
+        android:gravity="start"
+        android:foregroundGravity="center"
+        android:textColor="@color/colorForeground"
+        android:textAlignment="textStart"
+        android:layout_marginBottom="3dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"/>
+
     <com.sunflower.catchtherainbow.Views.AudioProgressView
         android:layout_width="match_parent"
         android:layout_below="@+id/Sacha"
@@ -51,39 +55,42 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center">
+        android:layout_width="75dp">
 
-        <Button
+        <ImageButton
             android:text="Prev"
-            android:layout_height="wrap_content"
             android:id="@+id/playPrev"
-            android:layout_weight="1"
-            android:background="@drawable/background_button"
             android:textColor="@color/colorForeground"
-            android:layout_width="wrap_content"/>
-            android:layout_width="75dp"/>
+            app:srcCompat="@drawable/ic_skip_previous"
+            android:background="@null"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"/>
 
-        <Button
+        <ImageButton
             android:text="Play"
-            android:layout_height="wrap_content"
             android:id="@+id/Sacha"
-            android:background="@drawable/background_button"
-            android:layout_marginLeft="3dp"
+            android:background="@null"
+            android:layout_marginLeft="10dp"
             android:textColor="@color/colorForeground"
-            android:layout_weight="1"
-            android:layout_width="wrap_content"/>
+            app:srcCompat="@drawable/ic_play"
+            android:layout_marginRight="10dp"
+            android:layout_width="55dp"
+            android:layout_height="55dp"/>
             android:id="@+id/Sacha"
             android:layout_width="75dp"/>
 
-        <Button
+        <ImageButton
             android:text="Next"
-            android:layout_height="wrap_content"
             android:id="@+id/playNext"
-            android:background="@drawable/background_button"
-            android:layout_marginLeft="3dp"
+            android:background="@null"
+            android:layout_marginLeft="10dp"
             android:textColor="@color/colorForeground"
-            android:layout_weight="1"
-            android:layout_width="wrap_content"/>
-            android:id="@+id/playNext"
+            app:srcCompat="@drawable/ic_skip_next"
+            android:layout_marginRight="10dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"/>
             android:layout_width="75dp"/>
     </LinearLayout>
 </LinearLayout>

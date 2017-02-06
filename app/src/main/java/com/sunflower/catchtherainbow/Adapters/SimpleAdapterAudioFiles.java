@@ -113,7 +113,7 @@ public class SimpleAdapterAudioFiles extends CursorAdapter
 
         if (isPersonChecked((long)cursor.getPosition()))
         {
-            itemView.setBackgroundColor(context.getResources().getColor(R.color.colorAccent));
+            itemView.setBackgroundColor(context.getResources().getColor(R.color.selectedSongItem));
         }
         else
         {

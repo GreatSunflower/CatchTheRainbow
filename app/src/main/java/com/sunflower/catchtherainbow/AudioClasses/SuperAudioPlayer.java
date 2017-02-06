@@ -27,7 +27,7 @@ import be.tarsos.dsp.io.android.AndroidAudioPlayer;
 import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 
 /**
- * Created by SuperComputer on 1/31/2017.
+ * Super audio player
  */
 
 public class SuperAudioPlayer implements AudioProcessor
@@ -68,7 +68,7 @@ public class SuperAudioPlayer implements AudioProcessor
         }
         loadedFile = file;
 
-        if(file.exists() == false) throw new Exception("File does not exist!");
+        if(!file.exists()) throw new Exception("File does not exist!");
 
         /*AudioDispatcher audioDispatcher = AudioDispatcherFactory.fromPipe(file.getAbsolutePath(), sampleRate, 2048, 0);
         DetermineDurationProcessor ddp = new DetermineDurationProcessor();
@@ -94,7 +94,7 @@ public class SuperAudioPlayer implements AudioProcessor
         setState(PlayerState.FILE_LOADED);
 
         for (AudioPlayerListener listener : playerListeners)
-            listener.OnInitialized();
+            listener.OnInitialized(loadedFile);
     }
 
     public void eject()
@@ -163,8 +163,15 @@ public class SuperAudioPlayer implements AudioProcessor
     {
         if(state == PlayerState.PLAYING || state == PlayerState.PAUZED)
         {
+            if(dispatcher != null)
+            {
+                dispatcher.removeAudioProcessor(this);
+                dispatcher.removeAudioProcessor(audioPlayer);
+                dispatcher.stop();
+
+                dispatcher = null;
+            }
             setState(PlayerState.PAUZED);
-            if(dispatcher != null) dispatcher.stop();
             pausedAt = pauseAt;
         }
         else
@@ -180,7 +187,6 @@ public class SuperAudioPlayer implements AudioProcessor
             dispatcher.removeAudioProcessor(this);
             dispatcher.removeAudioProcessor(audioPlayer);
             dispatcher = null;
-            pausedAt = 0;
             state = PlayerState.STOPPED;
         }
         else if(state != PlayerState.STOPPED)
@@ -209,12 +215,8 @@ public class SuperAudioPlayer implements AudioProcessor
             state = PlayerState.STOPPED;
         }
 
-        double realProcessedSeconds =  dispatcher.secondsProcessed();
-
-        if(currentTime == durationInSeconds)
         for (AudioPlayerListener listener : playerListeners)
             listener.OnFinish();
-
 
     }
 
@@ -309,7 +311,7 @@ public class SuperAudioPlayer implements AudioProcessor
 
     public interface AudioPlayerListener
     {
-        void OnInitialized();
+        void OnInitialized(File file);
         void OnUpdate(AudioEvent audioEvent, double realCurrentTime);
         void OnFinish();
     }

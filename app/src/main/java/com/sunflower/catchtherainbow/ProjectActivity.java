@@ -4,6 +4,7 @@ package com.sunflower.catchtherainbow;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -24,7 +25,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
@@ -50,10 +53,11 @@ public class ProjectActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, View.OnClickListener
 {
     private ActionMenuView amvMenu;
-    private Button playStopButt, bNext, bPrev;
+    private ImageButton playStopButt, bNext, bPrev;
     private AudioProgressView progressView;
     private View viewContentProject;
     private AudioVisualizerView visualizerView;
+    private TextView audioInfo;
 
     // temp
     boolean isPlaying = false, isDragging = false;
@@ -110,9 +114,12 @@ public class ProjectActivity extends AppCompatActivity
 
         // -----------------------------------------------------FOR TESTING PURPOSES---------------------------------------
         visualizerView = (AudioVisualizerView) findViewById(R.id.audioVisualizerView);
-        playStopButt = (Button)findViewById(R.id.Sacha);
-        bNext = (Button)findViewById(R.id.playNext);
-        bPrev = (Button)findViewById(R.id.playPrev);
+
+        audioInfo = (TextView) findViewById(R.id.audioInfoTextView);
+
+        playStopButt = (ImageButton)findViewById(R.id.Sacha);
+        bNext = (ImageButton)findViewById(R.id.playNext);
+        bPrev = (ImageButton)findViewById(R.id.playPrev);
 
         bPrev.setOnClickListener(this);
         bNext.setOnClickListener(this);
@@ -147,13 +154,21 @@ public class ProjectActivity extends AppCompatActivity
         player.addPlayerListener(new SuperAudioPlayer.AudioPlayerListener()
         {
             @Override
-            public void OnInitialized()
+            public void OnInitialized(final File file)
             {
                 runOnUiThread(new Runnable()
                 {
                     public void run()
                     {
                         progressView.setMax((float) player.getDurationInSeconds());
+
+                        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                        mmr.setDataSource(file.getAbsolutePath());
+                        String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                        String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+                        String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                        audioInfo.setText(artist + " - " + album + " - " + title);
+                        mmr.release();
                     }
                 });
             }
@@ -190,7 +205,7 @@ public class ProjectActivity extends AppCompatActivity
                     try
                     {
                         isPlaying = true;
-                        playStopButt.setText("Pause");
+                        playStopButt.setImageResource(R.drawable.ic_pause);
                         player.play();
                     }
                     catch (Exception e)
@@ -201,9 +216,17 @@ public class ProjectActivity extends AppCompatActivity
                 }
                 else
                 {
-                    player.pause();
-                    isPlaying = false;
-                    playStopButt.setText("Play");
+                    try
+                    {
+                        player.pause();
+                        isPlaying = false;
+                        playStopButt.setImageResource(R.drawable.ic_play);
+                    }
+                    catch (Exception e)
+                    {
+                        Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -358,7 +381,7 @@ public class ProjectActivity extends AppCompatActivity
         {
             player.setAudioFiles(songs);
             isPlaying = true;
-            playStopButt.setText("Pause");
+            playStopButt.setImageResource(R.drawable.ic_pause);
             player.play();
         }
         catch (Exception e)

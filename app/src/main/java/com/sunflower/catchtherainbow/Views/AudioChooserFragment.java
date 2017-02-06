@@ -70,6 +70,21 @@ public class AudioChooserFragment extends DialogFragment  implements FragTabAudi
         return fragment;
     }
 
+  /*  @Override
+    public void onActivityCreated(Bundle arg0)
+    {
+        super.onActivityCreated(arg0);
+        getDialog().getWindow()
+                .getAttributes().windowAnimations = R.style.MyAnimation_Window;
+    }*/
+
+
+    @Override
+    public int getTheme()
+    {
+        return R.style.MyAnimation_Window;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
