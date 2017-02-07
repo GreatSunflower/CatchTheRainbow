@@ -5,7 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.provider.BaseColumns;
 import android.provider.MediaStore;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
@@ -87,15 +90,33 @@ public class Helper
         Cursor cursorMusic = null;
         ContentResolver cr =  context.getContentResolver();
 
-        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
-        String sortOrder = MediaStore.Audio.Media.TITLE + " LIKE ?  ASC";
-        String album = MediaStore.Audio.Albums._ID+ "=?";
-        cursorMusic = cr.query(uri, null, selection, new String[]{ filter }, sortOrder);
+        String[] projection = { BaseColumns._ID, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Artists.ARTIST, MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM};
+
+        //String sortOrder = MediaStore.Audio.Media.TITLE + " LIKE ?  ASC";
+        String where = MediaStore.Audio.Media.TITLE + " LIKE ? or " + MediaStore.Audio.Media.ARTIST + " LIKE ?";
+        String[] params = new String[] { "%"+ filter + "%", "%"+ filter + "%" };
+
+        cursorMusic = cr.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                projection, where, params, MediaStore.Audio.Media.TITLE);
 
         return cursorMusic;
     }
-    public static AudioFile getAudioFileById(long id, Cursor cursorMusic)
+
+    /*public Cursor fetchPeople(String filter)
+    {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(true, TABLE_PEOPLE, new String[] { KEY_PERSON_ID,
+                        KEY_PERSON_FIRST_NAME, KEY_PERSON_LAST_NAME, KEY_PERSON_AGE,
+                        KEY_PERSON_ADDRESS, KEY_PERSON_IMAGE },
+                    KEY_PERSON_FIRST_NAME + " LIKE ? or " + KEY_PERSON_LAST_NAME + " LIKE ? or "
+                            + KEY_PERSON_AGE + " LIKE ? or " +  KEY_PERSON_ADDRESS + " LIKE ? ",
+            new String[] {"%"+ filter+ "%", "%"+ filter+ "%","%"+ filter+ "%","%"+ filter+ "%" }, null, null, null,
+            null);
+        return cursor;
+    }*/
+
+    public static AudioFile getAudioFileByCursor(Cursor cursorMusic)
     {
         //cursorMusic.moveToFirst();
         //while (cursorMusic.moveToNext())
@@ -111,8 +132,14 @@ public class Helper
             {
                 String artPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
                 art = BitmapFactory.decodeFile(artPath);
+
+                Drawable img = Drawable.createFromPath(artPath);
+                art = ((BitmapDrawable)img).getBitmap();
             }
-            catch(Exception ex){}
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
+            }
 
             AudioFile audioFile = new AudioFile(idAudio, title, artist, Helper.millisecondsToSeconds(duration), fullPath, AudioFile.imageToByteArray(art));
             return  audioFile;
