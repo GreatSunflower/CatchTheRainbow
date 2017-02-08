@@ -148,7 +148,7 @@ public class SuperAudioPlayer implements AudioProcessor
             for(AudioProcessor audioProcessor: additionalAudioProcessors)
                 dispatcher.addAudioProcessor(audioProcessor);
 
-            // add them to the dispatcher
+            // add the default processors
             dispatcher.addAudioProcessor(durationProc);
 
             dispatcher.addAudioProcessor(this);
@@ -239,6 +239,7 @@ public class SuperAudioPlayer implements AudioProcessor
         return true;
     }
 
+    protected boolean isDisposing = false;
     @Override
     public void processingFinished()
     {
@@ -247,29 +248,38 @@ public class SuperAudioPlayer implements AudioProcessor
             state = PlayerState.STOPPED;
         }
 
-        // notify all of the subscribers about finish
-        context.runOnUiThread(new Runnable()
+        // audio has naturally finished
+        if(!isDisposing)
         {
-            public void run()
+            pausedAt = 0;
+            // notify all of the subscribers about finish
+            context.runOnUiThread(new Runnable()
             {
-                for (AudioPlayerListener listener : playerListeners)
-                    listener.OnFinish();
-            }
-        });
+                public void run()
+                {
+                    for (AudioPlayerListener listener : playerListeners)
+                        listener.OnFinish();
+                }
+            });
+        }
 
     }
 
     void disposeResources()
     {
+        isDisposing = true;
         if(dispatcher != null)
         {
+            dispatcher.removeAudioProcessor(this);
+
             for(AudioProcessor audioProcessor: additionalAudioProcessors)
                 dispatcher.removeAudioProcessor(audioProcessor);
 
-            dispatcher.removeAudioProcessor(this);
             dispatcher.removeAudioProcessor(audioPlayer);
+            dispatcher.stop();
             dispatcher = null;
         }
+        isDisposing = false;
     }
 
     // handles dispatcher thread exceptions.
@@ -279,7 +289,6 @@ public class SuperAudioPlayer implements AudioProcessor
         @Override
         public void uncaughtException(Thread thread, Throwable throwable)
         {
-           stop();
            throwable.printStackTrace();
            Log.e(logTag, throwable.getLocalizedMessage());
         }

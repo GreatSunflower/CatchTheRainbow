@@ -39,7 +39,7 @@ public class PlayListPlayer extends SuperAudioPlayer
        // if(Double.compare(Helper.round(currentTime, 2), Helper.round(durationInSeconds, 2)) == 0)
 
         // NaN in this case means than the song is not over
-        if(Double.compare(durationProc.getDurationInSeconds(), Double.NaN) != 0)
+        if(Double.compare(durationProc.getDurationInSeconds(), Double.NaN) != 0 && !isDisposing)
             playNext();
     }
 

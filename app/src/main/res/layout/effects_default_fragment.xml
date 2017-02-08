@@ -17,7 +17,7 @@
             android:layout_height="match_parent">
 
             <TextView
-                android:text="Echo"
+                android:text="Echo (in seconds)"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/tvEcho"
