@@ -149,7 +149,7 @@ public class AudioChooserFragment extends DialogFragment  implements FragTabAudi
         } else
         {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnEffectsHostListener");
         }
     }
 

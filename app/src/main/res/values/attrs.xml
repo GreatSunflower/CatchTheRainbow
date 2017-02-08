@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="AudioProgressView">
+    <declare-styleable name="RangedParameters">
         <attr name="min" format="float" />
         <attr name="max" format="float"></attr>
         <attr name="current" format="float"></attr>
     </declare-styleable>
+
 </resources>

@@ -1,4 +1,4 @@
-package com.sunflower.catchtherainbow.Views;
+package com.sunflower.catchtherainbow.Views.Helpful;
 
 import android.content.Context;
 import android.util.AttributeSet;

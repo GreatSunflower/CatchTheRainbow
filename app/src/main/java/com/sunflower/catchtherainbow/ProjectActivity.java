@@ -37,6 +37,8 @@ import com.sunflower.catchtherainbow.Views.AudioChooserFragment;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment.OnFragmentInteractionListener;
 import com.sunflower.catchtherainbow.Views.AudioProgressView;
 import com.sunflower.catchtherainbow.Views.AudioVisualizerView;
+import com.sunflower.catchtherainbow.Views.Effects.DefaultEffectsFragment;
+import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -46,11 +48,15 @@ import java.util.Random;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
+import be.tarsos.dsp.PitchShifter;
+import be.tarsos.dsp.effects.DelayEffect;
+import be.tarsos.dsp.effects.FlangerEffect;
 import be.tarsos.dsp.io.android.AndroidFFMPEGLocator;
 import be.tarsos.dsp.io.android.AudioDispatcherFactory;
+import be.tarsos.dsp.resample.RateTransposer;
 
 public class ProjectActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, View.OnClickListener
+        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, View.OnClickListener, EffectsHostFragment.OnEffectsHostListener
 {
     private ActionMenuView amvMenu;
     private ImageButton playStopButt, bNext, bPrev;
@@ -60,8 +66,12 @@ public class ProjectActivity extends AppCompatActivity
     private TextView audioInfo;
 
     // temp
-    boolean isPlaying = false, isDragging = false;
-    PlayListPlayer player;
+    private boolean isPlaying = false, isDragging = false;
+    private PlayListPlayer player;
+
+    private DelayEffect delayEffect;
+    private FlangerEffect flangerEffect;
+    private RateTransposer rateTransposer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -69,14 +79,14 @@ public class ProjectActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_project);
 
-        viewContentProject = (View)findViewById(R.id.content_project);
+        viewContentProject = (View) findViewById(R.id.content_project);
 
         ////////////////////////////////////////////////////permission
         int PERMISSION_ALL = 1;
         String[] PERMISSIONS = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAPTURE_AUDIO_OUTPUT,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.MEDIA_CONTENT_CONTROL};
 
-        if(!hasPermissions(this, PERMISSIONS))
+        if (!hasPermissions(this, PERMISSIONS))
         {
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
         }
@@ -85,7 +95,7 @@ public class ProjectActivity extends AppCompatActivity
 
         // Init toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        amvMenu=  (ActionMenuView) findViewById(R.id.amvMenu);
+        amvMenu = (ActionMenuView) findViewById(R.id.amvMenu);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(null);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -117,30 +127,33 @@ public class ProjectActivity extends AppCompatActivity
 
         audioInfo = (TextView) findViewById(R.id.audioInfoTextView);
 
-        playStopButt = (ImageButton)findViewById(R.id.Sacha);
-        bNext = (ImageButton)findViewById(R.id.playNext);
-        bPrev = (ImageButton)findViewById(R.id.playPrev);
+        playStopButt = (ImageButton) findViewById(R.id.Sacha);
+        bNext = (ImageButton) findViewById(R.id.playNext);
+        bPrev = (ImageButton) findViewById(R.id.playPrev);
 
         bPrev.setOnClickListener(this);
         bNext.setOnClickListener(this);
 
-        progressView = (AudioProgressView)findViewById(R.id.audioProgressView);
+        progressView = (AudioProgressView) findViewById(R.id.audioProgressView);
         progressView.setOnSeekBar(new SeekBar.OnSeekBarChangeListener()
         {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean b)
             {
-
+                if (player != null)
+                    progressView.setCurrent(progress);
             }
+
             @Override
             public void onStartTrackingTouch(SeekBar seekBar)
             {
                 isDragging = true;
             }
+
             @Override
             public void onStopTrackingTouch(SeekBar seekBar)
             {
-                if(player != null)
+                if (player != null)
                 {
                     player.setCurrentTime(seekBar.getProgress(), true);
                 }
@@ -148,9 +161,20 @@ public class ProjectActivity extends AppCompatActivity
             }
         });
 
+        // --------------------------------------AUDIO STUFF-------------------------------------------------
         new AndroidFFMPEGLocator(this);
 
         player = new PlayListPlayer(this);
+
+        delayEffect = new DelayEffect(1, 0, 44100);
+        rateTransposer = new RateTransposer(1.f);
+        flangerEffect = new FlangerEffect(5.f, 0, 44100, 3);
+
+        // apply the effects
+        player.addProcessor(rateTransposer);
+        player.addProcessor(delayEffect);
+        player.addProcessor(flangerEffect);
+
         player.addPlayerListener(new SuperAudioPlayer.AudioPlayerListener()
         {
             @Override
@@ -178,17 +202,20 @@ public class ProjectActivity extends AppCompatActivity
             {
                 //  final float duration = (float) audioEvent.getFrameLength() / audioEvent.getfra();
                 final double currentTime = realCurrentTime;// (float) audioEvent.getTimeStamp();
-                final float []audioData = audioEvent.getFloatBuffer();
+                final float[] audioData = audioEvent.getFloatBuffer();
 
                 //progressView.setMax(duration);
-                if(!isDragging) progressView.setCurrent((float)currentTime);
+                if (!isDragging) progressView.setCurrent((float) currentTime);
                 visualizerView.updateVisualizer(audioData);
             }
 
             @Override
-            public void OnFinish(){}
+            public void OnFinish()
+            {
+            }
         });
 
+        // play stop handler
         playStopButt.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -207,16 +234,14 @@ public class ProjectActivity extends AppCompatActivity
                         Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         e.printStackTrace();
                     }
-                }
-                else
+                } else
                 {
                     try
                     {
                         player.pause();
                         isPlaying = false;
                         playStopButt.setImageResource(R.drawable.ic_play);
-                    }
-                    catch (Exception e)
+                    } catch (Exception e)
                     {
                         Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         e.printStackTrace();
@@ -224,37 +249,29 @@ public class ProjectActivity extends AppCompatActivity
                 }
             }
         });
+        // -----------------------------------------------
     }
 
-    public static boolean hasPermissions(Context context, String... permissions)
+    @Override
+    protected void onStop()
     {
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null)
-        {
-            for (String permission : permissions)
-            {
-                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED)
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
+        player.stop();
+        super.onStop();
     }
 
     @Override
     public void onClick(View v)
     {
-        switch(v.getId())
+        switch (v.getId())
         {
             case R.id.playNext:
             {
-                if(player != null)
+                if (player != null)
                 {
                     try
                     {
                         player.playNext();
-                    }
-                    catch (Exception ex)
+                    } catch (Exception ex)
                     {
                         Toast.makeText(this, "Cannot be played!", Toast.LENGTH_SHORT).show();
                     }
@@ -263,13 +280,12 @@ public class ProjectActivity extends AppCompatActivity
             }
             case R.id.playPrev:
             {
-                if(player != null)
+                if (player != null)
                 {
                     try
                     {
                         player.playPrev();
-                    }
-                    catch (Exception ex)
+                    } catch (Exception ex)
                     {
                         Toast.makeText(this, "Cannot be played!", Toast.LENGTH_SHORT).show();
                     }
@@ -286,8 +302,7 @@ public class ProjectActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START))
         {
             drawer.closeDrawer(GravityCompat.START);
-        }
-        else
+        } else
         {
             super.onBackPressed();
         }
@@ -314,15 +329,65 @@ public class ProjectActivity extends AppCompatActivity
         {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             Fragment prev = getSupportFragmentManager().findFragmentById(R.id.SuperAudioChooser);
-            if (prev != null) {  ft.remove(prev); }
+            if (prev != null)
+            {
+                ft.remove(prev);
+            }
             ft.addToBackStack(null);
             // Create and show the dialog.
             AudioChooserFragment newFragment = AudioChooserFragment.newInstance();
-            newFragment.show(ft, "dialog");
+            newFragment.show(ft, "Song chooser dialog");
             return true;
+        }
+        if (id == R.id.action_effects)
+        {
+            //EffectsHostFragment fragment = (EffectsHostFragment) createNewDialog(R.id.effectsFragment, EffectsHostFragment.class, true);
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            Fragment prev = getSupportFragmentManager().findFragmentById(R.id.effectsFragment);
+            if (prev != null) ft.remove(prev);
+            ft.addToBackStack(null);
+            // Create and show the dialog.
+
+            DefaultEffectsFragment effectsFragment = DefaultEffectsFragment.newInstance();
+            effectsFragment.setEffects(delayEffect, rateTransposer, flangerEffect);
+
+            EffectsHostFragment hostFragment = EffectsHostFragment.newInstance();
+            hostFragment.setEffectsFragment(effectsFragment);
+            hostFragment.show(ft, "Effects dialog");
+
+            return true;
+
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    // Universal method for creating dialog fragments
+    private DialogFragment createNewDialog(int fragmentId, Class<? extends DialogFragment> fragmentClass, boolean showImmediately)
+    {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment prev = getSupportFragmentManager().findFragmentById(fragmentId);
+        if (prev != null)
+        {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        // Create and show the dialog.
+        DialogFragment newFragment = null;
+        try
+        {
+            newFragment = fragmentClass.newInstance();
+            if (showImmediately) newFragment.show(ft, "Effects dialog");
+            return newFragment;
+        }
+        catch (InstantiationException e)
+        {
+            e.printStackTrace();
+        } catch (IllegalAccessException e)
+        {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -335,24 +400,19 @@ public class ProjectActivity extends AppCompatActivity
         if (id == R.id.nav_camera)
         {
             // Handle the camera action
-        }
-        else if (id == R.id.nav_gallery)
+        } else if (id == R.id.nav_gallery)
         {
 
-        }
-        else if (id == R.id.nav_slideshow)
+        } else if (id == R.id.nav_slideshow)
         {
 
-        }
-        else if (id == R.id.nav_manage)
+        } else if (id == R.id.nav_manage)
         {
 
-        }
-        else if (id == R.id.nav_share)
+        } else if (id == R.id.nav_share)
         {
 
-        }
-        else if (id == R.id.nav_send)
+        } else if (id == R.id.nav_send)
         {
 
         }
@@ -377,8 +437,7 @@ public class ProjectActivity extends AppCompatActivity
             isPlaying = true;
             playStopButt.setImageResource(R.drawable.ic_pause);
             player.play();
-        }
-        catch (Exception e)
+        } catch (Exception e)
         {
             Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             e.printStackTrace();
@@ -390,4 +449,36 @@ public class ProjectActivity extends AppCompatActivity
     {
 
     }
+
+    // ---------------------------------Effects Host LISTENER INTERFACE----------------------------------
+
+    @Override
+    public void onEffectsConfirmed()
+    {
+
+    }
+
+    @Override
+    public void onEffectsCancelled()
+    {
+
+    }
+
+
+    // ----- permissions ----------
+    public static boolean hasPermissions(Context context, String... permissions)
+    {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null)
+        {
+            for (String permission : permissions)
+            {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 }

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:text="Echo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tvEcho"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/echoLengthSeekBar"
+                app:min="0.1" app:max = "7" app:current="1"/>
+
+            <TextView
+                android:text="Decay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tvDecay"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:elevation="1dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/sb_Decay"
+                app:min="0" app:max = "1" app:current="1"/>
+
+            <TextView
+                android:text="Rate Transposer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tv_RateTransposer"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:elevation="1dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/sb_RateTransposer"
+                app:min="0.1" app:max="4.0" app:current="1"/>
+
+            <TextView
+                android:text="Flanger Wetness"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tv_FlangerWetness"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:elevation="1dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/sb_FlangerWetness"
+                app:min="0"
+                app:max="1"
+                app:current="0"/>
+
+            <TextView
+                android:text="Flanger Dryness"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tv_FlangerDryness"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:elevation="1dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/sb_FlangerDryness"
+                app:min="0"
+                app:max="1"
+                app:current="0"/>
+
+            <TextView
+                android:text="Flanger LFO Frequency (Hz)"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tv_FlangerLFO"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:elevation="1dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/sb_FlangerLFO"
+                app:min="0"
+                app:max="10"
+                app:current="1"/>
+
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

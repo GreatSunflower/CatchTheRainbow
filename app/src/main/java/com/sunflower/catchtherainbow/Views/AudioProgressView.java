@@ -3,9 +3,6 @@ package com.sunflower.catchtherainbow.Views;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -38,12 +35,12 @@ public class AudioProgressView extends RelativeLayout
         init();
 
         //get the attributes specified in attrs.xml using the name we included
-        TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.AudioProgressView, 0, 0);
+        TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.RangedParameters, 0, 0);
         try
         {
             //get the text and colors specified using the names in attrs.xml
-            setMax((int)a.getFloat(R.styleable.AudioProgressView_max, 0.f));
-            setCurrent((int)a.getFloat(R.styleable.AudioProgressView_current, 0.f));
+            setMax((int)a.getFloat(R.styleable.RangedParameters_max, 0.f));
+            setCurrent((int)a.getFloat(R.styleable.RangedParameters_current, 0.f));
         }
         catch (Exception e){}
         finally

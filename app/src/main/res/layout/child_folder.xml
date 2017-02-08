@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.sunflower.catchtherainbow.Views.CheckableListItem
+<com.sunflower.catchtherainbow.Views.Helpful.CheckableListItem
     xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:app="http://schemas.android.com/apk/res-auto"
    xmlns:tools="http://schemas.android.com/tools"
@@ -30,7 +30,7 @@
             android:layout_height="match_parent"
             android:id="@+id/imageView"
             android:layout_weight="1"
-            android:src="@drawable/ic_folder"/>
+            app:srcCompat="@drawable/ic_folder"/>
 
         <LinearLayout
             android:orientation="vertical"
@@ -96,4 +96,4 @@
 
     </LinearLayout>
 </LinearLayout>
-</com.sunflower.catchtherainbow.Views.CheckableListItem>
+</com.sunflower.catchtherainbow.Views.Helpful.CheckableListItem>

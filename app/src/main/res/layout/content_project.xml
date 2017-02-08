@@ -64,17 +64,17 @@
             android:background="@null"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
-            android:layout_width="40dp"
-            android:layout_height="40dp"/>
+            android:layout_height="30dp"
+            android:layout_width="30dp"/>
 
         <ImageButton
             android:text="Play"
             android:id="@+id/Sacha"
             android:background="@null"
-            android:layout_marginLeft="10dp"
+            android:layout_marginLeft="15dp"
             android:textColor="@color/colorForeground"
             app:srcCompat="@drawable/ic_play"
-            android:layout_marginRight="10dp"
+            android:layout_marginRight="15dp"
             android:layout_width="55dp"
             android:layout_height="55dp"/>
             android:id="@+id/Sacha"
@@ -88,8 +88,8 @@
             android:textColor="@color/colorForeground"
             app:srcCompat="@drawable/ic_skip_next"
             android:layout_marginRight="10dp"
-            android:layout_width="40dp"
-            android:layout_height="40dp"/>
+            android:layout_height="30dp"
+            android:layout_width="30dp"/>
             android:layout_width="75dp"/>
     </LinearLayout>
 </LinearLayout>

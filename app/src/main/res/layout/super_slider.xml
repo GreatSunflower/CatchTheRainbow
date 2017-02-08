@@ -1,0 +1,43 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:paddingLeft="20dp"
+	android:paddingRight="20dp"
+	android:paddingTop="10dp"
+	android:id="@+id/custom_seekbar"
+	android:paddingBottom="20dp">
+
+	<TextView
+		android:id="@+id/current_value"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentTop="true"
+		android:layout_centerHorizontal="true"
+		android:textColor="@color/colorForeground"
+		android:textSize="20sp" />
+		
+	<com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar
+		android:id="@+id/seek_bar"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_below="@id/current_value"
+		android:layout_marginTop="5dp" />
+
+	<TextView
+		android:id="@+id/min_value"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_above="@id/seek_bar"
+		android:layout_alignParentLeft="true"
+		android:textColor="#969696" />
+
+	<TextView
+		android:id="@+id/max_value"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_above="@id/seek_bar"
+		android:layout_alignParentRight="true"
+		android:textColor="#959595" />
+				
+</RelativeLayout>

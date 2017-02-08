@@ -103,19 +103,6 @@ public class Helper
         return cursorMusic;
     }
 
-    /*public Cursor fetchPeople(String filter)
-    {
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.query(true, TABLE_PEOPLE, new String[] { KEY_PERSON_ID,
-                        KEY_PERSON_FIRST_NAME, KEY_PERSON_LAST_NAME, KEY_PERSON_AGE,
-                        KEY_PERSON_ADDRESS, KEY_PERSON_IMAGE },
-                    KEY_PERSON_FIRST_NAME + " LIKE ? or " + KEY_PERSON_LAST_NAME + " LIKE ? or "
-                            + KEY_PERSON_AGE + " LIKE ? or " +  KEY_PERSON_ADDRESS + " LIKE ? ",
-            new String[] {"%"+ filter+ "%", "%"+ filter+ "%","%"+ filter+ "%","%"+ filter+ "%" }, null, null, null,
-            null);
-        return cursor;
-    }*/
-
     public static AudioFile getAudioFileByCursor(Cursor cursorMusic)
     {
         //cursorMusic.moveToFirst();

@@ -85,7 +85,7 @@ public class SimpleAdapterAudioFiles extends CursorAdapter
     {
         Cursor cur = getCursor();
         cur.moveToPosition(position);
-        return Helper.getAudioFileById(cur.getLong(cur.getColumnIndex(MediaStore.Audio.Media._ID)), cur);
+        return Helper.getAudioFileByCursor(cur);
     }
 
     @Override
