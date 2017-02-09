@@ -15,15 +15,17 @@ import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.FragTabAudioFiles;
 import com.sunflower.catchtherainbow.Views.FragTabFolders;
 
-public class CustomAdapterFragPager extends FragmentPagerAdapter
+public class FragPagerAdapter extends FragmentPagerAdapter
 {
     private String fragments [] = {"Audio Files", "Folders"};
     private TabLayout tabLayout;
     private FragTabAudioFiles.FragAudioListener  frAudioLis;
-    public CustomAdapterFragPager(FragmentManager supportFragmentManager, Context applicationContext, TabLayout tabLayout, FragTabAudioFiles.FragAudioListener frAudioLis)
+    private FragTabFolders.FragFoldersListener  frFolderLis;
+    public FragPagerAdapter(FragmentManager supportFragmentManager, Context applicationContext, TabLayout tabLayout, FragTabAudioFiles.FragAudioListener frAudioLis, FragTabFolders.FragFoldersListener  frFolderLis)
     {
         super(supportFragmentManager);
         this.frAudioLis = frAudioLis;
+        this.frFolderLis = frFolderLis;
         this.tabLayout = tabLayout;
     }
 
@@ -33,14 +35,22 @@ public class CustomAdapterFragPager extends FragmentPagerAdapter
         switch (position)
         {
             case 0:
-                FragTabAudioFiles fr = new FragTabAudioFiles();
-                fr.addAudioListener(frAudioLis);
-                return fr;
+                FragTabAudioFiles fragTabAudioFiles = new FragTabAudioFiles();
+                fragTabAudioFiles.addAudioListener(frAudioLis);
+                return fragTabAudioFiles;
             case 1:
+                FragTabFolders fragTabFolders = new FragTabFolders();
+                fragTabFolders.addFolderListener(frFolderLis);
+
                 return new FragTabFolders();
             default:
                 return null;
         }
+    }
+
+    public void run()		//Этот метод будет выполняться в побочном потоке
+    {
+        System.out.println("Привет из побочного потока!");
     }
 
     @Override
@@ -64,3 +74,4 @@ public class CustomAdapterFragPager extends FragmentPagerAdapter
         return fragments[position];
     }
 }
+

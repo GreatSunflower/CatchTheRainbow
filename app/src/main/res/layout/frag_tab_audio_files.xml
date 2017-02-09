@@ -9,16 +9,40 @@
         android:layout_height="match_parent"
         android:layout_weight="1">
 
-        <SearchView
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/background_textview"
-            android:layout_marginTop="8dp"
-            android:layout_margin="5dp"
-            android:layout_marginBottom="0dp"
-            >
+            android:paddingTop="1dp">
 
-        </SearchView>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:id="@+id/tvSelected"
+                android:textAlignment="center"
+                android:textColor="@color/colorForeground"
+                android:textSize="16sp"
+                android:layout_weight="1"
+                android:paddingTop="5dp"/>
+
+            <SearchView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/background_textview"
+                android:id="@+id/searchViewAudio"
+                >
+
+            </SearchView>
+
+            <Spinner
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:id="@+id/spinnerFilter"
+                android:layout_marginRight="5dp"
+                />
+
+        </LinearLayout>
 
         <ListView
             android:layout_width="match_parent"
@@ -27,7 +51,8 @@
             android:id="@+id/listViewAudioFiles"
             android:background="@color/backgroundListView"
             android:layout_marginLeft="2dp"
-            android:layout_marginRight="2dp"/>
+            android:layout_marginRight="2dp"
+            android:layout_weight="1"/>
 
     </LinearLayout>
 

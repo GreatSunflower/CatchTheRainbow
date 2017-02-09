@@ -3,7 +3,6 @@ package com.sunflower.catchtherainbow.Adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
-import android.provider.MediaStore;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,17 +23,17 @@ import java.util.Map;
  * Created by Alexandr on 05.02.2017.
  */
 
-public class SimpleAdapterAudioFiles extends CursorAdapter
+public class AudioFilesAdapter extends CursorAdapter
 {
     private final Activity context;
     private HashMap<Long, Boolean> selection = new HashMap<>();
     private String filter = "";
     private LayoutInflater inflater;
+    private int selectedCount = 0;
 
-    public SimpleAdapterAudioFiles(final Activity context, Cursor c, int flags)
+    public AudioFilesAdapter(final Activity context, Cursor c, int flags)
     {
         super(context, c, flags);
-
         this.context = context;
         this.setFilterQueryProvider(new FilterQueryProvider()
         {
@@ -46,6 +45,11 @@ public class SimpleAdapterAudioFiles extends CursorAdapter
         });
 
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    }
+
+    public int getSelectedCount()
+    {
+        return selectedCount;
     }
 
     public ArrayList<AudioFile> getSelectionAudioFiles()
@@ -63,10 +67,38 @@ public class SimpleAdapterAudioFiles extends CursorAdapter
         return selectedAudio;
     }
 
+    public void filterAllAudioFiles(String filter)
+    {
+        changeCursor(Helper.getSongsAudioCursor(context, filter));
+        notifyDataSetChanged();
+    }
+
+    public ArrayList<AudioFile> getAllAudioFiles(String filter)
+    {
+        ArrayList<AudioFile> selectedAudio = new ArrayList<>();
+        for(Map.Entry<Long, Boolean> entry : selection.entrySet())
+        {
+            Long key = entry.getKey();
+            Boolean value = entry.getValue();
+            selectedAudio.add(getPersonFromPosition(key.intValue()));
+        }
+        changeCursor(Helper.getSongsAudioCursor(context, filter));
+        notifyDataSetChanged();
+        return selectedAudio;
+    }
+
     public void setNewSelection(Long id)
     {
-        if(isPersonChecked(id)) selection.put(id, false);
-        else selection.put(id, true);
+        if(isPersonChecked(id))
+        {
+            selection.put(id, false);
+            selectedCount--;
+        }
+        else
+        {
+            selection.put(id, true);
+            selectedCount++;
+        }
         notifyDataSetChanged();
     }
 
@@ -98,7 +130,8 @@ public class SimpleAdapterAudioFiles extends CursorAdapter
     public void bindView(View view, Context context, Cursor cursor)
     {
         View rowView;
-        final AudioFile file = getPersonFromPosition(cursor.getPosition());
+        final AudioFile audioFile = getPersonFromPosition(cursor.getPosition());
+        //if(!audioFile.getTitle().contains("Track")) return;
         // if the view isn't generated
         if(view == null)
         {
@@ -109,16 +142,10 @@ public class SimpleAdapterAudioFiles extends CursorAdapter
         View itemView = rowView.findViewById(R.id.musicLayout);
 
         // ----- Tint -----
-        int color = 0;
-
         if (isPersonChecked((long)cursor.getPosition()))
-        {
             itemView.setBackgroundColor(context.getResources().getColor(R.color.selectedSongItem));
-        }
         else
-        {
             itemView.setBackgroundColor(context.getResources().getColor(R.color.backgroundListView));
-        }
         // -----Tint-end------
 
         ImageView albumImage = (ImageView)rowView.findViewById(R.id.imageView);
@@ -126,11 +153,12 @@ public class SimpleAdapterAudioFiles extends CursorAdapter
         TextView artistLayout = (TextView)rowView.findViewById(R.id.tvArtist);
         TextView timesLayout = (TextView)rowView.findViewById(R.id.tvTimes);
 
-        if(file.getBitmapImage() != null) albumImage.setImageBitmap(file.getBitmapImage());
+        if(audioFile.getBitmapImage() != null)
+            albumImage.setImageBitmap(audioFile.getBitmapImage());
 
-        nameLayout.setText(file.getTitle());
-        artistLayout.setText(file.getArtist());
-        timesLayout.setText(Helper.secondToString(file.getDuration()));
+        nameLayout.setText(audioFile.getTitle());
+        artistLayout.setText(audioFile.getArtist());
+        timesLayout.setText(Helper.secondToString(audioFile.getDuration()));
     }
 
    /* public void refeshData()
