@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Spinner;
@@ -35,7 +34,7 @@ public class FragTabAudioFiles extends Fragment implements View.OnClickListener,
     private AudioFilesAdapter audioFilesAdapter;
     private ListView superListView;
     private TextView selectedCount;
-    private SearchView searchViewAudio;
+    //private SearchView searchViewAudio;
     private View resView;
     private Spinner spinFilter;
     String[] items_array = {"", "Sort alphabetically", "Artists"};
@@ -46,8 +45,8 @@ public class FragTabAudioFiles extends Fragment implements View.OnClickListener,
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         resView = inflater.inflate(R.layout.frag_tab_audio_files,container,false);
-        searchViewAudio = (SearchView)resView.findViewById(R.id.searchViewAudio);
-        searchViewAudio.setOnQueryTextListener(this);
+        /*searchViewAudio = (SearchView)resView.findViewById(R.id.searchViewAudio);
+        searchViewAudio.setOnQueryTextListener(this);*/
         selectedCount = (TextView)resView.findViewById(R.id.tvSelected);
         // --------------------------------ADAPTER----------------------------------
         //Создание потока
@@ -108,11 +107,11 @@ public class FragTabAudioFiles extends Fragment implements View.OnClickListener,
 
         //---------------------------------end spinnerFilter-----------------------
 
-        Button ok = (Button)resView.findViewById(R.id.bOk);
+        /*Button ok = (Button)resView.findViewById(R.id.bOk);
         Button cancel = (Button)resView.findViewById(R.id.bCancel);
 
         ok.setOnClickListener(this);
-        cancel.setOnClickListener(this);
+        cancel.setOnClickListener(this);*/
 
 
         try { myThready.join(); }
