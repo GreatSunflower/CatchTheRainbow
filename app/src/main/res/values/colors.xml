@@ -3,7 +3,7 @@
     <color name="colorPrimary">#373645</color>
     <!--<color name="colorPrimary">#4d63e6</color>-->
     <color name="colorPrimaryDark">#252430</color>
-    <color name="colorAccent">#d3d4d6</color>
+    <color name="colorAccent">#d68140</color>
     <color name="colorForeground">#ffffff</color>
     <color name="colorForegroundSecond">#bfbdc0</color>
     <color name="buttonOkAndCancel">#373645</color>
@@ -15,5 +15,20 @@
     <color name="iconFolder">#bfbdc0</color>
     <color name="iconMusic">#bfbdc0</color>
 
-    <color name="selectedSongItem">#4e4d5b</color>
+    <color name="selectedListItem">#4e4d5b</color>
+    <color name="pressedListItem">#565561</color>
+
+    <color name="trackBorder">#74737e</color>
+    <color name="trackThumbPressed">@color/colorAccent</color>
+    <color name="trackThumbReleased">#dcdcdc</color>
+
+    <color name="waveform_selected">#00BFA5</color>
+    <color name="waveform_unselected">#535353</color>
+    <color name="waveform_unselected_bkgnd_overlay">#ffd6d7d7</color>
+    <color name="selection_border">#ffffff</color>
+    <color name="playback_indicator">#ffff66</color>
+    <color name="grid_line">#6D6D6D</color>
+    <color name="timecode">#000000</color>
+    <color name="timecode_shadow">#aa000000</color>
+
 </resources>

@@ -61,7 +61,7 @@ public class SuperAudioPlayer implements AudioProcessor
         state = PlayerState.NO_FILE_LOADED;
     }
 
-    public void load(File file) throws Exception
+    public synchronized void load(File file) throws Exception
     {
         if(file == null) throw new NullPointerException("File can't be null !");
 
@@ -104,7 +104,7 @@ public class SuperAudioPlayer implements AudioProcessor
         setState(PlayerState.NO_FILE_LOADED);
     }
 
-    public void play()
+    public synchronized void play()
     {
         if(state == PlayerState.NO_FILE_LOADED)
         {
@@ -122,11 +122,10 @@ public class SuperAudioPlayer implements AudioProcessor
 
     public void play(double startTime)
     {
-        if(state == PlayerState.NO_FILE_LOADED)
+        if (state == PlayerState.NO_FILE_LOADED)
         {
             throw new IllegalStateException("Can not play when no file is loaded");
-        }
-        else
+        } else
         {
             if (state == PlayerState.PLAYING) stop();
 
@@ -145,7 +144,7 @@ public class SuperAudioPlayer implements AudioProcessor
             durationProc = new DetermineDurationProcessor();
 
             // Add all of the additional processors
-            for(AudioProcessor audioProcessor: additionalAudioProcessors)
+            for (AudioProcessor audioProcessor : additionalAudioProcessors)
                 dispatcher.addAudioProcessor(audioProcessor);
 
             // add the default processors
@@ -159,7 +158,6 @@ public class SuperAudioPlayer implements AudioProcessor
             th.setUncaughtExceptionHandler(dispatcherExceptionHandler);
             th.start();
             state = PlayerState.PLAYING;
-
         }
     }
 
@@ -268,15 +266,15 @@ public class SuperAudioPlayer implements AudioProcessor
     void disposeResources()
     {
         isDisposing = true;
-        if(dispatcher != null)
+        if (dispatcher != null)
         {
             dispatcher.removeAudioProcessor(this);
 
-            for(AudioProcessor audioProcessor: additionalAudioProcessors)
+            for (AudioProcessor audioProcessor : additionalAudioProcessors)
                 dispatcher.removeAudioProcessor(audioProcessor);
 
             dispatcher.removeAudioProcessor(audioPlayer);
-            dispatcher.stop();
+            //dispatcher.stop();
             dispatcher = null;
         }
         isDisposing = false;
@@ -284,7 +282,7 @@ public class SuperAudioPlayer implements AudioProcessor
 
     // handles dispatcher thread exceptions.
     // They often occur when it's frequently being stopped and some processors are not destroyed.
-    Thread.UncaughtExceptionHandler dispatcherExceptionHandler = new Thread.UncaughtExceptionHandler()
+    private Thread.UncaughtExceptionHandler dispatcherExceptionHandler = new Thread.UncaughtExceptionHandler()
     {
         @Override
         public void uncaughtException(Thread thread, Throwable throwable)
@@ -342,7 +340,7 @@ public class SuperAudioPlayer implements AudioProcessor
         return (int)millis;
     }
 
-    public void setCurrentTime(double currentTime, boolean updatePlayback)
+    public synchronized void setCurrentTime(double currentTime, boolean updatePlayback)
     {
         if(state == PlayerState.FILE_LOADED)
         {

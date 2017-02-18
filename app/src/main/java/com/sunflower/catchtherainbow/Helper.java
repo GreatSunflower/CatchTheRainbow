@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 //
 public class Helper
 {
+    // time converters
     public static String secondToString(double seconds)
     {
         Date date = new Date((long) (seconds * 1000));
@@ -44,6 +45,16 @@ public class Helper
     {
         return milliseconds.longValue() / 1000.d;
     }
+
+    // math
+    public static <T extends Comparable<T>> T clamp(T val, T min, T max)
+    {
+        if (val.compareTo(min) < 0) return min;
+        else if (val.compareTo(max) > 0) return max;
+        else return val;
+    }
+
+
 
     public static ArrayList<String> getAllSongsOnDevice(Context context)
     {

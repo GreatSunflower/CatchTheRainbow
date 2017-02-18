@@ -16,10 +16,17 @@
     android:paddingLeft="2dp"
     android:paddingRight="2dp">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:id="@+id/mainAreaContainer"/>
 
         <view
             android:layout_width="match_parent"
@@ -28,8 +35,10 @@
             android:layout_centerHorizontal="true"
             android:layout_centerInParent="true"
             android:layout_centerVertical="true"
-            android:layout_height="match_parent"/>
-    </RelativeLayout>
+            android:layout_weight="0.15"
+            android:layout_height="0dp"
+            />
+    </LinearLayout>
 
     <TextView
         android:layout_width="match_parent"
@@ -39,7 +48,6 @@
         android:foregroundGravity="center"
         android:textColor="@color/colorForeground"
         android:textAlignment="textStart"
-        android:layout_marginBottom="3dp"
         android:layout_marginLeft="2dp"
         android:layout_marginRight="2dp"/>
 
@@ -47,7 +55,7 @@
         android:layout_width="match_parent"
         android:layout_below="@+id/Sacha"
         android:id="@+id/audioProgressView"
-        android:layout_height="35dp"/>
+        android:layout_height="30dp"/>
 
     <LinearLayout
         android:orientation="horizontal"
@@ -64,8 +72,8 @@
             android:background="@null"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
-            android:layout_height="30dp"
-            android:layout_width="30dp"/>
+            android:layout_width="30dp"
+            android:layout_height="32dp"/>
 
         <ImageButton
             android:text="Play"
@@ -88,8 +96,8 @@
             android:textColor="@color/colorForeground"
             app:srcCompat="@drawable/ic_skip_next"
             android:layout_marginRight="10dp"
-            android:layout_height="30dp"
-            android:layout_width="30dp"/>
+            android:layout_width="30dp"
+            android:layout_height="32dp"/>
             android:layout_width="75dp"/>
     </LinearLayout>
 </LinearLayout>

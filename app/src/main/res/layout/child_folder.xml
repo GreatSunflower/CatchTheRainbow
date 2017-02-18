@@ -32,7 +32,9 @@
             android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center">
 
             <ImageView
                 android:layout_height="match_parent"
@@ -49,20 +51,24 @@
                 android:text="68"
                 android:layout_height="wrap_content"
                 android:id="@+id/tVCountMusics"
-                android:textAlignment="textEnd"
+                android:textAlignment="center"
                 android:textColor="@color/colorForeground"
                 android:textSize="14sp"
                 android:layout_weight="1"
-                android:layout_width="wrap_content"/>
+                android:layout_width="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center"/>
 
             <TextView
                 android:text="@string/countMusics"
                 android:layout_height="wrap_content"
-                android:textAlignment="textEnd"
+                android:textAlignment="center"
                 android:textColor="@color/colorForeground"
                 android:textSize="14sp"
                 android:layout_width="wrap_content"
-                android:layout_weight="1"/>
+                android:layout_weight="1"
+                android:gravity="center"
+                android:layout_gravity="center"/>
         </LinearLayout>
 
         <LinearLayout

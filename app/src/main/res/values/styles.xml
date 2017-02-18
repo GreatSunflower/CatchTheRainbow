@@ -13,6 +13,8 @@
         <item name="android:windowContentOverlay">@null</item>
 
         <item name="android:windowAnimationStyle">@style/MyAnimation.Window</item>
+
+        <item name="seekBarStyle">@style/SuperSeekBarStyle</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -29,4 +31,9 @@
         <item name="android:windowExitAnimation">@anim/anim_out</item>
     </style>
 
+    <!-- Widgets   -->
+    <style name="SuperSeekBarStyle" parent="@style/Widget.AppCompat.SeekBar">
+        <item name="colorAccent">@color/colorForeground</item>
+
+    </style>
 </resources>

@@ -123,7 +123,7 @@ public class AudioFilesAdapter extends CursorAdapter
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent)
     {
-        return inflater.inflate(R.layout.child_music, parent, false);
+        return inflater.inflate(R.layout.child_audio, parent, false);
     }
 
     @Override
@@ -135,7 +135,7 @@ public class AudioFilesAdapter extends CursorAdapter
         // if the view isn't generated
         if(view == null)
         {
-            rowView = inflater.inflate(R.layout.child_music, null, true);
+            rowView = inflater.inflate(R.layout.child_audio, null, true);
         }
         else rowView = view;
 
@@ -143,7 +143,7 @@ public class AudioFilesAdapter extends CursorAdapter
 
         // ----- Tint -----
         if (isPersonChecked((long)cursor.getPosition()))
-            itemView.setBackgroundColor(context.getResources().getColor(R.color.selectedSongItem));
+            itemView.setBackgroundColor(context.getResources().getColor(R.color.selectedListItem));
         else
             itemView.setBackgroundColor(context.getResources().getColor(R.color.backgroundListView));
         // -----Tint-end------

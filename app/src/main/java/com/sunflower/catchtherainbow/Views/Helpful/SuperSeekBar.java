@@ -124,7 +124,6 @@ public class SuperSeekBar extends SeekBar implements SeekBar.OnSeekBarChangeList
 
     public interface OnSuperSeekBarChangeListener
     {
-
         void onProgressChanged(SuperSeekBar seekBar, float progress, boolean fromUser);
 
         void onStartTrackingTouch(SuperSeekBar seekBar);

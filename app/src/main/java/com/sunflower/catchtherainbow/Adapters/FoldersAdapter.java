@@ -73,7 +73,7 @@ public class FoldersAdapter extends ArrayAdapter<Folder>
         View itemView = convertView.findViewById(R.id.folderLayout);
         // ----- Tint -----
         if (isFolderChecked((Integer)position))
-            itemView.setBackgroundColor(context.getResources().getColor(R.color.selectedSongItem));
+            itemView.setBackgroundColor(context.getResources().getColor(R.color.selectedListItem));
         else
             itemView.setBackgroundColor(context.getResources().getColor(R.color.backgroundListView));
         // -----Tint-end------

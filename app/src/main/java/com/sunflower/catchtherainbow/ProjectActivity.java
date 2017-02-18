@@ -5,7 +5,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.MediaMetadataRetriever;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -24,8 +23,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,22 +36,20 @@ import com.sunflower.catchtherainbow.Views.AudioChooserFragment;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment.OnFragmentInteractionListener;
 import com.sunflower.catchtherainbow.Views.AudioProgressView;
 import com.sunflower.catchtherainbow.Views.AudioVisualizerView;
+import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
+import com.sunflower.catchtherainbow.Views.Editing.SuperWaveformFragment;
 import com.sunflower.catchtherainbow.Views.Effects.DefaultEffectsFragment;
 import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
-import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
-import be.tarsos.dsp.PitchShifter;
 import be.tarsos.dsp.effects.DelayEffect;
 import be.tarsos.dsp.effects.FlangerEffect;
 import be.tarsos.dsp.io.android.AndroidFFMPEGLocator;
-import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 import be.tarsos.dsp.resample.RateTransposer;
 
 public class ProjectActivity extends AppCompatActivity
@@ -64,6 +61,8 @@ public class ProjectActivity extends AppCompatActivity
     private View viewContentProject;
     private AudioVisualizerView visualizerView;
     private TextView audioInfo;
+
+    private RelativeLayout waveFormViewContainer;
 
     // temp
     private boolean isPlaying = false, isDragging = false;
@@ -125,8 +124,11 @@ public class ProjectActivity extends AppCompatActivity
         // -----------------------------------------------------FOR TESTING PURPOSES---------------------------------------
         visualizerView = (AudioVisualizerView) findViewById(R.id.audioVisualizerView);
 
+        waveFormViewContainer = (RelativeLayout) findViewById(R.id.mainAreaContainer);
+
         audioInfo = (TextView) findViewById(R.id.audioInfoTextView);
 
+        // play/stop/next/prev
         playStopButt = (ImageButton) findViewById(R.id.Sacha);
         bNext = (ImageButton) findViewById(R.id.playNext);
         bPrev = (ImageButton) findViewById(R.id.playPrev);
@@ -180,21 +182,18 @@ public class ProjectActivity extends AppCompatActivity
             @Override
             public void OnInitialized(final File file)
             {
-                runOnUiThread(new Runnable()
-                {
-                    public void run()
-                    {
-                        progressView.setMax((float) player.getDurationInSeconds());
+                progressView.setMax((float) player.getDurationInSeconds());
 
-                        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-                        mmr.setDataSource(file.getAbsolutePath());
-                        String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                        String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-                        String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                        audioInfo.setText(artist + " - " + album + " - " + title);
-                        mmr.release();
-                    }
-                });
+                MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                mmr.setDataSource(file.getAbsolutePath());
+                String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+                String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                audioInfo.setText(artist + " - " + album + " - " + title);
+                mmr.release();
+
+                //waveFormViewContainer.setSoundFile(CheapSoundFile.create(file.getAbsolutePath(), null));
+                //waveFormViewContainer.invalidate();
             }
 
             @Override
@@ -210,10 +209,14 @@ public class ProjectActivity extends AppCompatActivity
             }
 
             @Override
-            public void OnFinish()
-            {
-            }
+            public void OnFinish(){}
         });
+
+        MainAreaFragment mainAreaFragment = MainAreaFragment.newInstance("", "");
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.mainAreaContainer, mainAreaFragment)
+                .commit();
 
         // play stop handler
         playStopButt.setOnClickListener(new View.OnClickListener()
@@ -234,7 +237,8 @@ public class ProjectActivity extends AppCompatActivity
                         Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         e.printStackTrace();
                     }
-                } else
+                }
+                else
                 {
                     try
                     {
@@ -465,6 +469,7 @@ public class ProjectActivity extends AppCompatActivity
     }
 
 
+
     // ----- permissions ----------
     public static boolean hasPermissions(Context context, String... permissions)
     {
@@ -480,5 +485,5 @@ public class ProjectActivity extends AppCompatActivity
         }
         return true;
     }
-
 }
+
