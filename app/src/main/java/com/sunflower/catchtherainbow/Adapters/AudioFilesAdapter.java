@@ -30,6 +30,7 @@ public class AudioFilesAdapter extends CursorAdapter
     private String filter = "";
     private LayoutInflater inflater;
     private int selectedCount = 0;
+    private String sortOrder = "title";
 
     public AudioFilesAdapter(final Activity context, Cursor c, int flags)
     {
@@ -40,7 +41,7 @@ public class AudioFilesAdapter extends CursorAdapter
             @Override
             public Cursor runQuery(CharSequence charSequence)
             {
-                return Helper.getSongsAudioCursor(context, charSequence.toString());
+                return Helper.getSongsAudioCursor(context, charSequence.toString(), "");
             }
         });
 
@@ -69,7 +70,15 @@ public class AudioFilesAdapter extends CursorAdapter
 
     public void filterAllAudioFiles(String filter)
     {
-        changeCursor(Helper.getSongsAudioCursor(context, filter));
+        changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));
+        this.filter = filter;
+        notifyDataSetChanged();
+    }
+
+    public void SetSortOrder(String sortOrder)
+    {
+        changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));
+        this.sortOrder = sortOrder;
         notifyDataSetChanged();
     }
 
@@ -82,7 +91,7 @@ public class AudioFilesAdapter extends CursorAdapter
             Boolean value = entry.getValue();
             selectedAudio.add(getPersonFromPosition(key.intValue()));
         }
-        changeCursor(Helper.getSongsAudioCursor(context, filter));
+        changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));
         notifyDataSetChanged();
         return selectedAudio;
     }
@@ -102,6 +111,22 @@ public class AudioFilesAdapter extends CursorAdapter
         notifyDataSetChanged();
     }
 
+    public void SetSelectAll(boolean value)
+    {
+        Cursor cursor = getCursor();
+        HashMap<Long, Boolean> newSelection = new HashMap<>();
+        selectedCount = 0;
+        for(int i = 0; i < cursor.getCount(); i++)
+        {
+            cursor.moveToPosition(i);
+            newSelection.put((long)i, value);
+            selectedCount++;
+        }
+        if(value == false) selectedCount = 0;
+        selection = newSelection;
+        notifyDataSetChanged();
+    }
+
     public boolean isPersonChecked(Long row)
     {
         Boolean result = selection.get(row);
@@ -117,7 +142,7 @@ public class AudioFilesAdapter extends CursorAdapter
     {
         Cursor cur = getCursor();
         cur.moveToPosition(position);
-        return Helper.getAudioFileByCursor(cur);
+        return Helper.getAudioFileByCursor(context, cur);
     }
 
     @Override

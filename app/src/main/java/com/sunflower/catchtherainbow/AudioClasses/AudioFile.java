@@ -38,6 +38,11 @@ public class AudioFile
         this.image = imageToByteArray(image);
     }
 
+    public long getId()
+    {
+        return this.id;
+    }
+
     public void setImage(Bitmap img) throws IOException
     {
         image = imageToByteArray(img);

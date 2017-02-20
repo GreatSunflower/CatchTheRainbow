@@ -11,6 +11,7 @@
     <string name="deny">Cancel</string>
 
     <string name="countMusics">Audio Files</string>
+    <string name="select_all_musics">All</string>
     <string name="getAudio">Get Audio</string>
 
     <!-- TODO: Remove or change this placeholder text -->

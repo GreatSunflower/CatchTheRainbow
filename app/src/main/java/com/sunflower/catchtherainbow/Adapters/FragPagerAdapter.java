@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.view.ViewGroup;
 
 import com.sunflower.catchtherainbow.R;
+import com.sunflower.catchtherainbow.Views.AudioChooserFragment;
 import com.sunflower.catchtherainbow.Views.FragTabAudioFiles;
 import com.sunflower.catchtherainbow.Views.FragTabFolders;
 
@@ -19,14 +20,25 @@ public class FragPagerAdapter extends FragmentPagerAdapter
 {
     private String fragments [] = {"Audio Files", "Folders"};
     private TabLayout tabLayout;
-    private FragTabAudioFiles.FragAudioListener  frAudioLis;
-    private FragTabFolders.FragFoldersListener  frFolderLis;
-    public FragPagerAdapter(FragmentManager supportFragmentManager, Context applicationContext, TabLayout tabLayout, FragTabAudioFiles.FragAudioListener frAudioLis, FragTabFolders.FragFoldersListener  frFolderLis)
+    private FragTabAudioFiles fragTabAudioFiles;
+    private FragTabFolders fragTabFolders;
+    private AudioChooserFragment audioChooserFragment;
+
+    public FragPagerAdapter(FragmentManager supportFragmentManager, Context applicationContext, TabLayout tabLayout, AudioChooserFragment audioChooserFragment)
     {
         super(supportFragmentManager);
-        this.frAudioLis = frAudioLis;
-        this.frFolderLis = frFolderLis;
         this.tabLayout = tabLayout;
+        this.audioChooserFragment = audioChooserFragment;
+    }
+
+    public FragTabAudioFiles GetFragTabAudioFiles()
+    {
+        return fragTabAudioFiles;
+    }
+
+    public FragTabFolders GetFragTabFolders()
+    {
+        return fragTabFolders;
     }
 
     @Override
@@ -35,14 +47,13 @@ public class FragPagerAdapter extends FragmentPagerAdapter
         switch (position)
         {
             case 0:
-                FragTabAudioFiles fragTabAudioFiles = new FragTabAudioFiles();
-                fragTabAudioFiles.addAudioListener(frAudioLis);
+                fragTabAudioFiles = new FragTabAudioFiles();
+                fragTabAudioFiles.AddLinkAudioChooserFragment(audioChooserFragment);
                 return fragTabAudioFiles;
             case 1:
-                FragTabFolders fragTabFolders = new FragTabFolders();
-                fragTabFolders.addFolderListener(frFolderLis);
-
-                return new FragTabFolders();
+                fragTabFolders = new FragTabFolders();
+                fragTabFolders.AddLinkAudioChooserFragment(audioChooserFragment);
+                return fragTabFolders;
             default:
                 return null;
         }
@@ -57,9 +68,9 @@ public class FragPagerAdapter extends FragmentPagerAdapter
     public void startUpdate(ViewGroup container)
     {
         super.startUpdate(container);
-
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_music_note);
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_folder);
+
     }
 
     @Override

@@ -1,18 +1,19 @@
 package com.sunflower.catchtherainbow;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 
+import java.io.FileDescriptor;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
@@ -54,8 +55,6 @@ public class Helper
         else return val;
     }
 
-
-
     public static ArrayList<String> getAllSongsOnDevice(Context context)
     {
         ArrayList<String> songs = new ArrayList<>();
@@ -96,7 +95,7 @@ public class Helper
         return songs;
     }
 
-    public static Cursor getSongsAudioCursor(Context context, String filter)
+    public static Cursor getSongsAudioCursor(Context context, String filter, String sortOrder)
     {
         Cursor cursorMusic = null;
         ContentResolver cr =  context.getContentResolver();
@@ -105,16 +104,41 @@ public class Helper
                 MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM};
 
         //String sortOrder = MediaStore.Audio.Media.TITLE + " LIKE ?  ASC";
+        //sortOrder = MediaStore.Audio.Media.TITLE;
+
         String where = MediaStore.Audio.Media.TITLE + " LIKE ? or " + MediaStore.Audio.Media.ARTIST + " LIKE ?";
         String[] params = new String[] { "%"+ filter + "%", "%"+ filter + "%" };
 
         cursorMusic = cr.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                projection, where, params, MediaStore.Audio.Media.TITLE);
+                projection, where, params, sortOrder);
 
         return cursorMusic;
     }
 
-    public static AudioFile getAudioFileByCursor(Cursor cursorMusic)
+    public static Bitmap getAlbumArt(Context context, Long album_id)
+    {
+        Bitmap bm = null;
+        try
+        {
+            final Uri sArtworkUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+
+            Uri uri = ContentUris.withAppendedId(sArtworkUri, album_id);
+
+            ContentResolver cr = context.getContentResolver();
+            ParcelFileDescriptor pfd = cr.openFileDescriptor(uri, "r");
+
+            if (pfd != null)
+            {
+                FileDescriptor fd = pfd.getFileDescriptor();
+                bm = BitmapFactory.decodeFileDescriptor(fd);
+            }
+
+        } catch (Exception e) {
+        }
+        return bm;
+    }
+
+    public static AudioFile getAudioFileByCursor(Context context, Cursor cursorMusic)
     {
         //cursorMusic.moveToFirst();
         //while (cursorMusic.moveToNext())
@@ -128,11 +152,7 @@ public class Helper
             Bitmap art = null;
             try
             {
-                String artPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-                art = BitmapFactory.decodeFile(artPath);
-
-                Drawable img = Drawable.createFromPath(artPath);
-                art = ((BitmapDrawable)img).getBitmap();
+                art = Helper.getAlbumArt(context, cursorMusic.getLong(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)));
             }
             catch(Exception ex)
             {

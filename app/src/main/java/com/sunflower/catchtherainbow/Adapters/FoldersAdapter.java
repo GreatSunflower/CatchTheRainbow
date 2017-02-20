@@ -21,14 +21,14 @@ import java.util.HashMap;
 public class FoldersAdapter extends ArrayAdapter<Folder>
 {
     Context context;
-    private HashMap<String, String> folders = new HashMap<>();
+    //private HashMap<String, String> folders = new HashMap<>();
     private HashMap<Integer, Boolean> selection = new HashMap<>();
     private int selectedCount = 0;
     int res;
 
-    public FoldersAdapter(Context context, int resource, ArrayList<Folder> songs)
+    public FoldersAdapter(Context context, int resource, ArrayList<Folder> folders)
     {
-        super(context,resource,songs);
+        super(context, resource, folders);
         this.context = context;
         this.res = resource;
     }
