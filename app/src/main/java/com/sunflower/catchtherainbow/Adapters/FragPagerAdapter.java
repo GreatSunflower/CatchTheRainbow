@@ -16,7 +16,7 @@ import com.sunflower.catchtherainbow.Views.AudioChooserFragment;
 import com.sunflower.catchtherainbow.Views.FragTabAudioFiles;
 import com.sunflower.catchtherainbow.Views.FragTabFolders;
 
-public class FragPagerAdapter extends FragmentPagerAdapter
+public class FragPagerAdapter extends FragmentPagerAdapter //implements  sdffg
 {
     private String fragments [] = {"Audio Files", "Folders"};
     private TabLayout tabLayout;

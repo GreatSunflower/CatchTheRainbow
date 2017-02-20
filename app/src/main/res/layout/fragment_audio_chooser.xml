@@ -38,21 +38,11 @@
 
             <CheckBox
                 android:text="@string/select_all_musics"
-                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:id="@+id/cB_isAllSelected"
-                android:layout_weight="1"
-                />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:id="@+id/tvSelected"
-                android:textAlignment="center"
-                android:textColor="@color/colorForeground"
-                android:textSize="16sp"
-                android:layout_weight="1"
-                android:paddingTop="5dp"/>
+                android:elevation="1dp"
+                android:layout_width="55dp"
+                android:visibility="gone"/>
 
             <SearchView
                 android:layout_width="wrap_content"
@@ -64,21 +54,37 @@
 
             </SearchView>
 
+            <TextView
+                android:layout_height="match_parent"
+                android:id="@+id/tvSelected"
+                android:textAlignment="center"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="16sp"
+                android:layout_width="30dp"
+                android:gravity="center"
+                android:visibility="gone"
+                android:foregroundGravity="center"
+                android:layout_gravity="center"/>
+
             <Spinner
-                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:id="@+id/spinnerFilter"
                 android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                />
+                android:layout_width="120dp"/>
 
         </LinearLayout>
 
         <android.support.v4.view.ViewPager
             android:layout_width="match_parent"
-            android:layout_height="402dp"
             android:id="@+id/viewPager"
-            android:padding="1dp"/>
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingTop="0dp"
+            android:paddingBottom="1dp"
+            android:paddingEnd="1dp"
+            android:paddingLeft="1dp"
+            android:paddingRight="1dp"
+            android:paddingStart="1dp"/>
 
         <LinearLayout
             android:orientation="horizontal"

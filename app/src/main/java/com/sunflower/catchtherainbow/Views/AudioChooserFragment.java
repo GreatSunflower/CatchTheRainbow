@@ -68,7 +68,7 @@ public class AudioChooserFragment extends DialogFragment
     private FragPagerAdapter fragPagerAdapter;
     private CheckBox isAllSelected;
     private Spinner spinFilter;
-    private String[] items_array = {"TITLE", "ARTIST", "DURATION", "DATA", "ALBUM"};
+    private String[] items_array = {"TITLE", "ARTIST", "DURATION", "ALBUM"};
     private ArrayAdapter<String> spinFilterAdapter;
 
     @Override
@@ -223,11 +223,20 @@ public class AudioChooserFragment extends DialogFragment
         return true;
     }
 
+    interface asd
+    {
+        void search(String query);
+
+        // get array of song ();
+    }
+
     // Filter Class
     public void Search(String query)
     {
         if(viewPager.getCurrentItem() == 0)
         {
+           /* ISongSelectable currentItem = (ISongSelectable*)viewPager.getChildAt(viewPager. getCurrentItem());
+            currentItem.Search(query);*/
             fragPagerAdapter.GetFragTabAudioFiles().Search(query);
         }
         else
