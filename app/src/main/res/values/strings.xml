@@ -10,7 +10,7 @@
     <string name="conformation">OK</string>
     <string name="deny">Cancel</string>
 
-    <string name="countMusics">Audio Files</string>
+    <string name="songs_count">Audio Files</string>
     <string name="select_all_musics">All</string>
     <string name="getAudio">Get Audio</string>
 
@@ -20,5 +20,10 @@
     <string name="new_audio_stack">New Audio Track</string>
     <string name="mute">Mute</string>
     <string name="solo">Solo</string>
+
+    <string name="no_title">No Title</string>
+    <string name="unknown_artist">Unknown Artist</string>
+    <string name="path">Patn</string>
+    <string name="folder">Folder</string>
 
 </resources>

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,6 +43,9 @@ public class AudioChooserFragment extends DialogFragment
         implements SearchView.OnQueryTextListener, View.OnClickListener
 {
     private OnFragmentInteractionListener mListener;
+
+    final static int SONGS_LOADER_ID = 0;
+    final static int SUB_SONGS_LOADER_ID = 1;
 
     public static AudioChooserFragment newInstance()
     {
@@ -282,14 +286,16 @@ public class AudioChooserFragment extends DialogFragment
                     if(mListener != null) mListener.onOk(fragPagerAdapter.GetFragTabAudioFiles().GetAudioFilesAdapter().getSelectionAudioFiles());
                 }
                 // Закрытие текущего фрагмента
-                getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+                dismiss();
+               // getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
                 break;
             }
             case R.id.bCancel:
             {
                 if(mListener != null) mListener.onCancel();
                 // Закрытие текущего фрагмента
-                getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+                dismiss();
+               // getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
                 break;
             }
         }

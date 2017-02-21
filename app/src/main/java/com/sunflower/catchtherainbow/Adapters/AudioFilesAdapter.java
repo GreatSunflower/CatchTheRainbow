@@ -1,13 +1,16 @@
 package com.sunflower.catchtherainbow.Adapters;
 
 import android.app.Activity;
+import android.app.LoaderManager;
 import android.content.Context;
+import android.content.CursorLoader;
+import android.content.Loader;
 import android.database.Cursor;
-import android.support.v4.widget.CursorAdapter;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FilterQueryProvider;
+import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -23,28 +26,39 @@ import java.util.Map;
  * Created by Alexandr on 05.02.2017.
  */
 
-public class AudioFilesAdapter extends CursorAdapter
+public class AudioFilesAdapter extends CursorAdapter implements LoaderManager.LoaderCallbacks<Cursor>
 {
     private final Activity context;
     private HashMap<Long, Boolean> selection = new HashMap<>();
     private String filter = "";
     private LayoutInflater inflater;
     private int selectedCount = 0;
+
+    private String searchQuery = "";
     private String sortOrder = "title";
 
-    public AudioFilesAdapter(final Activity context, Cursor c, int flags)
+    private int loaderId;
+
+
+    public AudioFilesAdapter(final Activity context, int loaderId, int flags)
     {
-        super(context, c, flags);
+        super(context, null, flags);
         this.context = context;
-        this.setFilterQueryProvider(new FilterQueryProvider()
+
+        this.loaderId = loaderId;
+
+        context.getLoaderManager().restartLoader(loaderId, new Bundle(), this);
+
+        //context.getLoaderManager().initLoader(SONGS_LOADER_ID, new Bundle(), this);
+
+        /*this.setFilterQueryProvider(new FilterQueryProvider()
         {
             @Override
             public Cursor runQuery(CharSequence charSequence)
             {
                 return Helper.getSongsAudioCursor(context, charSequence.toString(), "");
             }
-        });
-
+        });*/
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -56,40 +70,50 @@ public class AudioFilesAdapter extends CursorAdapter
     public ArrayList<AudioFile> getSelectionAudioFiles()
     {
         ArrayList<AudioFile> selectedAudio = new ArrayList<>();
-        for(Map.Entry<Long, Boolean> entry : selection.entrySet())
+        for (Map.Entry<Long, Boolean> entry : selection.entrySet())
         {
             Long key = entry.getKey();
             Boolean value = entry.getValue();
-            if(value == true)
+            if (value == true)
             {
-                selectedAudio.add(getPersonFromPosition(key.intValue()));
+                selectedAudio.add(getSongFromPosition(key.intValue()));
             }
         }
         return selectedAudio;
     }
 
+
     public void filterAllAudioFiles(String filter)
     {
-        changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));
+        searchQuery = filter;
+        if(loader != null)
+            loader.setSearchQuery(filter);
+        context.getLoaderManager().getLoader(loaderId).forceLoad();
+        /*changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));
         this.filter = filter;
-        notifyDataSetChanged();
+        notifyDataSetChanged();*/
     }
 
     public void SetSortOrder(String sortOrder)
     {
-        changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));
         this.sortOrder = sortOrder;
-        notifyDataSetChanged();
+        if(loader != null)
+            loader.setOrder(sortOrder);
+        context.getLoaderManager().getLoader(loaderId).forceLoad();
+
+        /*changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));
+        this.sortOrder = sortOrder;
+        notifyDataSetChanged();*/
     }
 
     public ArrayList<AudioFile> getAllAudioFiles(String filter)
     {
         ArrayList<AudioFile> selectedAudio = new ArrayList<>();
-        for(Map.Entry<Long, Boolean> entry : selection.entrySet())
+        for (Map.Entry<Long, Boolean> entry : selection.entrySet())
         {
             Long key = entry.getKey();
             Boolean value = entry.getValue();
-            selectedAudio.add(getPersonFromPosition(key.intValue()));
+            selectedAudio.add(getSongFromPosition(key.intValue()));
         }
         changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));
         notifyDataSetChanged();
@@ -98,7 +122,7 @@ public class AudioFilesAdapter extends CursorAdapter
 
     public void setNewSelection(Long id)
     {
-        if(isPersonChecked(id))
+        if (isPersonChecked(id))
         {
             selection.put(id, false);
             selectedCount--;
@@ -116,13 +140,13 @@ public class AudioFilesAdapter extends CursorAdapter
         Cursor cursor = getCursor();
         HashMap<Long, Boolean> newSelection = new HashMap<>();
         selectedCount = 0;
-        for(int i = 0; i < cursor.getCount(); i++)
+        for (int i = 0; i < cursor.getCount(); i++)
         {
             cursor.moveToPosition(i);
-            newSelection.put((long)i, value);
+            newSelection.put((long) i, value);
             selectedCount++;
         }
-        if(value == false) selectedCount = 0;
+        if (value == false) selectedCount = 0;
         selection = newSelection;
         notifyDataSetChanged();
     }
@@ -138,7 +162,7 @@ public class AudioFilesAdapter extends CursorAdapter
         super.notifyDataSetChanged();
     }
 
-    public AudioFile getPersonFromPosition(int position)
+    public AudioFile getSongFromPosition(int position)
     {
         Cursor cur = getCursor();
         cur.moveToPosition(position);
@@ -155,36 +179,107 @@ public class AudioFilesAdapter extends CursorAdapter
     public void bindView(View view, Context context, Cursor cursor)
     {
         View rowView;
-        final AudioFile audioFile = getPersonFromPosition(cursor.getPosition());
+        final AudioFile audioFile = getSongFromPosition(cursor.getPosition());
         //if(!audioFile.getTitle().contains("Track")) return;
         // if the view isn't generated
-        if(view == null)
+        if (view == null)
         {
             rowView = inflater.inflate(R.layout.child_audio, null, true);
         }
         else rowView = view;
 
-        View itemView = rowView.findViewById(R.id.musicLayout);
+        View itemView = rowView.findViewById(R.id.music_layout);
 
         // ----- Tint -----
-        if (isPersonChecked((long)cursor.getPosition()))
+        if (isPersonChecked((long) cursor.getPosition()))
             itemView.setBackgroundColor(context.getResources().getColor(R.color.selectedListItem));
         else
             itemView.setBackgroundColor(context.getResources().getColor(R.color.backgroundListView));
         // -----Tint-end------
 
-        ImageView albumImage = (ImageView)rowView.findViewById(R.id.imageView);
-        TextView nameLayout = (TextView)rowView.findViewById(R.id.tvName);
-        TextView artistLayout = (TextView)rowView.findViewById(R.id.tvArtist);
-        TextView timesLayout = (TextView)rowView.findViewById(R.id.tvTimes);
+        ImageView albumImage = (ImageView) rowView.findViewById(R.id.imageView);
+        TextView nameLayout = (TextView) rowView.findViewById(R.id.tvName);
+        TextView artistLayout = (TextView) rowView.findViewById(R.id.tvArtist);
+        TextView timesLayout = (TextView) rowView.findViewById(R.id.tvTimes);
 
-        if(audioFile.getBitmapImage() != null)
+        if (audioFile.getBitmapImage() != null)
             albumImage.setImageBitmap(audioFile.getBitmapImage());
 
         nameLayout.setText(audioFile.getTitle());
         artistLayout.setText(audioFile.getArtist());
         timesLayout.setText(Helper.secondToString(audioFile.getDuration()));
     }
+
+
+    //------------------------------------------------For background loading----------------------------
+
+    private SuperAudioCursorLoader loader;
+    // ---------------loader listener-------------
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args)
+    {
+        loader = new SuperAudioCursorLoader(context, searchQuery, sortOrder);
+        return loader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data)
+    {
+        changeCursor(data);
+        this.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader)
+    {
+        changeCursor(null);
+        this.notifyDataSetChanged();
+    }
+}
+
+class SuperAudioCursorLoader extends CursorLoader
+{
+    private Context context;
+    private String order = "title";
+    private String searchQuery = "state";
+
+    public SuperAudioCursorLoader(Context context, String searchQuery, String order)
+    {
+        super(context);
+        this.searchQuery = searchQuery;
+        this.order = order;
+        this.context = context;
+    }
+
+    // Загрузка данных из БД в отдельном потоке
+    @Override
+    public Cursor loadInBackground()
+    {
+        Cursor cursor = Helper.getSongsAudioCursor(context, searchQuery, order);
+        return cursor;
+    }
+
+    public String getOrder()
+    {
+        return order;
+    }
+
+    public void setOrder(String order)
+    {
+        this.order = order;
+    }
+
+    public String getSearchQuery()
+    {
+        return searchQuery;
+    }
+
+    public void setSearchQuery(String searchQuery)
+    {
+        this.searchQuery = searchQuery;
+    }
+}
+    // ---------------loader listener end-------------
 
    /* public void refeshData()
     {
@@ -281,7 +376,7 @@ public class AudioFilesAdapter extends CursorAdapter
         super.notifyDataSetChanged();
     }
 
-    public AudioFile getPersonFromPosition(int position)
+    public AudioFile getSongFromPosition(int position)
     {
         Cursor cur = getCursor();
         cur.moveToPosition(position);
@@ -300,4 +395,4 @@ public class AudioFilesAdapter extends CursorAdapter
         while(cursor.moveToNext());
         return res;
     }*/
-}
+

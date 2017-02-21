@@ -83,7 +83,8 @@ public class Helper
                     }
                 } // count > 0
             }
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             System.out.println(ex.getMessage());/* ex.printStackTrace();*/
@@ -106,7 +107,7 @@ public class Helper
         //String sortOrder = MediaStore.Audio.Media.TITLE + " LIKE ?  ASC";
         //sortOrder = MediaStore.Audio.Media.TITLE;
 
-        String where = MediaStore.Audio.Media.TITLE + " LIKE ? or " + MediaStore.Audio.Media.ARTIST + " LIKE ?";
+        String where = MediaStore.Audio.Media.TITLE + " LIKE ? or " + MediaStore.Audio.Artists.ARTIST + " LIKE ?";
         String[] params = new String[] { "%"+ filter + "%", "%"+ filter + "%" };
 
         cursorMusic = cr.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -133,36 +134,30 @@ public class Helper
                 bm = BitmapFactory.decodeFileDescriptor(fd);
             }
 
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {       }
         return bm;
     }
 
     public static AudioFile getAudioFileByCursor(Context context, Cursor cursorMusic)
     {
-        //cursorMusic.moveToFirst();
-        //while (cursorMusic.moveToNext())
+        long idAudio = cursorMusic.getLong(cursorMusic.getColumnIndex(MediaStore.Audio.Media._ID));
+        String title = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.TITLE));
+        String artist = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+        double duration = cursorMusic.getDouble(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DURATION));
+        String fullPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DATA));
+
+        Bitmap art = null;
+       /* try
         {
-            long idAudio = cursorMusic.getLong(cursorMusic.getColumnIndex(MediaStore.Audio.Media._ID));
-            String title = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.TITLE));
-            String artist = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-            double duration = cursorMusic.getDouble(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DURATION));
-            String fullPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DATA));
-
-            Bitmap art = null;
-            try
-            {
-                art = Helper.getAlbumArt(context, cursorMusic.getLong(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)));
-            }
-            catch(Exception ex)
-            {
-                ex.printStackTrace();
-            }
-
-            AudioFile audioFile = new AudioFile(idAudio, title, artist, Helper.millisecondsToSeconds(duration), fullPath, AudioFile.imageToByteArray(art));
-            return  audioFile;
+            //art = Helper.getAlbumArt(context, cursorMusic.getLong(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)));
         }
-      //  return null;
+        catch(Exception ex)
+        {
+            //ex.printStackTrace();
+        }*/
+
+        AudioFile audioFile = new AudioFile(idAudio, title, artist, Helper.millisecondsToSeconds(duration), fullPath, AudioFile.imageToByteArray(art));
+        return  audioFile;
     }
 
     public static ArrayList<AudioFile> getAllAudioOnDevice(Context context)
@@ -176,7 +171,7 @@ public class Helper
             Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
             String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
             String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
-            String album = MediaStore.Audio.Albums._ID+ "=?";
+           // String album = MediaStore.Audio.Albums._ID+ "=?";
             cursorMusic = cr.query(uri, null, selection, null, sortOrder);
             int count = 0;
 
@@ -194,12 +189,12 @@ public class Helper
                         String fullPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DATA));
 
                         Bitmap art = null;
-                        try
+                        /*try
                         {
                             String artPath = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
                             art = BitmapFactory.decodeFile(artPath);
                         }
-                        catch(Exception ex){}
+                        catch(Exception ex){}*/
 
                         AudioFile audioFile = new AudioFile(title, artist, Helper.millisecondsToSeconds(duration), fullPath, art);
 

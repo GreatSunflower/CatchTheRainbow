@@ -333,10 +333,7 @@ public class ProjectActivity extends AppCompatActivity
         {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             Fragment prev = getSupportFragmentManager().findFragmentById(R.id.SuperAudioChooser);
-            if (prev != null)
-            {
-                ft.remove(prev);
-            }
+            if (prev != null)  ft.remove(prev);
             ft.addToBackStack(null);
             // Create and show the dialog.
             AudioChooserFragment newFragment = AudioChooserFragment.newInstance();
@@ -365,6 +362,8 @@ public class ProjectActivity extends AppCompatActivity
 
         return super.onOptionsItemSelected(item);
     }
+
+
 
     // Universal method for creating dialog fragments
     private DialogFragment createNewDialog(int fragmentId, Class<? extends DialogFragment> fragmentClass, boolean showImmediately)

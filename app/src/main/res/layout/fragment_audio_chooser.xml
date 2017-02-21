@@ -5,9 +5,7 @@
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              android:background="@android:color/transparent"
-             tools:context="com.sunflower.catchtherainbow.Views.AudioChooserFragment"
-    >
-
+             tools:context="com.sunflower.catchtherainbow.Views.AudioChooserFragment">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -40,12 +38,11 @@
                 android:text="@string/select_all_musics"
                 android:layout_height="match_parent"
                 android:id="@+id/cB_isAllSelected"
-                android:elevation="1dp"
                 android:layout_width="55dp"
                 android:visibility="gone"/>
 
             <SearchView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="@drawable/background_textview"
                 android:id="@+id/searchViewAudio"
@@ -80,20 +77,25 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:paddingTop="0dp"
-            android:paddingBottom="1dp"
+            android:paddingBottom="0dp"
             android:paddingEnd="1dp"
             android:paddingLeft="1dp"
             android:paddingRight="1dp"
             android:paddingStart="1dp"/>
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:background="@drawable/background_textview"
+            android:layout_height="3dp"/>
+
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:layout_marginTop="0dp"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
-            android:layout_marginBottom="5dp">
+            android:layout_marginBottom="2dp"
+            android:layout_marginTop="1dp">
 
             <Button
                 android:text="@string/conformation"
@@ -104,7 +106,7 @@
                 android:gravity="center"
                 android:layout_weight="1"
                 android:layout_marginRight="5dp"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="2dp"
                 android:textColor="@color/colorForeground"
                 android:textSize="16sp"
                 android:layout_height="wrap_content"/>
@@ -118,7 +120,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:layout_weight="1"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="2dp"
                 android:textColor="@color/colorForeground"
                 android:textSize="16sp"/>
         </LinearLayout>

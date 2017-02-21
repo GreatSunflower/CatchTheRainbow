@@ -60,8 +60,7 @@ public class FragTabFolders extends Fragment
             public void onItemClick(AdapterView<?> parent, View view, int position, long id)
             {
                 // --------------------------------ADAPTER----------------------------------
-                Cursor cursor = Helper.getSongsAudioCursor(getContext(), "", "");
-                audioFilesAdapter = new AudioFilesAdapter(getActivity(), cursor, 0);
+                audioFilesAdapter = new AudioFilesAdapter(getActivity(), AudioChooserFragment.SUB_SONGS_LOADER_ID, 0);
                 folderListView.setAdapter(audioFilesAdapter);
 
                 // --------------------------------ADAPTER-END----------------------------------
@@ -94,6 +93,7 @@ public class FragTabFolders extends Fragment
     public ArrayList<Folder> GetAllFolders()
     {
         ArrayList<Folder> fol = new ArrayList<Folder>();
+        // speed this up!!!!
         ArrayList<AudioFile> audioFiles = Helper.getAllAudioOnDevice(getContext());
         ArrayList<String> pathOfFolders = new ArrayList<String>();
         for(AudioFile audioFile : audioFiles)

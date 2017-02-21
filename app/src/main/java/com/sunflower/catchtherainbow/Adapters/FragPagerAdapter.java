@@ -59,11 +59,6 @@ public class FragPagerAdapter extends FragmentPagerAdapter //implements  sdffg
         }
     }
 
-    public void run()		//Этот метод будет выполняться в побочном потоке
-    {
-        System.out.println("Привет из побочного потока!");
-    }
-
     @Override
     public void startUpdate(ViewGroup container)
     {

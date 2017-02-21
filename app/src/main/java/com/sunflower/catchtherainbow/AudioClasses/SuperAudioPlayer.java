@@ -91,8 +91,14 @@ public class SuperAudioPlayer implements AudioProcessor
         currentTime = 0;
         setState(PlayerState.FILE_LOADED);
 
-        for (AudioPlayerListener listener : playerListeners)
-            listener.OnInitialized(loadedFile);
+        context.runOnUiThread(new Runnable()
+        {
+            public void run()
+            {
+                for (AudioPlayerListener listener : playerListeners)
+                    listener.OnInitialized(loadedFile);
+            }
+        });
     }
 
     // stops the dispatcher and unloads the file

@@ -37,17 +37,13 @@ public class FragTabAudioFiles extends Fragment
         resView = inflater.inflate(R.layout.frag_tab_audio_files,container,false);
         // --------------------------------ADAPTER----------------------------------
         //Создание потока
-        Thread myThready = new Thread(new Runnable()
-        {
-            public void run() //Этот метод будет выполняться в побочном потоке
-            {
-                Cursor cursor = Helper.getSongsAudioCursor(getContext(), "", "");
-                audioFilesAdapter = new AudioFilesAdapter(getActivity(), cursor, 0);
-                superListView.setAdapter(audioFilesAdapter);
-            }
-        });
-        myThready.start();	//Запуск потока
+
+        //Cursor cursor = Helper.getSongsAudioCursor(getContext(), "", "");
         superListView = (ListView)resView.findViewById(R.id.listViewAudioFiles);
+
+        audioFilesAdapter = new AudioFilesAdapter(getActivity(), AudioChooserFragment.SONGS_LOADER_ID, 0);
+        superListView.setAdapter(audioFilesAdapter);
+
         superListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         // --------------------------------ADAPTER-END----------------------------------
 
@@ -63,9 +59,6 @@ public class FragTabAudioFiles extends Fragment
                 else audioChooserFragment.SetSelectedCount(0);
             }
         });
-
-        try { myThready.join(); }
-        catch (InterruptedException e) { e.printStackTrace(); }
 
         return resView;
     }
