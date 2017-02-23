@@ -78,6 +78,7 @@ public class CheapMP3 extends CheapSoundFile
     }
 
     public int getSampleRate() {
+
         return mGlobalSampleRate;
     }
 

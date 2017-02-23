@@ -1,12 +1,16 @@
 package com.sunflower.catchtherainbow.Views.Editing;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -25,7 +29,11 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.sunflower.catchtherainbow.R;
+import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
+import com.sunflower.catchtherainbow.Views.Editing.Waveform.view.WaveformView;
 import com.sunflower.catchtherainbow.Views.Helpful.Thumb;
+
+import java.io.IOException;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -97,17 +105,19 @@ public class MainAreaFragment extends Fragment
         tracksLayout = (TableLayout)root.findViewById(R.id.tracks_layout);
         verticalScrollView = (ScrollView) root.findViewById(R.id.verticalScrollView);
 
-        addTrack(350, 150);
+       /* addTrack(350, 150);
         addTrack(350, 150);
         addTrack(350, 160);
-        addTrack(100, 200);
+        addTrack(100, 200);*/
 
         return root;
     }
 
-    public void addTrack(int w, int h)
+    ProgressDialog progressDialog;
+    TableRow trow;
+    public void addTrack(final String path, int w, int h)
     {
-        TableRow trow = new TableRow(getActivity());
+        trow = new TableRow(getActivity());
 
         // needs to be set to be able to select track
         trow.setClickable(true);
@@ -121,17 +131,15 @@ public class MainAreaFragment extends Fragment
 
         // header view
         TrackHeaderView head = new TrackHeaderView(getActivity());
-
-        // dummy view
-        TextView tv2 = new TextView(getActivity());
-        tv2.setPadding(10,10,10,10);
-        tv2.setTextColor(Color.WHITE);
-        tv2.setGravity(Gravity.CENTER);
-        tv2.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT));
-        tv2.setText("The greatest waveform of all!");
-
         trow.addView(head, 0);
-        trow.addView(tv2, 1);
+
+        TextView v = new TextView(getContext());
+        v.setBackgroundColor(Color.RED);
+        v.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT));
+        trow.addView(v, 1);
+
+         // Load the sound file in a background thread
+        new LongOperation().execute(path);
 
         // add header row
         tracksLayout.addView(trow, 0);
@@ -145,6 +153,96 @@ public class MainAreaFragment extends Fragment
 
         // add thumb row
         tracksLayout.addView(thumbRow, 1);
+    }
+
+    private final Handler mHandler = new Handler();
+    private CheapSoundFile file;
+
+    private class LongOperation extends AsyncTask<String, Double, CheapSoundFile>
+    {
+        private long loadingLastUpdateTime;
+
+        @Override
+        protected CheapSoundFile doInBackground(String... params)
+        {
+            loadingLastUpdateTime = System.currentTimeMillis();
+            CheapSoundFile.ProgressListener progressListener = new CheapSoundFile.ProgressListener()
+            {
+                @Override
+                public boolean reportProgress(final double fractionComplete)
+                {
+                    long now = System.currentTimeMillis();
+                    if (now - loadingLastUpdateTime > 100)
+                    {
+                        publishProgress(fractionComplete);
+                        loadingLastUpdateTime = now;
+                    }
+                    return true;
+                }
+            };
+
+            try
+            {
+                 file = CheapSoundFile.create(params[0], progressListener);
+//                file.setProgressListener(null);
+            }
+            catch (IOException e)
+            {
+                Log.e("Tracks", "Error while loading sound file", e);
+                progressDialog.dismiss();
+                return null;
+            }
+
+            return file;
+        }
+
+        @Override
+        protected void onPostExecute(CheapSoundFile result)
+        {
+            finishOpeningSoundFile(result, trow);
+//            progressDialog.dismiss();
+        }
+
+        @Override
+        protected void onPreExecute()
+        {
+            /*progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            progressDialog.setTitle(R.string.progress_dialog_loading);
+            progressDialog.setCancelable(false);
+            progressDialog.show();*/
+        }
+
+        @Override
+        protected void onProgressUpdate(Double... values)
+        {
+           // progressDialog.setProgress((int) (progressDialog.getMax() * values[0]));
+        }
+    }
+
+
+    protected void finishOpeningSoundFile(final CheapSoundFile file, final TableRow tableRow)
+    {
+        mHandler.post(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+              WaveformView wave = new WaveformView(getActivity());
+              wave.setPadding(2,2,2,2);
+              wave.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT));
+              tableRow.addView(wave, 1);
+              //wave.setSoundFile(file);
+              /*TextView v = new TextView(getContext());
+              v.setBackgroundColor(Color.RED);
+              v.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT));
+              trow.addView(v, 1);*/
+          }
+        });
+
+        // add track row
+
+       // wave.invalidate();
     }
 
 

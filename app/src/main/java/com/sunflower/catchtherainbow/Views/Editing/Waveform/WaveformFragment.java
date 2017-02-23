@@ -53,8 +53,8 @@ import java.util.List;
  *
  * Modified by Anna Stępień <anna.stepien@semantive.com>
  */
-public abstract class WaveformFragment extends Fragment implements MarkerView.MarkerListener, WaveformView.WaveformListener {
-
+public abstract class WaveformFragment extends Fragment implements MarkerView.MarkerListener, WaveformView.WaveformListener
+{
     public static final String TAG = "WaveformFragment";
 
     protected long mLoadingLastUpdateTime;
@@ -353,7 +353,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     // Internal methods
     //
 
-    protected void loadGui(View view) {
+    protected void loadGui(View view)
+    {
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
         mDensity = metrics.density;
@@ -393,7 +394,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mLastDisplayedStartPos = -1;
         mLastDisplayedEndPos = -1;
 
-        if (mSoundFile != null && !mWaveformView.hasSoundFile()) {
+        if (mSoundFile != null && !mWaveformView.hasSoundFile())
+        {
             mWaveformView.setSoundFile(mSoundFile);
             mWaveformView.recomputeHeights(mDensity);
             mMaxPos = mWaveformView.maxPos();
@@ -445,8 +447,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
                 long now = System.currentTimeMillis();
                 if (now - mLoadingLastUpdateTime > 100)
                 {
-                    mProgressDialog.setProgress(
-                            (int) (mProgressDialog.getMax() * fractionComplete));
+                    mProgressDialog.setProgress((int) (mProgressDialog.getMax() * fractionComplete));
                     mLoadingLastUpdateTime = now;
                 }
                 return true;

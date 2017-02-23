@@ -30,7 +30,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
-import com.sunflower.catchtherainbow.AudioClasses.PlayListPlayer;
 import com.sunflower.catchtherainbow.AudioClasses.SuperAudioPlayer;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment.OnFragmentInteractionListener;
@@ -38,19 +37,16 @@ import com.sunflower.catchtherainbow.Views.AudioProgressView;
 import com.sunflower.catchtherainbow.Views.AudioVisualizerView;
 import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
 import com.sunflower.catchtherainbow.Views.Editing.SuperWaveformFragment;
+import com.sunflower.catchtherainbow.Views.Editing.Waveform.WaveformFragment;
+import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
 import com.sunflower.catchtherainbow.Views.Effects.DefaultEffectsFragment;
 import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
+import com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
-
-import be.tarsos.dsp.AudioEvent;
-import be.tarsos.dsp.effects.DelayEffect;
-import be.tarsos.dsp.effects.FlangerEffect;
-import be.tarsos.dsp.io.android.AndroidFFMPEGLocator;
-import be.tarsos.dsp.resample.RateTransposer;
 
 public class ProjectActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, View.OnClickListener, EffectsHostFragment.OnEffectsHostListener
@@ -63,14 +59,11 @@ public class ProjectActivity extends AppCompatActivity
     private TextView audioInfo;
 
     private RelativeLayout waveFormViewContainer;
+    private MainAreaFragment tracksFragment;
 
     // temp
     private boolean isPlaying = false, isDragging = false;
-    private PlayListPlayer player;
-
-    private DelayEffect delayEffect;
-    private FlangerEffect flangerEffect;
-    private RateTransposer rateTransposer;
+    private SuperAudioPlayer player;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -90,7 +83,6 @@ public class ProjectActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
         }
         //////////////////////////////////////////////////////////end permission
-
 
         // Init toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -157,46 +149,35 @@ public class ProjectActivity extends AppCompatActivity
             {
                 if (player != null)
                 {
-                    player.setCurrentTime(seekBar.getProgress(), true);
+                    player.setPosition(seekBar.getProgress());
                 }
                 isDragging = false;
             }
         });
 
         // --------------------------------------AUDIO STUFF-------------------------------------------------
-        new AndroidFFMPEGLocator(this);
-
-        player = new PlayListPlayer(this);
-
-        delayEffect = new DelayEffect(1, 0, 44100);
-        rateTransposer = new RateTransposer(1.f);
-        flangerEffect = new FlangerEffect(5.f, 0, 44100, 3);
-
-        // apply the effects
-        player.addProcessor(rateTransposer);
-        player.addProcessor(delayEffect);
-        player.addProcessor(flangerEffect);
+        player = new SuperAudioPlayer(this);
 
         player.addPlayerListener(new SuperAudioPlayer.AudioPlayerListener()
         {
             @Override
-            public void OnInitialized(final File file)
+            public void onInitialized(int totalTime/*final File file*/)
             {
-                progressView.setMax((float) player.getDurationInSeconds());
+                progressView.setMax(totalTime);
 
-                MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                /*MediaMetadataRetriever mmr = new MediaMetadataRetriever();
                 mmr.setDataSource(file.getAbsolutePath());
                 String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
                 String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
                 String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
                 audioInfo.setText(artist + " - " + album + " - " + title);
-                mmr.release();
+                mmr.release();*/
 
                 //waveFormViewContainer.setSoundFile(CheapSoundFile.create(file.getAbsolutePath(), null));
                 //waveFormViewContainer.invalidate();
             }
 
-            @Override
+           /* @Override
             public void OnUpdate(AudioEvent audioEvent, double realCurrentTime)
             {
                 //  final float duration = (float) audioEvent.getFrameLength() / audioEvent.getfra();
@@ -205,17 +186,17 @@ public class ProjectActivity extends AppCompatActivity
 
                 //progressView.setMax(duration);
                 if (!isDragging) progressView.setCurrent((float) currentTime);
-                visualizerView.updateVisualizer(audioData);
-            }
+                //visualizerView.updateVisualizer(audioData);
+            }*/
 
             @Override
-            public void OnFinish(){}
+            public void onCompleted(){}
         });
 
-        MainAreaFragment mainAreaFragment = MainAreaFragment.newInstance("", "");
+        tracksFragment = MainAreaFragment.newInstance("", "");
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainAreaContainer, mainAreaFragment)
+                .replace(R.id.mainAreaContainer, tracksFragment)
                 .commit();
 
         // play stop handler
@@ -242,7 +223,7 @@ public class ProjectActivity extends AppCompatActivity
                 {
                     try
                     {
-                        player.pause();
+                        player.playPause(false);
                         isPlaying = false;
                         playStopButt.setImageResource(R.drawable.ic_play);
                     } catch (Exception e)
@@ -296,7 +277,7 @@ public class ProjectActivity extends AppCompatActivity
                 }
                 break;
             }
-        }
+        } // switch
     }
 
     @Override
@@ -306,7 +287,8 @@ public class ProjectActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START))
         {
             drawer.closeDrawer(GravityCompat.START);
-        } else
+        }
+        else
         {
             super.onBackPressed();
         }
@@ -350,14 +332,13 @@ public class ProjectActivity extends AppCompatActivity
             // Create and show the dialog.
 
             DefaultEffectsFragment effectsFragment = DefaultEffectsFragment.newInstance();
-            effectsFragment.setEffects(delayEffect, rateTransposer, flangerEffect);
+            //effectsFragment.setEffects(delayEffect, rateTransposer, flangerEffect);
 
             EffectsHostFragment hostFragment = EffectsHostFragment.newInstance();
             hostFragment.setEffectsFragment(effectsFragment);
             hostFragment.show(ft, "Effects dialog");
 
             return true;
-
         }
 
         return super.onOptionsItemSelected(item);
@@ -383,10 +364,7 @@ public class ProjectActivity extends AppCompatActivity
             if (showImmediately) newFragment.show(ft, "Effects dialog");
             return newFragment;
         }
-        catch (InstantiationException e)
-        {
-            e.printStackTrace();
-        } catch (IllegalAccessException e)
+        catch (Exception e)
         {
             e.printStackTrace();
         }
@@ -437,15 +415,32 @@ public class ProjectActivity extends AppCompatActivity
         try
         {
             player.setAudioFiles(songs);
-            isPlaying = true;
-            playStopButt.setImageResource(R.drawable.ic_pause);
-            player.play();
-        } catch (Exception e)
+            //isPlaying = true;
+            //playStopButt.setImageResource(R.drawable.ic_pause);
+            //player.play();
+
+            // add all of the selected sound files
+            for (AudioFile f: selectedAudioFiles)
+            {
+                tracksFragment.addTrack(f.getPath(), R.dimen.audio_track_default_width, R.dimen.audio_track_default_height);
+            }
+        }
+        catch (Exception e)
         {
             Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
     }
+
+    private CheapSoundFile.ProgressListener soundFileProgressListener = new CheapSoundFile.ProgressListener()
+    {
+        @Override
+        public boolean reportProgress(double fractionComplete)
+        {
+            Toast.makeText(ProjectActivity.this, fractionComplete+"%", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+    };
 
     @Override
     public void onCancel()

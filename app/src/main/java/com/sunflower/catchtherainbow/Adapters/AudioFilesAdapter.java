@@ -96,9 +96,10 @@ public class AudioFilesAdapter extends CursorAdapter implements LoaderManager.Lo
 
     public void SetSortOrder(String sortOrder)
     {
-        this.sortOrder = sortOrder;
+        if(this.sortOrder.equals(sortOrder) && !this.sortOrder.contains("DESC")) this.sortOrder += " DESC";
+        else this.sortOrder = sortOrder;
         if(loader != null)
-            loader.setOrder(sortOrder);
+            loader.setOrder(this.sortOrder);
         context.getLoaderManager().getLoader(loaderId).forceLoad();
 
         /*changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));

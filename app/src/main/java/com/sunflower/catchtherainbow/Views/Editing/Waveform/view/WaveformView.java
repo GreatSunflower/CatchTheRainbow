@@ -98,9 +98,20 @@ public class WaveformView extends View
     protected NavigableMap<Double, Segment> segmentsMap;
     protected Segment nextSegment;
 
-    public WaveformView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    public WaveformView(Context context)
+    {
+        super(context);
+        init(context);
+    }
 
+    public WaveformView(Context context, AttributeSet attrs)
+    {
+        super(context, attrs);
+        init(context);
+    }
+
+    private void init(Context context)
+    {
         // We don't want keys, the markers get these
         setFocusable(false);
 

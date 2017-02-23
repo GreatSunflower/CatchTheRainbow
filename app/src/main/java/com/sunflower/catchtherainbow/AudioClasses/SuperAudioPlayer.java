@@ -1,420 +1,306 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
 import android.app.Activity;
-import android.media.AudioFormat;
-import android.media.AudioTrack;
-import android.media.MediaMetadataRetriever;
-import android.util.Log;
-
-import com.sunflower.catchtherainbow.Helper;
+import android.app.Application;
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.widget.Toast;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
+import java.io.FileDescriptor;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
-import be.tarsos.dsp.AudioDispatcher;
-import be.tarsos.dsp.AudioEvent;
-import be.tarsos.dsp.AudioProcessor;
-import be.tarsos.dsp.DetermineDurationProcessor;
-import be.tarsos.dsp.io.PipedAudioStream;
-import be.tarsos.dsp.io.TarsosDSPAudioInputStream;
-import be.tarsos.dsp.io.android.AndroidAudioPlayer;
-import be.tarsos.dsp.io.android.AudioDispatcherFactory;
-
+import com.un4seen.bass.*;
 
 /**
- * Super audio player
+ * Created by SuperComputer on 2/19/2017.
  */
 
-public class SuperAudioPlayer implements AudioProcessor
+public class SuperAudioPlayer
 {
-    private  String logTag = "Super Audio Player";
+    private int channel;
 
-    protected Activity context;
+    private Activity context;
 
-    // list of effects we can add. Add them before playing.
-    protected ArrayList<AudioProcessor> additionalAudioProcessors = new ArrayList<>();
+    private boolean isPlaying = false;
 
-    protected ArrayList<AudioPlayerListener> playerListeners = new ArrayList<>();
-    protected PlayerState state = PlayerState.NO_FILE_LOADED;
-    protected File loadedFile;
+    private int sampleRate = 44100;
+    private int bufferSize = 512;
 
-    protected AndroidAudioPlayer audioPlayer;
-    protected DetermineDurationProcessor durationProc;
-
-    protected double durationInSeconds;
-    protected double currentTime;
-    protected double pausedAt;
-
-    AudioDispatcher dispatcher;
-
-    int sampleRate = 44100;
-    int bufferSize = 4096;
-
-    public SuperAudioPlayer(Activity context/*, TarsosDSPAudioFormat audioFormat, int bufferSizeInSamples, int streamType*/)
+    public SuperAudioPlayer(Activity context)
     {
-        //bufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT); // Too big!!!
-
         this.context = context;
-        state = PlayerState.NO_FILE_LOADED;
-    }
 
-    public synchronized void load(File file) throws Exception
-    {
-        if(file == null) throw new NullPointerException("File can't be null !");
-
-        if(state != PlayerState.NO_FILE_LOADED)
+        // !!!-----Load plugins-----!!!
+        ApplicationInfo info = context.getApplicationInfo();
+        if(info != null)
         {
-            eject();
-        }
-        loadedFile = file;
-
-        if(!file.exists()) throw new Exception("File does not exist!");
-
-        // does not work at all (returns -1)
-        //durationInSeconds = new PipeDecoder().getDuration(AudioResourceUtils.sanitizeResource(file.getAbsolutePath()));// ddp.getDurationInSeconds();
-       // Log.d("aaa", durationInSeconds+"");
-
-        // retrieves duration
-        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-        mmr.setDataSource(file.getAbsolutePath());
-        String duration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-        mmr.release();
-
-        durationInSeconds = Helper.millisecondsToSeconds(Double.parseDouble(duration));
-
-        Log.d(logTag, "Duration: " +  durationInSeconds+"");
-
-        pausedAt = 0;
-        currentTime = 0;
-        setState(PlayerState.FILE_LOADED);
-
-        context.runOnUiThread(new Runnable()
-        {
-            public void run()
+            String path = info.nativeLibraryDir;
+            String[] list = new File(path).list();
+            for (String s: list)
             {
-                for (AudioPlayerListener listener : playerListeners)
-                    listener.OnInitialized(loadedFile);
+                BASS.BASS_PluginLoad(path+"/"+s, 0);
             }
-        });
-    }
-
-    // stops the dispatcher and unloads the file
-    public void eject()
-    {
-        disposeResources();
-        loadedFile = null;
-        stop();
-        setState(PlayerState.NO_FILE_LOADED);
-    }
-
-    public synchronized void play()
-    {
-        if(state == PlayerState.NO_FILE_LOADED)
-        {
-            throw new IllegalStateException("Cannot play when no file is loaded");
         }
-        else if(state == PlayerState.PAUZED)
-        {
-            play(pausedAt);
-        }
-        else
-        {
-            play(0);
-        }
+        // plugins end
+
+        BASS.BASS_Init(-1, sampleRate, 0);
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_FLOATDSP, 32);
+        channel = 0;
     }
 
-    public void play(double startTime)
+    private final BASS.SYNCPROC EndSync=new BASS.SYNCPROC()
     {
-        if (state == PlayerState.NO_FILE_LOADED)
+        public void SYNCPROC(int handle, int channel, int data, Object user)
         {
-            throw new IllegalStateException("Can not play when no file is loaded");
-        } else
-        {
-            if (state == PlayerState.PLAYING) stop();
-
-            pausedAt = startTime;
-
-            // read data from a file
-            PipedAudioStream file = new PipedAudioStream(loadedFile.getPath());
-            TarsosDSPAudioInputStream stream = file.getMonoStream(sampleRate, startTime);
-
-            // buffers size really maters!!! A lesser value will result in more frequent updated which is very useful(e.g. for visualization)
-            dispatcher = new AudioDispatcher(stream, bufferSize, 0); //AudioDispatcherFactory.fromPipe(loadedFile.getAbsolutePath(), sampleRate, 4096, 2048);
-            //dispatcher.skip(startTime);
-
-            // initialize the processors
-            audioPlayer = new AndroidAudioPlayer(dispatcher.getFormat());
-            durationProc = new DetermineDurationProcessor();
-
-            // Add all of the additional processors
-            for (AudioProcessor audioProcessor : additionalAudioProcessors)
-                dispatcher.addAudioProcessor(audioProcessor);
-
-            // add the default processors
-            dispatcher.addAudioProcessor(durationProc);
-
-            dispatcher.addAudioProcessor(this);
-            dispatcher.addAudioProcessor(audioPlayer);
-
-            // start the dispatcher in a new thread
-            Thread th = new Thread(dispatcher, "Audio Player Thread");
-            th.setUncaughtExceptionHandler(dispatcherExceptionHandler);
-            th.start();
-            state = PlayerState.PLAYING;
+            isPlaying = false;
+            for(AudioPlayerListener listener: audioPlayerListeners)
+            {
+                listener.onCompleted();
+            }
         }
-    }
+    };
 
-    public void pause()
+    public void playPause(boolean play)
     {
-        pause(currentTime);
-    }
-
-    public void pause(double pauseAt)
-    {
-        if(state == PlayerState.PLAYING || state == PlayerState.PAUZED)
+        if(play)
         {
-            disposeResources();
-            setState(PlayerState.PAUZED);
-            pausedAt = pauseAt;
+            BASS.BASS_ChannelPlay(channel, false);
+            isPlaying = true;
         }
         else
         {
-            return;
-            //throw new IllegalStateException("Can not pause when nothing is playing");
+            BASS.BASS_ChannelPause(channel);
+            isPlaying = false;
         }
     }
 
     public void stop()
     {
-        if(state == PlayerState.PLAYING || state == PlayerState.PAUZED)
+        BASS.BASS_ChannelStop(channel);
+        isPlaying = false;
+    }
+
+    public void open(String path, boolean autoPlay)
+    {
+        BASS.BASS_ChannelStop(channel);
+
+        //Free memory
+        BASS.BASS_StreamFree(channel);
+
+        channel = BASS.BASS_StreamCreateFile(path, 0, 0, 0);
+
+        long bytes = BASS.BASS_ChannelGetLength(channel, BASS.BASS_POS_BYTE);
+        int totalTime = (int)BASS.BASS_ChannelBytes2Seconds(channel, bytes);
+
+        for(AudioPlayerListener listener: audioPlayerListeners)
         {
-            disposeResources();
-            state = PlayerState.STOPPED;
-        }
-        else if(state != PlayerState.STOPPED)
-        {
-            //throw new IllegalStateException("Can not Stop Playing when nothing is playing. Crap(");
-            return;
+            listener.onInitialized(totalTime);
         }
 
+
+        //Set callback
+        BASS.BASS_ChannelSetSync(channel, BASS.BASS_SYNC_END, 0, EndSync, 0);
+
+        if(autoPlay)
+            playPause(true);
+    }
+
+    public void setTempo(double value)
+    {
+
+    }
+    public void disposePlayer()
+    {
+        BASS.BASS_ChannelStop(channel);
+
+        BASS.BASS_MusicFree(channel);
+
+        //Free memory
+        BASS.BASS_StreamFree(channel);
+
+        channel = 0;
+    }
+    public int getProgress()
+    {
+        long positionBytes = BASS.BASS_ChannelGetPosition(channel, BASS.BASS_POS_BYTE);
+        long len = BASS.BASS_ChannelGetLength(channel, BASS.BASS_POS_BYTE);
+
+        int position = (int)positionBytes / (int)len;
+        return position;
+    }
+
+    public int getDuration()
+    {
+        long len = BASS.BASS_ChannelGetLength(channel, BASS.BASS_POS_BYTE);
+
+        double time = BASS.BASS_ChannelBytes2Seconds(channel, len);
+        return (int) time;
+    }
+
+    public void setPosition(int position)
+    {
+       // long len = BASS.BASS_ChannelGetLength(channel, BASS.BASS_POS_BYTE);
+      //  long bytesPosition = len * position;
+
+        BASS.BASS_ChannelSetPosition(channel, BASS.BASS_ChannelSeconds2Bytes(channel, position), BASS.BASS_POS_BYTE);
+    }
+
+    public void setVolume(int volume)
+    {
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_GVOL_STREAM, volume * 10000);
+    }
+
+    public int getVolume()
+    {
+       return BASS.BASS_GetConfig(BASS.BASS_CONFIG_GVOL_STREAM) / 10000;
+    }
+
+    public boolean isPlaying()
+    {
+        long isPlaying = BASS.BASS_ChannelIsActive(channel);
+        return isPlaying == BASS.BASS_ACTIVE_PLAYING;
+    }
+
+    public int getPercentage()
+    {
+        if(getDuration() == 0)
+            return 0;
+        return (100 * getProgress()) / getDuration();
     }
 
 
-    public void addProcessor(AudioProcessor processor)
+
+    public void onAudioLoaded(final int duration)
     {
-        additionalAudioProcessors.add(processor);
-
-        // not tested!!!!
-        if(state == PlayerState.PLAYING)
-            dispatcher.addAudioProcessor(processor);
-    }
-
-    public void removeProcessor(AudioProcessor processor)
-    {
-        additionalAudioProcessors.remove(processor);
-    }
-
-    // removes all of the additional audio effects
-    public void clearProcessors()
-    {
-        additionalAudioProcessors.clear();
-    }
-
-    @Override
-    public boolean process(final AudioEvent audioEvent)
-    {
-        // TODO: Find a better way to represent paused value
-        // update time
-        currentTime = audioEvent.getTimeStamp() + pausedAt;
-
-        // notify all of the subscribers about update
         context.runOnUiThread(new Runnable()
         {
+            @Override
             public void run()
             {
-                for(AudioPlayerListener listener: playerListeners)
-                    listener.OnUpdate(audioEvent, currentTime);
+                Toast.makeText(context, "Audio Loaded: " + duration +  " ms!", Toast.LENGTH_SHORT).show();
             }
         });
-
-        return true;
     }
 
-    protected boolean isDisposing = false;
-    @Override
-    public void processingFinished()
+    public void onLoadError()
     {
-        if(state != PlayerState.STOPPED)
+        context.runOnUiThread(new Runnable()
         {
-            state = PlayerState.STOPPED;
-        }
-
-        // audio has naturally finished
-        if(!isDisposing)
-        {
-            pausedAt = 0;
-            // notify all of the subscribers about finish
-            context.runOnUiThread(new Runnable()
+            @Override
+            public void run()
             {
-                public void run()
-                {
-                    for (AudioPlayerListener listener : playerListeners)
-                        listener.OnFinish();
-                }
-            });
-        }
-
+                Toast.makeText(context, "Audio could not be loaded!", Toast.LENGTH_SHORT).show();
+                playNext();
+            }
+        });
     }
 
-    void disposeResources()
+
+    // temp
+    private ArrayList<AudioFile> audioFiles = new ArrayList<>();
+    private AudioFile currentFile;
+
+    public void setAudioFiles(ArrayList<AudioFile> audioFiles)
     {
-        isDisposing = true;
-        if (dispatcher != null)
+        currentFile = null;
+
+        this.audioFiles = audioFiles;
+    }
+
+    public void play()
+    {
+        if(audioFiles.size() == 0) return;
+
+        // check whether something is playing or not
+        if(currentFile == null)
         {
-            dispatcher.removeAudioProcessor(this);
-
-            for (AudioProcessor audioProcessor : additionalAudioProcessors)
-                dispatcher.removeAudioProcessor(audioProcessor);
-
-            dispatcher.removeAudioProcessor(audioPlayer);
-            //dispatcher.stop();
-            dispatcher = null;
+            currentFile = audioFiles.get(0);
         }
-        isDisposing = false;
-    }
 
-    // handles dispatcher thread exceptions.
-    // They often occur when it's frequently being stopped and some processors are not destroyed.
-    private Thread.UncaughtExceptionHandler dispatcherExceptionHandler = new Thread.UncaughtExceptionHandler()
-    {
-        @Override
-        public void uncaughtException(Thread thread, Throwable throwable)
+        try
         {
-           throwable.printStackTrace();
-           Log.e(logTag, throwable.getLocalizedMessage());
+            open(currentFile.getPath(), true);
         }
-    };
-
-    private void setState(PlayerState newState)
-    {
-        PlayerState oldState = state;
-        state = newState;
-    }
-
-    public PlayerState getState() {
-
-        return state;
-    }
-
-    public ArrayList<AudioPlayerListener> getPlayerListeners()
-    {
-        return playerListeners;
-    }
-
-    public void addPlayerListener(AudioPlayerListener playerListener)
-    {
-        playerListeners.add(playerListener);
-    }
-
-    public double getDurationInSeconds()
-    {
-        return durationInSeconds;
-    }
-
-    public String getDurationString()
-    {
-        Date date = new Date((long)(durationInSeconds*1000));
-
-        String formattedDate = new SimpleDateFormat("mm:ss").format(date);
-        return formattedDate;
-    }
-
-    public int getDurationInMilliseconds()
-    {
-        long millis = TimeUnit.SECONDS.toMillis((long) durationInSeconds);
-
-        return (int)millis;
-    }
-
-    public int getCurrentTimeInMilliseconds()
-    {
-        long millis = TimeUnit.SECONDS.toMillis((long) getCurrentTime());
-
-        return (int)millis;
-    }
-
-    public synchronized void setCurrentTime(double currentTime, boolean updatePlayback)
-    {
-        if(state == PlayerState.FILE_LOADED)
+        catch (Exception e)
         {
-            return;
+            throw new IllegalStateException(e.getMessage());
         }
+    }
 
-        if(state == PlayerState.PAUZED)
-            pause(currentTime);
-        else if(state == PlayerState.PLAYING && updatePlayback)
+    public void playNext()
+    {
+        playByIndex(audioFiles.indexOf(currentFile) + 1);
+    }
+
+    public void playPrev()
+    {
+        playByIndex(audioFiles.indexOf(currentFile) - 1);
+    }
+
+    public void playByIndex(int desiredIndex)
+    {
+        if(audioFiles.size() == 0) return;
+
+        if(currentFile == null)
         {
-            disposeResources();
-
-            play(currentTime);
+            currentFile = audioFiles.get(0);
         }
+        else
+        {
+            int oldIndex = audioFiles.indexOf(currentFile);
 
+            int newIndex;
+            // circular travel through the array
+            if(desiredIndex < oldIndex) newIndex = (desiredIndex + audioFiles.size()) %  audioFiles.size();
+            else newIndex = desiredIndex %  audioFiles.size();
+
+            currentFile = audioFiles.get(newIndex);
+        }
+        play();
     }
 
-    public double getCurrentTime()
+    public void playByDirectIndex(int desiredIndex)
     {
-        return currentTime;
+        if(audioFiles.size() == 0) return;
+
+        currentFile = audioFiles.get(desiredIndex);
+
+        play();
     }
 
-    public String getCurrentTimeString()
+    public ArrayList<AudioFile> getAudioFiles()
     {
-        Date date = new Date((long)(getCurrentTime() *1000));
-
-        String formattedDate = new SimpleDateFormat("mm:ss").format(date);
-        return formattedDate;
+        return audioFiles;
     }
 
-    public double getPausedAt()
+
+    // Player Listeners
+    private ArrayList<AudioPlayerListener> audioPlayerListeners = new ArrayList<>();
+
+    public void addPlayerListener(AudioPlayerListener listener)
     {
-        return pausedAt;
+        audioPlayerListeners.add(listener);
+    }
+    public void removePayerListener(AudioPlayerListener listener)
+    {
+        audioPlayerListeners.remove(listener);
+    }
+
+    public ArrayList<AudioPlayerListener> getAudioPlayerListeners()
+    {
+        return audioPlayerListeners;
+    }
+
+    public int getChannel()
+    {
+        return channel;
     }
 
     public interface AudioPlayerListener
     {
-        void OnInitialized(File file);
-        void OnUpdate(AudioEvent audioEvent, double realCurrentTime);
-        void OnFinish();
-    }
-
-    /**
-     * Defines the state of the audio player.
-     * @author Joren Six
-     */
-    public enum PlayerState
-    {
-        /**
-         * No file is loaded.
-         */
-        NO_FILE_LOADED,
-        /**
-         * A file is loaded and ready to be played.
-         */
-        FILE_LOADED,
-        /**
-         * The file is playing
-         */
-        PLAYING,
-        /**
-         * Audio play back is paused.
-         */
-        PAUZED,
-        /**
-         * Audio play back is stopped.
-         */
-        STOPPED
+        void onInitialized(int totalTime);
+        void onCompleted();
     }
 
 }

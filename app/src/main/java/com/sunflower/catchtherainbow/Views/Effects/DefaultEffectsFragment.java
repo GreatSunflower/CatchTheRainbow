@@ -9,20 +9,12 @@ import android.view.ViewGroup;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar;
 
-import be.tarsos.dsp.PitchShifter;
-import be.tarsos.dsp.effects.DelayEffect;
-import be.tarsos.dsp.effects.FlangerEffect;
-import be.tarsos.dsp.resample.RateTransposer;
-
 /**
  * Created by SuperComputer on 2/7/2017.
  */
 
 public class DefaultEffectsFragment extends Fragment implements DetailedSeekBar.OnSuperSeekBarListener
 {
-    DelayEffect delayEffect;
-    RateTransposer rateTransposer;
-    FlangerEffect flangerEffect;
 
     public DefaultEffectsFragment()
     {
@@ -64,12 +56,12 @@ public class DefaultEffectsFragment extends Fragment implements DetailedSeekBar.
         return root;
     }
 
-    public void setEffects(DelayEffect delayEffect, RateTransposer rateTransposer, FlangerEffect flangerEffect)
+    /*public void setEffects(DelayEffect delayEffect, RateTransposer rateTransposer, FlangerEffect flangerEffect)
     {
         this.delayEffect = delayEffect;
         this.rateTransposer = rateTransposer;
         this.flangerEffect = flangerEffect;
-    }
+    }*/
 
     @Override
     public void onChange(DetailedSeekBar seekBar, float selectedValue)
@@ -78,7 +70,7 @@ public class DefaultEffectsFragment extends Fragment implements DetailedSeekBar.
 
         int id = seekBar.getId();
 
-        if(id == R.id.echoLengthSeekBar)
+       /* if(id == R.id.echoLengthSeekBar)
         {
             delayEffect.setEchoLength(res);
         }
@@ -101,7 +93,7 @@ public class DefaultEffectsFragment extends Fragment implements DetailedSeekBar.
         else if(id ==  R.id.sb_FlangerLFO)
         {
             flangerEffect.setLFOFrequency(res);
-        }
+        }*/
 
     }
 }

@@ -11,18 +11,18 @@
             android:layout_weight="1"
             android:paddingTop="40dip">
 
-        <com.semantive.waveformandroid.waveform.view.WaveformView android:id="@+id/waveform"
+        <com.sunflower.catchtherainbow.Views.Editing.Waveform.view.WaveformView android:id="@+id/waveform"
                                              android:layout_width="fill_parent"
                                              android:layout_height="fill_parent" />
 
-        <com.semantive.waveformandroid.waveform.view.MarkerView android:id="@+id/startmarker"
+        <com.sunflower.catchtherainbow.Views.Editing.Waveform.view.MarkerView android:id="@+id/startmarker"
                                              android:nextFocusDown="@+id/endmarker"
                                              android:layout_width="wrap_content"
                                              android:layout_height="wrap_content"
                                              android:src="@drawable/marker_left"
                                              android:contentDescription="@string/start_marker" />
 
-        <com.semantive.waveformandroid.waveform.view.MarkerView android:id="@+id/endmarker"
+        <com.sunflower.catchtherainbow.Views.Editing.Waveform.view.MarkerView android:id="@+id/endmarker"
                                              android:nextFocusUp="@+id/startmarker"
                                              android:nextFocusDown="@+id/info"
                                              android:layout_width="wrap_content"
