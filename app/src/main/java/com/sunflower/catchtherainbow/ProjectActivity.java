@@ -4,7 +4,6 @@ package com.sunflower.catchtherainbow;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.media.MediaMetadataRetriever;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,15 +37,11 @@ import com.sunflower.catchtherainbow.Views.AudioChooserFragment.OnFragmentIntera
 import com.sunflower.catchtherainbow.Views.AudioProgressView;
 import com.sunflower.catchtherainbow.Views.AudioVisualizerView;
 import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
-import com.sunflower.catchtherainbow.Views.Editing.SuperWaveformFragment;
-import com.sunflower.catchtherainbow.Views.Editing.Waveform.WaveformFragment;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
 import com.sunflower.catchtherainbow.Views.Effects.DefaultEffectsFragment;
 import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
-import com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar;
 import com.un4seen.bass.BASS;
 
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -373,7 +368,7 @@ public class ProjectActivity extends AppCompatActivity
             ft.addToBackStack(null);
             // Create and show the dialog.
 
-            DefaultEffectsFragment effectsFragment = DefaultEffectsFragment.newInstance();
+            DefaultEffectsFragment effectsFragment = DefaultEffectsFragment.newInstance(player.getChannel());
             //effectsFragment.setEffects(delayEffect, rateTransposer, flangerEffect);
 
             EffectsHostFragment hostFragment = EffectsHostFragment.newInstance();
@@ -457,9 +452,9 @@ public class ProjectActivity extends AppCompatActivity
         try
         {
             player.setAudioFiles(songs);
-            //isPlaying = true;
-            //playStopButt.setImageResource(R.drawable.ic_pause);
-            //player.play();
+            isPlaying = true;
+            playStopButt.setImageResource(R.drawable.ic_pause);
+            player.play();
 
             // add all of the selected sound files
             for (AudioFile f: selectedAudioFiles)

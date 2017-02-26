@@ -544,7 +544,7 @@ public class BASS
 		public boolean lPanDelay;
 	}
 
-	public static class BASS_DX8_FLANGER {
+	public static class BASS_DX8_FLANGER {///////////////////
 		public float fWetDryMix;
 		public float fDepth;
 		public float fFeedback;

@@ -1,6 +1,5 @@
 package com.sunflower.catchtherainbow.Views.Effects;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -9,7 +8,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,10 +44,10 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
     // TODO: Rename and change types and number of parameters
     public static EffectsHostFragment newInstance()
     {
-        EffectsHostFragment fragment = new EffectsHostFragment();
+        //EffectsHostFragment fragment = new EffectsHostFragment();
        // Bundle args = new Bundle();
         //fragment.setArguments(args);
-        return fragment;
+        return new EffectsHostFragment();
     }
 
     private Fragment effectsFragment;
@@ -64,7 +62,7 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null){}
+        //if (getArguments() != null){}
     }
 
     @Override
@@ -127,14 +125,14 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
     @Override
     public void onClick(View view)
     {
-        if(view.getId() == R.id.bOk)
+        /*if(view.getId() == R.id.bOk)
         {
 
         }
         else if(view.getId() == R.id.bCancel)
         {
 
-        }
+        }*/
 
         if (mListener != null)
         {
@@ -150,7 +148,7 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p>
+     * <bass_dx8_echo>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.

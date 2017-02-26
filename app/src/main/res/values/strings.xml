@@ -26,6 +26,28 @@
     <string name="path">Patn</string>
     <string name="folder">Folder</string>
 
+    <string name="effect_echo">ECHO</string>
+    <string name="fwet_dry_mix">Wet Dry Mix</string>
+    <string name="ffeed_back">Feed Back</string>
+    <string name="fleft_delay">Left Delay</string>
+    <string name="fright_delay">Right Delay</string>
+    <string name="ipan_delay">Pan Delay  </string>
+
+    <string name="effect_flanger">FLANGER</string>
+    <string name="fdepth">Depth</string>
+    <string name="ffrequency">Frequency</string>
+    <string name="iwaveform">Waveform</string>
+    <string name="fdelay">Delay</string>
+    <string name="lphase">Pan Delay</string>
+
+    <string name="effect_phaser">PHASER</string>
+    <string name="fdry_mix">Dry Mix</string>
+    <string name="fwet_mix">Wet Mix</string>
+    <string name="frate">Rate</string>
+    <string name="frange">Range</string>
+    <string name="ffreq">Freq</string>
+    <string name="lchannel">Channel</string>
+
     <string-array name="spinner_array">
         <item>TITLE</item>
         <item>ARTIST</item>

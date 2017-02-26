@@ -5,78 +5,33 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
-    <LinearLayout
-        android:orientation="vertical"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        >
+        android:layout_height="match_parent">
 
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
+            <!-- ///////////////////start ECHO/////////////////////-->
             <TextView
-                android:text="Echo (in seconds)"
+                android:text="@string/effect_echo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/tvEcho"
-                android:layout_marginStart="20dp"
                 android:layout_marginTop="5dp"
-                android:layout_marginLeft="20dp"
                 android:textColor="@color/colorAccent"
-                android:textSize="18sp"/>
-
-            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/echoLengthSeekBar"
-                app:min="0.1" app:max = "7" app:current="1"/>
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:background="@color/backgroundListView"/>
 
             <TextView
-                android:text="Decay"
+                android:text="@string/fwet_dry_mix"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/tvDecay"
                 android:layout_marginStart="20dp"
                 android:layout_marginTop="5dp"
-                android:elevation="1dp"
-                android:layout_marginLeft="20dp"
-                android:textColor="@color/colorAccent"
-                android:textSize="18sp"/>
-
-            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/sb_Decay"
-                app:min="0" app:max = "1" app:current="1"/>
-
-            <TextView
-                android:text="Rate Transposer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/tv_RateTransposer"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="5dp"
-                android:elevation="1dp"
-                android:layout_marginLeft="20dp"
-                android:textColor="@color/colorAccent"
-                android:textSize="18sp"/>
-
-            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/sb_RateTransposer"
-                app:min="0.1" app:max="4.0" app:current="1"/>
-
-            <TextView
-                android:text="Flanger Wetness"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/tv_FlangerWetness"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="5dp"
-                android:elevation="1dp"
                 android:layout_marginLeft="20dp"
                 android:textColor="@color/colorAccent"
                 android:textSize="18sp"/>
@@ -84,19 +39,15 @@
             <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/sb_FlangerWetness"
-                app:min="0"
-                app:max="1"
-                app:current="0"/>
+                android:id="@+id/echofWetDryMixSeekBar"
+                app:min="0" app:max = "100" app:current="0"/>
 
             <TextView
-                android:text="Flanger Dryness"
+                android:text="@string/ffeed_back"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/tv_FlangerDryness"
                 android:layout_marginStart="20dp"
                 android:layout_marginTop="5dp"
-                android:elevation="1dp"
                 android:layout_marginLeft="20dp"
                 android:textColor="@color/colorAccent"
                 android:textSize="18sp"/>
@@ -104,19 +55,15 @@
             <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/sb_FlangerDryness"
-                app:min="0"
-                app:max="1"
-                app:current="0"/>
+                android:id="@+id/echofFeedbackSeekBar"
+                app:min="0" app:max = "100" app:current="0"/>
 
             <TextView
-                android:text="Flanger LFO Frequency (Hz)"
+                android:text="@string/fleft_delay"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/tv_FlangerLFO"
                 android:layout_marginStart="20dp"
                 android:layout_marginTop="5dp"
-                android:elevation="1dp"
                 android:layout_marginLeft="20dp"
                 android:textColor="@color/colorAccent"
                 android:textSize="18sp"/>
@@ -124,11 +71,248 @@
             <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/sb_FlangerLFO"
-                app:min="0"
-                app:max="10"
-                app:current="1"/>
+                android:id="@+id/echofLeftDelaySeekBar"
+                app:min="1" app:max = "2000" app:current="500"/>
+
+            <TextView
+                android:text="@string/fright_delay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/echofRightDelaySeekBar"
+                app:min="1" app:max = "2000" app:current="500"/>
+
+            <Switch
+                android:text="@string/ipan_delay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/switch_panDalay"
+                android:textSize="18sp"
+                android:textColor="@color/colorAccent"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginStart="20dp"
+                />
+
+            <!-- ///////////////////end ECHO/////////////////////-->
+
+            <!-- ///////////////////start FLANGER/////////////////////-->
+
+            <TextView
+                android:text="@string/effect_flanger"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:background="@color/backgroundListView"/>
+
+            <TextView
+                android:text="@string/fwet_dry_mix"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/flangerfWetDryMixSeekBar"
+                app:min="0" app:max = "100" app:current="0"/>
+
+            <TextView
+            android:text="@string/fdepth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="20dp"
+            android:textColor="@color/colorAccent"
+            android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/flangerfDepthSeekBar"
+                app:min="0" app:max = "100" app:current="100"/>
+
+            <TextView
+                android:text="@string/ffeed_back"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/flangerfFeedbackSeekBar"
+                app:min="-99" app:max = "99" app:current="-50"/>
+
+            <TextView
+                android:text="@string/ffrequency"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/flangerfFrequencySeekBar"
+                app:min="0" app:max = "10" app:current="0.25"/>
+
+            <TextView
+                android:text="@string/fdelay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/flangerfDelaySeekBar"
+                app:min="0" app:max = "4" app:current="2"/>
+
+            <!-- ///////////////////end FLANGER/////////////////////-->
+
+            <!-- ///////////////////start PHASER/////////////////////-->
+
+            <TextView
+                android:text="@string/effect_phaser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:background="@color/backgroundListView"/>
+
+            <TextView
+                android:text="@string/fdry_mix"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfDryMixSeekBar"
+                app:min="-2" app:max = "2" app:current="0"/>
+
+            <TextView
+                android:text="@string/fwet_mix"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfWetMixSeekBar"
+                app:min="-2" app:max = "2" app:current="0"/>
+
+            <TextView
+                android:text="@string/ffeed_back"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfFeedbackSeekBar"
+                app:min="-1" app:max = "1" app:current="0"/>
+
+            <TextView
+                android:text="@string/frate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfRateSeekBar"
+                app:min="0" app:max = "10" app:current="0"/>
+
+            <TextView
+                android:text="@string/frange"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfRangeSeekBar"
+                app:min="0" app:max = "10" app:current="0"/>
+
+            <TextView
+                android:text="@string/ffreq"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfFreqSeekBar"
+                app:min="0" app:max = "10" app:current="0"/>
+
+            <!-- public int   lChannel;
+            public float fRate;						// rate of sweep in cycles per second		[0<....<10]
+            public float fRange;					// sweep range in octaves					[0<....<10]
+            public float fFreq;						// base frequency of sweep					[0<...1000]-->
+
+            <!-- ///////////////////end PHASER/////////////////////-->
 
         </LinearLayout>
-    </LinearLayout>
+    </ScrollView>
 </LinearLayout>
