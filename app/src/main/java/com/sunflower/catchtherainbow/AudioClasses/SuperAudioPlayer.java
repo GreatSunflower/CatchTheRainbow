@@ -1,16 +1,13 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
 import android.app.Activity;
-import android.app.Application;
-import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileDescriptor;
-import java.util.ArrayList;
+import com.un4seen.bass.BASS;
 
-import com.un4seen.bass.*;
+import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Created by SuperComputer on 2/19/2017.

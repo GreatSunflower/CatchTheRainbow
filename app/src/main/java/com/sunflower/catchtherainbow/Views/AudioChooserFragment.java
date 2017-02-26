@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,12 +17,12 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.SearchView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.Adapters.AudioFilesAdapter;
 import com.sunflower.catchtherainbow.Adapters.FragPagerAdapter;
+import com.sunflower.catchtherainbow.Adapters.SongsOfFolderAdapter;
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 import com.sunflower.catchtherainbow.R;
 
@@ -39,10 +38,12 @@ import java.util.Collections;
  * create an instance of this fragment.
  */
 
+
 public class AudioChooserFragment extends DialogFragment
         implements SearchView.OnQueryTextListener, View.OnClickListener
 {
     private OnFragmentInteractionListener mListener;
+
 
     final static int SONGS_LOADER_ID = 0;
     final static int SUB_SONGS_LOADER_ID = 1;
@@ -71,8 +72,8 @@ public class AudioChooserFragment extends DialogFragment
     private SearchView searchViewAudio;
     private FragPagerAdapter fragPagerAdapter;
     private CheckBox isAllSelected;
-    private Spinner spinFilter;
-    private String[] items_array = {"TITLE", "ARTIST", "DURATION", "ALBUM"};
+    private NDSpinner spinFilter;
+    private String[] spinner_array;
     private ArrayAdapter<String> spinFilterAdapter;
 
     @Override
@@ -85,9 +86,50 @@ public class AudioChooserFragment extends DialogFragment
         // Inflate the layout for this fragment
         View resView = inflater.inflate(R.layout.fragment_audio_chooser, container, false);
 
+        spinner_array = getResources().getStringArray(R.array.spinner_array);
         searchViewAudio = (SearchView)resView.findViewById(R.id.searchViewAudio);
         searchViewAudio.setOnQueryTextListener(this);
         tv_selectedCount = (TextView)resView.findViewById(R.id.tvSelected);
+
+        //------------------------------spinner Filter-----------------
+
+        ArrayList<String> items = new ArrayList<String>();
+        Collections.addAll(items, spinner_array);
+
+        spinFilter = (NDSpinner) resView.findViewById(R.id.spinnerFilter);
+        // 2 - шаблон дл показа выбранного пункта в выпадающем списке
+        spinFilterAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, items);
+        // задание шаблона для выпадающих пунктов списка
+        spinFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        spinFilter.setAdapter(spinFilterAdapter);
+        // ѕрограммный выбор пункта выпадающего списка
+        //spinner.setSelection(2);
+        spinFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        {
+            public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id)
+            {
+                // TODO Auto-generated method stub
+                //spinFilter.setSelection(position);
+
+                if(viewPager.getCurrentItem() == 0)
+                {
+                    AudioFilesAdapter audioFilesAdapter = fragPagerAdapter.GetFragTabAudioFiles().GetAudioFilesAdapter();
+                    audioFilesAdapter.SetSortOrder(GetSortOrder());
+                }
+                else
+                {
+                    SongsOfFolderAdapter audioFilesAdapter = fragPagerAdapter.GetFragTabFolders().GetAudioFilesAdapter();
+                    audioFilesAdapter.SetSortOrder(GetSortOrder());
+                }
+            }
+
+            public void onNothingSelected(AdapterView<?> arg0) {
+                // TODO Auto-generated method stub
+            }
+        });
+
+        //---------------------------------end spinnerFilter-----------------------
 
         viewPager = (ViewPager) resView.findViewById(R.id.viewPager);
         tabLayout = (TabLayout) resView.findViewById(R.id.tabLayout);
@@ -99,6 +141,8 @@ public class AudioChooserFragment extends DialogFragment
 
         tabLayout.setupWithViewPager(viewPager);
 
+        /////Tabs/////
+
         tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener()
         {
             @Override
@@ -106,6 +150,8 @@ public class AudioChooserFragment extends DialogFragment
             {
                 viewPager.setCurrentItem(tab.getPosition());
                 Search(searchViewAudio.getQuery().toString());
+                HideElementsFromTab(viewPager.getCurrentItem());
+                fragPagerAdapter.GetFragTabFolders().SetMode(FragTabFolders.Mode.Folders);
             }
 
             @Override
@@ -118,6 +164,8 @@ public class AudioChooserFragment extends DialogFragment
                 viewPager.setCurrentItem(tab.getPosition());
             }
         });
+
+        ////////////////CheckBox isAllSelected////////////////
 
         isAllSelected = (CheckBox)resView.findViewById(R.id.cB_isAllSelected);
         isAllSelected.setOnClickListener(new View.OnClickListener()
@@ -155,44 +203,6 @@ public class AudioChooserFragment extends DialogFragment
             }
         });
 
-        //------------------------------spinner Filter-----------------
-
-        ArrayList<String> items = new ArrayList<String>();
-        Collections.addAll(items, items_array);
-
-        spinFilter = (Spinner) resView.findViewById(R.id.spinnerFilter);
-        // 2 - шаблон дл показа выбранного пункта в выпадающем списке
-        spinFilterAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, items);
-        // задание шаблона для выпадающих пунктов списка
-        spinFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        spinFilter.setAdapter(spinFilterAdapter);
-        // ѕрограммный выбор пункта выпадающего списка
-        //spinner.setSelection(2);
-        spinFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
-        {
-            public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id)
-            {
-                // TODO Auto-generated method stub
-                spinFilter.setSelection(position);
-
-                if(viewPager.getCurrentItem() == 0)
-                {
-                    AudioFilesAdapter audioFilesAdapter = fragPagerAdapter.GetFragTabAudioFiles().GetAudioFilesAdapter();
-                    audioFilesAdapter.SetSortOrder(GetSortOrder());
-                }
-                else
-                {
-                    //fragPagerAdapter.GetFragTabFolders().Search(query);
-                }
-            }
-            public void onNothingSelected(AdapterView<?> arg0) {
-                // TODO Auto-generated method stub
-            }
-        });
-
-        //---------------------------------end spinnerFilter-----------------------
-
         Button ok = (Button)resView.findViewById(R.id.bOk);
         Button cancel = (Button)resView.findViewById(R.id.bCancel);
         ok.setOnClickListener(this);
@@ -227,26 +237,24 @@ public class AudioChooserFragment extends DialogFragment
         return true;
     }
 
-    interface asd
+    public interface SongsSelectable
     {
         void search(String query);
-
+        ArrayList<AudioFile> getSelectionAudioFiles();
         // get array of song ();
     }
 
     // Filter Class
     public void Search(String query)
     {
-        if(viewPager.getCurrentItem() == 0)
-        {
-           /* ISongSelectable currentItem = (ISongSelectable*)viewPager.getChildAt(viewPager. getCurrentItem());
-            currentItem.Search(query);*/
-            fragPagerAdapter.GetFragTabAudioFiles().Search(query);
-        }
-        else
-        {
-            fragPagerAdapter.GetFragTabFolders().Search(query);
-        }
+        SongsSelectable currentItem = (SongsSelectable)fragPagerAdapter.GetFragmentByPosition(viewPager.getCurrentItem());
+        currentItem.search(query);
+    }
+
+    public void HideElementsFromTab(int indexTab)
+    {
+        if(indexTab == 1) spinFilter.setVisibility(View.GONE);
+        else if(indexTab == 0) spinFilter.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -277,14 +285,9 @@ public class AudioChooserFragment extends DialogFragment
         {
             case R.id.bOk:
             {
-                if(viewPager.getCurrentItem() == 0)
-                {
-                    if(mListener != null) mListener.onOk(fragPagerAdapter.GetFragTabAudioFiles().GetAudioFilesAdapter().getSelectionAudioFiles());
-                }
-                else
-                {
-                    if(mListener != null) mListener.onOk(fragPagerAdapter.GetFragTabAudioFiles().GetAudioFilesAdapter().getSelectionAudioFiles());
-                }
+                SongsSelectable currentItem = (SongsSelectable)fragPagerAdapter.GetFragmentByPosition(viewPager.getCurrentItem());
+                if(mListener != null) mListener.onOk(currentItem.getSelectionAudioFiles());
+                //if(mListener != null) mListener.onOk(fragPagerAdapter.GetFragTabAudioFiles().GetAudioFilesAdapter().getSelectionAudioFiles());
                 // Закрытие текущего фрагмента
                 dismiss();
                // getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();

@@ -4,7 +4,6 @@ package com.sunflower.catchtherainbow.Views;
  * Created by Alexandr on 05.02.2017.
  */
 
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -18,6 +17,7 @@ import android.widget.Spinner;
 
 import com.sunflower.catchtherainbow.Adapters.AudioFilesAdapter;
 import com.sunflower.catchtherainbow.Adapters.FoldersAdapter;
+import com.sunflower.catchtherainbow.Adapters.SongsOfFolderAdapter;
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 import com.sunflower.catchtherainbow.AudioClasses.Folder;
 import com.sunflower.catchtherainbow.Helper;
@@ -25,21 +25,34 @@ import com.sunflower.catchtherainbow.R;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by filip on 8/21/2015.
  */
-public class FragTabFolders extends Fragment
+
+
+public class FragTabFolders extends Fragment implements AudioChooserFragment.SongsSelectable, AdapterView.OnItemClickListener
 {
+    public enum Mode {AudioFiles, Folders;}
+    private Mode mode = Mode.Folders;
     private FoldersAdapter foldersAdapter;
+    private SongsOfFolderAdapter songsOfFolderAdapter;
     private ListView folderListView;
     private View resView;
     ArrayList<Folder> folders = new ArrayList<Folder>();
+    ArrayList<AudioFile> currentAudioFiles;
     private Spinner spinFilter;
-    String[] items_array = {"", "Sort alphabetically", "Artists"};
     ArrayAdapter<String> spinFilterAdapter;
     private AudioChooserFragment audioChooserFragment;
     private AudioFilesAdapter audioFilesAdapter;
+    private HashMap<String, ArrayList<AudioFile>> songsOfFolders = new HashMap<String, ArrayList<AudioFile>>();
+
+    public void SetMode(Mode newMode)
+    {
+        mode = newMode;
+    }
 
     @Nullable
     @Override
@@ -54,40 +67,44 @@ public class FragTabFolders extends Fragment
         foldersAdapter = new FoldersAdapter(getActivity(), R.layout.frag_tab_folders, folders);
         folderListView.setAdapter(foldersAdapter);
 
-        folderListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-            {
-                // --------------------------------ADAPTER----------------------------------
-                audioFilesAdapter = new AudioFilesAdapter(getActivity(), AudioChooserFragment.SUB_SONGS_LOADER_ID, 0);
-                folderListView.setAdapter(audioFilesAdapter);
-
-                // --------------------------------ADAPTER-END----------------------------------
-
-                folderListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
-                {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-                    {
-                        audioFilesAdapter.setNewSelection((long)position);
-                        //кол-во выбранных элементов
-                        if(audioFilesAdapter.getSelectedCount() > 0)
-                            audioChooserFragment.SetSelectedCount(audioFilesAdapter.getSelectedCount());
-                        else audioChooserFragment.SetSelectedCount(0);
-                    }
-                });
-
-                //foldersAdapter.setNewSelection((Integer) position);
-                /*//кол-во выбранных элементов
-                if(foldersAdapter.getSelectedCount() > 0)
-                    audioChooserFragment.SetSelectedCount(foldersAdapter.getSelectedCount());
-                else audioChooserFragment.SetSelectedCount(0);*/
-            }
-        });
-        // --------------------------------ADAPTER-END----------------------------------
-
+        folderListView.setOnItemClickListener(this);
+        // --------------------------------END ADAPTER----------------------------------
         return resView;
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+    {
+        if(mode == Mode.Folders)
+        {
+            Folder folder = foldersAdapter.getItem(position);
+            currentAudioFiles = new ArrayList<AudioFile>();
+            // --------------------------------ADAPTER----------------------------------
+            for (Map.Entry entry: songsOfFolders.entrySet())
+            {
+                String key = (String) entry.getKey();
+                AudioFile value;
+                if(key.equals(folder.getPath()))
+                {
+                    currentAudioFiles = (ArrayList<AudioFile>) entry.getValue();
+                    break;
+                }
+                //действия с ключом и значением
+            }
+
+            songsOfFolderAdapter = new SongsOfFolderAdapter(getActivity(),  R.layout.frag_tab_folders, currentAudioFiles);
+            folderListView.setAdapter(songsOfFolderAdapter);
+            //audioChooserFragment.HideElementsFromTab(0);
+            mode = Mode.AudioFiles;
+        }
+        else if(mode == Mode.AudioFiles)
+        {
+            songsOfFolderAdapter.setNewSelection(position);
+            //кол-во выбранных элементов
+            if(songsOfFolderAdapter.getSelectedCount() > 0)
+                audioChooserFragment.SetSelectedCount(songsOfFolderAdapter.getSelectedCount());
+            else audioChooserFragment.SetSelectedCount(0);
+        }
     }
 
     public ArrayList<Folder> GetAllFolders()
@@ -110,6 +127,15 @@ public class FragTabFolders extends Fragment
                             "", folderName.list().length));
                     pathOfFolders.add(folderName.getName());
                 }
+
+                //привязать все песни к папкам
+                if(songsOfFolders.get(folderPath.getParent()) != null) songsOfFolders.get(folderPath.getParent()).add(audioFile);
+                else
+                {
+                    ArrayList<AudioFile> g = new ArrayList<AudioFile>();
+                    g.add(audioFile);
+                    songsOfFolders.put(folderPath.getParent(), new ArrayList<AudioFile>(g));
+                }
             }
             catch (Exception ex){}
         }
@@ -121,10 +147,33 @@ public class FragTabFolders extends Fragment
         this.audioChooserFragment = audioChooserFragment;
     }
 
-    public void Search(String query)
+    public SongsOfFolderAdapter GetAudioFilesAdapter()
     {
-        foldersAdapter = new FoldersAdapter(getActivity(), R.layout.frag_tab_folders, filterFolders(query));
-        folderListView.setAdapter(foldersAdapter);
+        return songsOfFolderAdapter;
+    }
+
+    @Override
+    public void search(String query)
+    {
+        if(mode == Mode.Folders)
+        {
+            foldersAdapter = new FoldersAdapter(getActivity(), R.layout.frag_tab_folders, filterFolders(query));
+            folderListView.setAdapter(foldersAdapter);
+        }
+        else if(mode == Mode.AudioFiles)
+        {
+            songsOfFolderAdapter = new SongsOfFolderAdapter(getActivity(),
+                    R.layout.frag_tab_folders, songsOfFolderAdapter.filterAudio(query, currentAudioFiles));
+            folderListView.setAdapter(songsOfFolderAdapter);
+        }
+    }
+
+    @Override
+    public ArrayList<AudioFile> getSelectionAudioFiles()
+    {
+        ArrayList<AudioFile> res = songsOfFolderAdapter.getSelectionAudioFiles();
+        if(res != null) return res;
+        else return null;
     }
 
     public ArrayList<Folder> filterFolders(String filter)

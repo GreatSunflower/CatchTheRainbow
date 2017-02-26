@@ -26,4 +26,11 @@
     <string name="path">Patn</string>
     <string name="folder">Folder</string>
 
+    <string-array name="spinner_array">
+        <item>TITLE</item>
+        <item>ARTIST</item>
+        <item>DURATION</item>
+        <item>ALBUM</item>
+    </string-array>
+
 </resources>

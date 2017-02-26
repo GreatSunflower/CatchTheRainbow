@@ -12,7 +12,6 @@ import com.sunflower.catchtherainbow.AudioClasses.Folder;
 import com.sunflower.catchtherainbow.R;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by Alexandr on 08.02.2017.
@@ -21,42 +20,39 @@ import java.util.HashMap;
 public class FoldersAdapter extends ArrayAdapter<Folder>
 {
     Context context;
-    //private HashMap<String, String> folders = new HashMap<>();
-    private HashMap<Integer, Boolean> selection = new HashMap<>();
     private int selectedCount = 0;
-    int res;
+    private ArrayList<Folder> folders;
+    private int res;
 
     public FoldersAdapter(Context context, int resource, ArrayList<Folder> folders)
     {
         super(context, resource, folders);
         this.context = context;
         this.res = resource;
+        this.folders = folders;
+    }
+
+    public void updateData(ArrayList<Folder> newlist)
+    {
+        folders = newlist;
+    }
+
+    public ArrayList<Folder> filterFolders(String filter)
+    {
+        ArrayList<Folder> foldersfilter = new ArrayList<Folder>();
+        for(Folder folder : folders)
+        {
+            if(folder.getTitle().toLowerCase().contains(filter.toLowerCase()))
+            {
+                foldersfilter.add(folder);
+            }
+        }
+        return foldersfilter;
     }
 
     public int getSelectedCount()
     {
         return selectedCount;
-    }
-
-    public void setNewSelection(Integer id)
-    {
-        if(isFolderChecked(id))
-        {
-            selection.put(id, false);
-            selectedCount--;
-        }
-        else
-        {
-            selection.put(id, true);
-            selectedCount++;
-        }
-        notifyDataSetChanged();
-    }
-
-    public boolean isFolderChecked(Integer row)
-    {
-        Boolean result = selection.get(row);
-        return result == null ? false : result;
     }
 
     @Override
@@ -71,12 +67,7 @@ public class FoldersAdapter extends ArrayAdapter<Folder>
         }
 
         View itemView = convertView.findViewById(R.id.folders_layout);
-        // ----- Tint -----
-        if (isFolderChecked(position))
-            itemView.setBackgroundColor(context.getResources().getColor(R.color.selectedListItem));
-        else
-            itemView.setBackgroundColor(context.getResources().getColor(R.color.backgroundListView));
-        // -----Tint-end------
+        itemView.setBackgroundColor(context.getResources().getColor(R.color.backgroundListView));
 
         TextView tvTitle = (TextView)convertView.findViewById(R.id.tvTitleFolder);
         tvTitle.setText(folder.getTitle());

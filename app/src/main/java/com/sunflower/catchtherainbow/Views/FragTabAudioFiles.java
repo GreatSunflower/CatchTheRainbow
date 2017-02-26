@@ -4,7 +4,6 @@ package com.sunflower.catchtherainbow.Views;
  * Created by Alexandr on 05.02.2017.
  */
 
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -17,16 +16,17 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import com.sunflower.catchtherainbow.Adapters.AudioFilesAdapter;
-import com.sunflower.catchtherainbow.Helper;
+import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 import com.sunflower.catchtherainbow.R;
 
-public class FragTabAudioFiles extends Fragment
+import java.util.ArrayList;
+
+public class FragTabAudioFiles extends Fragment implements AudioChooserFragment.SongsSelectable
 {
     private AudioFilesAdapter audioFilesAdapter;
     private ListView superListView;
     private View resView;
     private Spinner spinFilter;
-    private String[] items_array = {"TITLE", "ARTIST", "DURATION", "DATA", "ALBUM"};
     private ArrayAdapter<String> spinFilterAdapter;
     private AudioChooserFragment audioChooserFragment;
 
@@ -73,9 +73,17 @@ public class FragTabAudioFiles extends Fragment
         return audioFilesAdapter;
     }
 
-    // Filter Class
-    public void Search(String query)
+    @Override
+    public void search(String query)
     {
         audioFilesAdapter.filterAllAudioFiles(query);
+    }
+
+    @Override
+    public ArrayList<AudioFile> getSelectionAudioFiles()
+    {
+        ArrayList<AudioFile> res = audioFilesAdapter.getSelectionAudioFiles();
+        if(res != null) return res;
+        else return null;
     }
 }

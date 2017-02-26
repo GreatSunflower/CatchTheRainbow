@@ -63,7 +63,7 @@
                 android:foregroundGravity="center"
                 android:layout_gravity="center"/>
 
-            <Spinner
+            <com.sunflower.catchtherainbow.Views.NDSpinner
                 android:layout_height="match_parent"
                 android:id="@+id/spinnerFilter"
                 android:layout_marginRight="5dp"

@@ -41,6 +41,14 @@ public class FragPagerAdapter extends FragmentPagerAdapter //implements  sdffg
         return fragTabFolders;
     }
 
+    public Fragment GetFragmentByPosition(int position)
+    {
+        Fragment frag = new Fragment();
+        if(position == 0) frag = fragTabAudioFiles;
+        if(position == 1) frag = fragTabFolders;
+        return frag;
+    }
+
     @Override
     public Fragment getItem(int position)
     {

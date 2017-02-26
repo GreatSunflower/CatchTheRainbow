@@ -26,7 +26,8 @@ import java.util.Map;
  * Created by Alexandr on 05.02.2017.
  */
 
-public class AudioFilesAdapter extends CursorAdapter implements LoaderManager.LoaderCallbacks<Cursor>
+public class AudioFilesAdapter extends CursorAdapter implements
+        LoaderManager.LoaderCallbacks<Cursor>
 {
     private final Activity context;
     private HashMap<Long, Boolean> selection = new HashMap<>();
@@ -35,7 +36,7 @@ public class AudioFilesAdapter extends CursorAdapter implements LoaderManager.Lo
     private int selectedCount = 0;
 
     private String searchQuery = "";
-    private String sortOrder = "title";
+    private String sortOrder = "";
 
     private int loaderId;
 
@@ -48,17 +49,6 @@ public class AudioFilesAdapter extends CursorAdapter implements LoaderManager.Lo
         this.loaderId = loaderId;
 
         context.getLoaderManager().restartLoader(loaderId, new Bundle(), this);
-
-        //context.getLoaderManager().initLoader(SONGS_LOADER_ID, new Bundle(), this);
-
-        /*this.setFilterQueryProvider(new FilterQueryProvider()
-        {
-            @Override
-            public Cursor runQuery(CharSequence charSequence)
-            {
-                return Helper.getSongsAudioCursor(context, charSequence.toString(), "");
-            }
-        });*/
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -82,24 +72,36 @@ public class AudioFilesAdapter extends CursorAdapter implements LoaderManager.Lo
         return selectedAudio;
     }
 
-
     public void filterAllAudioFiles(String filter)
     {
         searchQuery = filter;
         if(loader != null)
             loader.setSearchQuery(filter);
         context.getLoaderManager().getLoader(loaderId).forceLoad();
+
+        ///////
         /*changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));
         this.filter = filter;
         notifyDataSetChanged();*/
     }
 
+    boolean isASC = true;
     public void SetSortOrder(String sortOrder)
     {
-        if(this.sortOrder.equals(sortOrder) && !this.sortOrder.contains("DESC")) this.sortOrder += " DESC";
-        else this.sortOrder = sortOrder;
+        String sort = sortOrder;
+        if(this.sortOrder.equals(sortOrder))
+        {
+            if(isASC)
+            {
+                sort += " DESC";
+                isASC = false;
+            }
+            else isASC = true;
+            //if(!this.sortOrder.contains("DESC")) this.sortOrder += " DESC";
+        }
+        this.sortOrder = sortOrder;
         if(loader != null)
-            loader.setOrder(this.sortOrder);
+            loader.setOrder(sort);
         context.getLoaderManager().getLoader(loaderId).forceLoad();
 
         /*changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));

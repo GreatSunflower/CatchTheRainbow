@@ -106,9 +106,9 @@ public class Helper
 
         //String sortOrder = MediaStore.Audio.Media.TITLE + " LIKE ?  ASC";
         //sortOrder = MediaStore.Audio.Media.TITLE;
-
+        //storage/emulated/0/Samsung/Music/Over the Horizon.mp3
         String where = MediaStore.Audio.Media.TITLE + " LIKE ? or " + MediaStore.Audio.Artists.ARTIST + " LIKE ?";
-        String[] params = new String[] { "%"+ filter + "%", "%"+ filter + "%" };
+        String[] params = new String[] { "%"+ filter + "%", "%"+ filter + "%"};
 
         cursorMusic = cr.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 projection, where, params, sortOrder);
@@ -121,6 +121,7 @@ public class Helper
         Bitmap bm = null;
         try
         {
+            //content://media/external/audio/media
             final Uri sArtworkUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 
             Uri uri = ContentUris.withAppendedId(sArtworkUri, album_id);
@@ -172,6 +173,7 @@ public class Helper
             String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
             String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
            // String album = MediaStore.Audio.Albums._ID+ "=?";
+            //new String[] {"%/storage/emulated/0/Samsung/Music/%"}
             cursorMusic = cr.query(uri, null, selection, null, sortOrder);
             int count = 0;
 
