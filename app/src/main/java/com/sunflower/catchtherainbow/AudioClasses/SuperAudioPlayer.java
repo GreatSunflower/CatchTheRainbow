@@ -41,8 +41,8 @@ public class SuperAudioPlayer
         }
         // plugins end
 
-        BASS.BASS_Init(-1, sampleRate, 0);
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_FLOATDSP, 32);
+       // BASS.BASS_Init(-1, sampleRate, 0);
+      //  BASS.BASS_SetConfig(BASS.BASS_CONFIG_FLOATDSP, 32);
         channel = 0;
     }
 
@@ -120,11 +120,8 @@ public class SuperAudioPlayer
     }
     public int getProgress()
     {
-        long positionBytes = BASS.BASS_ChannelGetPosition(channel, BASS.BASS_POS_BYTE);
-        long len = BASS.BASS_ChannelGetLength(channel, BASS.BASS_POS_BYTE);
-
-        int position = (int)positionBytes / (int)len;
-        return position;
+        double position = BASS.BASS_ChannelBytes2Seconds(channel, BASS.BASS_ChannelGetPosition(channel, BASS.BASS_POS_BYTE));
+        return (int) position;
     }
 
     public int getDuration()

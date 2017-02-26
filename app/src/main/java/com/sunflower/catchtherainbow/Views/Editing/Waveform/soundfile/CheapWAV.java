@@ -83,11 +83,13 @@ public class CheapWAV extends CheapSoundFile
         return "WAV";
     }
 
-    public void ReadFile(File inputFile) throws java.io.IOException {
+    public void ReadFile(File inputFile) throws java.io.IOException
+    {
         super.ReadFile(inputFile);
         mFileSize = (int) mInputFile.length();
 
-        if (mFileSize < 128) {
+        if (mFileSize < 128)
+        {
             throw new java.io.IOException("File too small to parse");
         }
         try {
@@ -99,19 +101,24 @@ public class CheapWAV extends CheapSoundFile
 
             int gain, value;
             int[] buffer = new int[getSamplesPerFrame()];
-            for (int i = 0; i < mNumFrames; i++) {
+            for (int i = 0; i < mNumFrames; i++)
+            {
                 gain = -1;
                 wavFile.readFrames(buffer, getSamplesPerFrame());
-                for (int j = 0; j < getSamplesPerFrame(); j++) {
+                for (int j = 0; j < getSamplesPerFrame(); j++)
+                {
                     value = buffer[j];
-                    if (gain < value) {
+                    if (gain < value)
+                    {
                         gain = value;
                     }
                 }
                 mFrameGains[i] = (int) Math.sqrt(gain);
-                if (mProgressListener != null) {
+                if (mProgressListener != null)
+                {
                     boolean keepGoing = mProgressListener.reportProgress(i * 1.0 / mFrameGains.length);
-                    if (!keepGoing) {
+                    if (!keepGoing)
+                    {
                         break;
                     }
                 }

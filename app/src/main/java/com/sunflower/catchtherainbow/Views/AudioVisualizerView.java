@@ -1,23 +1,13 @@
 package com.sunflower.catchtherainbow.Views;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
 import android.graphics.Rect;
-import android.opengl.EGLConfig;
-import android.opengl.GLES20;
-import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.view.View;
-
-import com.sunflower.catchtherainbow.AudioClasses.SuperAudioPlayer;
-
-import javax.microedition.khronos.opengles.GL10;
 
 /**
  * Created by SuperComputer on 2/6/2017.
@@ -26,7 +16,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class AudioVisualizerView extends View
 {
     // keeps wave data in normalized form(from -1 to 1)
-    private float[] floatBuffer;
+    private short[] shortBuffer;
 
     // actual points to draw
     private float[] mPoints;
@@ -34,12 +24,15 @@ public class AudioVisualizerView extends View
     private Rect mRect = new Rect();
     private Paint mForePaint = new Paint();
 
+    private DrawingKind drawingKind = DrawingKind.Points;
+
     //private SuperGLRenderer mRenderer;
 
 
-    public AudioVisualizerView(Context context)
+    public AudioVisualizerView(Context context, DrawingKind kind)
     {
         super(context);
+        this.drawingKind = kind;
         init();
     }
 
@@ -51,7 +44,8 @@ public class AudioVisualizerView extends View
 
     private void init()
     {
-        floatBuffer = null;
+        //floatBuffer = null;
+        shortBuffer = null;
 
         // Create an OpenGL ES 2.0 context
         //   setEGLContextClientVersion(2);
@@ -71,9 +65,9 @@ public class AudioVisualizerView extends View
     }
 
     // actual method that updates the view
-    public void updateVisualizer(float[] newFloatBuffer)
+    public void updateVisualizer(short[] newByteBuffer)
     {
-        floatBuffer = newFloatBuffer;
+        shortBuffer = newByteBuffer;
         invalidate();
     }
 
@@ -81,36 +75,92 @@ public class AudioVisualizerView extends View
     private Path path = new Path();
     private float x1, y1, x2, y2, x3, y3;
 
+
     @Override
     protected void onDraw(final Canvas canvas)
     {
         super.onDraw(canvas);
 
         // no need to update yet
-        if (floatBuffer == null)
+        if (shortBuffer == null)
         {
             return;
         }
-
-        // if there are no points or they are less than buffer size
-        if (mPoints == null || mPoints.length < floatBuffer.length * 4)
-        {
-            mPoints = new float[floatBuffer.length * 4];
-        }
+        canvas.drawColor(Color.TRANSPARENT);
 
         // size of the view
         mRect.set(0, 0, getWidth(), getHeight());
 
-        for (int i = 0; i < floatBuffer.length - 1; i++)
+        if(drawingKind == DrawingKind.Points)
         {
-            //to set two points of the line we need to fill 4 cells of the array
+            // if there are no points or they are less than buffer size
+            if (mPoints == null || mPoints.length < shortBuffer.length * 4)
+            {
+                mPoints = new float[shortBuffer.length * 4];
+            }
 
-            mPoints[i * 4] = mRect.width() * i / (floatBuffer.length - 1);
-            mPoints[i * 4 + 1] = mRect.height() / 2  + floatBuffer[i] * (mRect.height() / 2);
-            mPoints[i * 4 + 2] = mRect.width() * (i + 1) / (floatBuffer.length - 1);
-            mPoints[i * 4 + 3] = mRect.height() / 2 + floatBuffer[i + 1] * (mRect.height() / 2);
+            for (int i = 0; i < shortBuffer.length - 1; i++)
+            {
+                int x1 = mRect.width() * i / (shortBuffer.length - 1);
+                int y1 = (32767 - shortBuffer[i]) * mRect.height() / 65536;
+
+                int x2 = mRect.width() * (i + 1) / (shortBuffer.length - 1);
+                int y2 = (32767 - shortBuffer[i + 1]) * mRect.height() / 65536;
+
+                mPoints[i * 4] = x1;
+                mPoints[i * 4 + 1] = y1;
+                mPoints[i * 4 + 2] = x2;
+                mPoints[i * 4 + 3] = y2;
+            }
+            canvas.drawLines(mPoints, mForePaint);
         }
-        canvas.drawLines(mPoints, mForePaint);
+        else
+        {
+            // clear the path
+            path.reset();
+
+            if(drawingKind == DrawingKind.Points)
+            {
+                for (int i = 0; i < shortBuffer.length; i++)
+                {
+                    int value = (32767 - shortBuffer[i]) * mRect.height() / 65536;
+
+                    float x = mRect.width() * i / (shortBuffer.length - 1);
+                    float y = value;
+
+                    if (i == 0)
+                    {
+                        path.moveTo(x, y);
+                    }
+                    else
+                    {
+                        path.lineTo(x, y);
+                    }
+                }
+            }
+            else if(drawingKind == DrawingKind.Bezier)
+            {
+                path.reset();
+
+                for (int i = 0; i < shortBuffer.length - 2; i += 2)
+                {
+                    x1 = mRect.width() * i / (shortBuffer.length - 1);
+                    y1 = (32767 - shortBuffer[i]) * mRect.height() / 65536;
+
+                    x2 = mRect.width() * (i + 1) / (shortBuffer.length - 1);
+                    y2 = (32767 - shortBuffer[i + 1]) * mRect.height() / 65536;
+
+                    x3 = mRect.width() * (i + 2) / (shortBuffer.length - 1);
+                    y3 = (32767 - shortBuffer[i + 2]) * mRect.height() / 65536;
+
+                    path.moveTo(x1, y1);
+                    //path.cubicTo(x2, y2, x3, y3, x4, y4);
+                    path.quadTo(x2, y2, x3, y3);
+                    path.moveTo(x3, y3);
+                }
+            }
+            canvas.drawPath(path, mForePaint);
+        }
 
 
         // Bezier drawing is much, much slower!!!
@@ -137,4 +187,22 @@ public class AudioVisualizerView extends View
 
         canvas.drawPath(path, mForePaint);*/
     }
+
+    public DrawingKind getDrawingKind()
+    {
+        return drawingKind;
+    }
+
+    public void setDrawingKind(DrawingKind drawingKind)
+    {
+        this.drawingKind = drawingKind;
+    }
+
+    public enum DrawingKind
+    {
+        Points, /* The fastest */
+        Path,
+        Bezier/* The slowest */
+    }
+
 }

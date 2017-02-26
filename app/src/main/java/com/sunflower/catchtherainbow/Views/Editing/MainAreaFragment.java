@@ -2,32 +2,23 @@ package com.sunflower.catchtherainbow.Views.Editing;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.DragEvent;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.sunflower.catchtherainbow.AudioClasses.AudioFileData;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.view.WaveformView;
@@ -139,7 +130,7 @@ public class MainAreaFragment extends Fragment
         trow.addView(v, 1);
 
          // Load the sound file in a background thread
-        new LongOperation().execute(path);
+        new SoundWaveLoader().execute(path);
 
         // add header row
         tracksLayout.addView(trow, 0);
@@ -156,16 +147,15 @@ public class MainAreaFragment extends Fragment
     }
 
     private final Handler mHandler = new Handler();
-    private CheapSoundFile file;
 
-    private class LongOperation extends AsyncTask<String, Double, CheapSoundFile>
+    // used for loading audio data to be used in track waveform drawing later
+    private class SoundWaveLoader extends AsyncTask<String, Double, AudioFileData>
     {
-        private long loadingLastUpdateTime;
-
+        //private long loadingLastUpdateTime;
         @Override
-        protected CheapSoundFile doInBackground(String... params)
+        protected AudioFileData doInBackground(String... params)
         {
-            loadingLastUpdateTime = System.currentTimeMillis();
+            /*loadingLastUpdateTime = System.currentTimeMillis();
             CheapSoundFile.ProgressListener progressListener = new CheapSoundFile.ProgressListener()
             {
                 @Override
@@ -180,70 +170,123 @@ public class MainAreaFragment extends Fragment
                     return true;
                 }
             };
-
-            try
-            {
-                 file = CheapSoundFile.create(params[0], progressListener);
+          //  try
+            {*/
+                // file = CheapSoundFile.create(params[0], progressListener);
+            AudioFileData file = new AudioFileData(getActivity(), params[0]);
 //                file.setProgressListener(null);
-            }
-            catch (IOException e)
+          /*   }
+           catch (IOException e)
             {
                 Log.e("Tracks", "Error while loading sound file", e);
                 progressDialog.dismiss();
                 return null;
-            }
+            }*/
 
             return file;
         }
 
         @Override
-        protected void onPostExecute(CheapSoundFile result)
+        protected void onPostExecute(AudioFileData result)
         {
-            finishOpeningSoundFile(result, trow);
-//            progressDialog.dismiss();
+            progressDialog.dismiss();
+
+            final WaveformView wave = new WaveformView(getActivity());
+            wave.setPadding(2,2,2,2);
+            wave.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
+            trow.addView(wave, 1);
+            wave.setSoundFile(result);
+            wave.setListener(new WaveformView.WaveformListener()
+            {
+                @Override
+                public void waveformTouchStart(float x)
+                {
+
+                }
+
+                @Override
+                public void waveformTouchMove(float x)
+                {
+
+                }
+
+                @Override
+                public void waveformTouchEnd()
+                {
+
+                }
+
+                @Override
+                public void waveformFling(float x)
+                {
+
+                }
+
+                @Override
+                public void waveformDraw()
+                {
+
+                }
+
+                @Override
+                public void waveformZoomIn()
+                {
+                    wave.zoomIn();
+                }
+
+                @Override
+                public void waveformZoomOut()
+                {
+                    wave.zoomOut();
+                }
+            });
+            wave.recomputeHeights(1);
+            //finishOpeningSoundFile(result, trow);
         }
 
         @Override
         protected void onPreExecute()
         {
-            /*progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER/*.STYLE_HORIZONTAL*/);
             progressDialog.setTitle(R.string.progress_dialog_loading);
             progressDialog.setCancelable(false);
-            progressDialog.show();*/
+            progressDialog.setIndeterminate(true);
+            progressDialog.show();
         }
 
         @Override
         protected void onProgressUpdate(Double... values)
         {
-           // progressDialog.setProgress((int) (progressDialog.getMax() * values[0]));
+            progressDialog.setProgress((int) (progressDialog.getMax() * values[0]));
         }
     }
 
 
-    protected void finishOpeningSoundFile(final CheapSoundFile file, final TableRow tableRow)
+  /*  protected void finishOpeningSoundFile(final AudioFileData file, final TableRow tableRow)
     {
-        mHandler.post(new Runnable()
+       /* mHandler.post(new Runnable()
         {
           @Override
           public void run()
-          {
-              WaveformView wave = new WaveformView(getActivity());
+          {*/
+              /*WaveformView wave = new WaveformView(getActivity());
               wave.setPadding(2,2,2,2);
-              wave.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT));
+              wave.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
               tableRow.addView(wave, 1);
               //wave.setSoundFile(file);
+              wave.invalidate();
               /*TextView v = new TextView(getContext());
               v.setBackgroundColor(Color.RED);
               v.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT));
               trow.addView(v, 1);*/
-          }
+          /*}
         });
 
         // add track row
 
        // wave.invalidate();
-    }
+    }*/
 
 
     // TODO: Rename method, update argument and hook method into UI event

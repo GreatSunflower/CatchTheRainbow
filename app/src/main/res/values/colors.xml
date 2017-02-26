@@ -23,8 +23,8 @@
     <color name="trackThumbReleased">#dcdcdc</color>
 
     <color name="waveform_selected">#00BFA5</color>
-    <color name="waveform_unselected">#535353</color>
-    <color name="waveform_unselected_bkgnd_overlay">#ffd6d7d7</color>
+    <color name="waveform_unselected">@color/colorAccent</color>
+    <color name="waveform_unselected_bkgnd_overlay">#cbffffff</color>
     <color name="selection_border">#ffffff</color>
     <color name="playback_indicator">#ffff66</color>
     <color name="grid_line">#6D6D6D</color>

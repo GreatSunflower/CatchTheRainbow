@@ -11,7 +11,8 @@ import java.io.IOException;
  *
  * @author Anna Stępień <anna.stepien@semantive.com>
  */
-public class WavFile {
+public class WavFile
+{
     private enum IOState {READING, WRITING, CLOSED}
 
     private final static int BUFFER_SIZE = 4096;
@@ -112,7 +113,8 @@ public class WavFile {
         boolean foundData = false;
 
         // Search for the Format and Data Chunks
-        while (true) {
+        while (true)
+        {
             // Read the first 8 bytes of the chunk (ID and chunk size)
             bytesRead = wavFile.iStream.read(wavFile.buffer, 0, 8);
             if (bytesRead == -1) throw new WavFileException("Reached end of file without finding format chunk");
@@ -163,7 +165,9 @@ public class WavFile {
                 // any extra format bytes
                 numChunkBytes -= 16;
                 if (numChunkBytes > 0) wavFile.iStream.skip(numChunkBytes);
-            } else if (chunkID == DATA_CHUNK_ID) {
+            }
+            else if (chunkID == DATA_CHUNK_ID)
+            {
                 // Check if we've found the format chunk,
                 // If not, throw an exception as we need the format information
                 // before we can read the data chunk
@@ -181,7 +185,9 @@ public class WavFile {
                 foundData = true;
 
                 break;
-            } else {
+            }
+            else
+            {
                 // If an unknown chunk ID is found, just skip over the chunk data
                 wavFile.iStream.skip(numChunkBytes);
             }
@@ -191,12 +197,15 @@ public class WavFile {
         if (foundData == false) throw new WavFileException("Did not find a data chunk");
 
         // Calculate the scaling factor for converting to a normalised double
-        if (wavFile.validBits > 8) {
+        if (wavFile.validBits > 8)
+        {
             // If more than 8 validBits, data is signed
             // Conversion required dividing by magnitude of max negative value
             wavFile.floatOffset = 0;
             wavFile.floatScale = 1 << (wavFile.validBits - 1);
-        } else {
+        }
+        else
+        {
             // Else if 8 or less validBits, data is unsigned
             // Conversion required dividing by max positive value
             wavFile.floatOffset = -1;
@@ -211,7 +220,8 @@ public class WavFile {
         return wavFile;
     }
 
-    private static long getLE(byte[] buffer, int pos, int numBytes) {
+    private static long getLE(byte[] buffer, int pos, int numBytes)
+    {
         numBytes--;
         pos += numBytes;
 
@@ -242,11 +252,13 @@ public class WavFile {
         return val;
     }
 
-    public int readFrames(float[] sampleBuffer, int numFramesToRead) throws IOException, WavFileException {
+    public int readFrames(float[] sampleBuffer, int numFramesToRead) throws IOException, WavFileException
+    {
         return readFramesInternal(sampleBuffer, 0, numFramesToRead);
     }
 
-    private int readFramesInternal(float[] sampleBuffer, int offset, int numFramesToRead) throws IOException, WavFileException {
+    private int readFramesInternal(float[] sampleBuffer, int offset, int numFramesToRead) throws IOException, WavFileException
+    {
         if (ioState != IOState.READING) throw new IOException("Cannot read from WavFile instance");
 
         for (int f = 0; f < numFramesToRead; f++) {
@@ -263,11 +275,13 @@ public class WavFile {
         return numFramesToRead;
     }
 
-    public int readFrames(int[] sampleBuffer, int numFramesToRead) throws IOException, WavFileException {
+    public int readFrames(int[] sampleBuffer, int numFramesToRead) throws IOException, WavFileException
+    {
         return readFramesInternal(sampleBuffer, 0, numFramesToRead);
     }
 
-    private int readFramesInternal(int[] sampleBuffer, int offset, int numFramesToRead) throws IOException, WavFileException {
+    private int readFramesInternal(int[] sampleBuffer, int offset, int numFramesToRead) throws IOException, WavFileException
+    {
         if (ioState != IOState.READING) throw new IOException("Cannot read from WavFile instance");
 
         for (int f = 0; f < numFramesToRead; f++) {
@@ -284,7 +298,8 @@ public class WavFile {
         return numFramesToRead;
     }
 
-    public void close() throws IOException {
+    public void close() throws IOException
+    {
         // Close the input stream and set to null
         if (iStream != null) {
             iStream.close();

@@ -26,6 +26,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
+import com.sunflower.catchtherainbow.AudioClasses.AudioFileData;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.Segment;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
@@ -73,7 +74,7 @@ public class WaveformView extends View
     protected Paint mPlaybackLinePaint;
     protected Paint mTimecodePaint;
 
-    protected CheapSoundFile mSoundFile;
+    protected AudioFileData mSoundFile;
     protected int[] mLenByZoomLevel;
     protected float[] mZoomFactorByZoomLevel;
     protected int mZoomLevel;
@@ -142,29 +143,39 @@ public class WaveformView extends View
 
         mGestureDetector = new GestureDetector(
                 context,
-                new GestureDetector.SimpleOnGestureListener() {
+                new GestureDetector.SimpleOnGestureListener()
+                {
                     public boolean onFling(
-                            MotionEvent e1, MotionEvent e2, float vx, float vy) {
-                        mListener.waveformFling(vx);
+                            MotionEvent e1, MotionEvent e2, float vx, float vy)
+                    {
+                        if(mListener != null)
+                            mListener.waveformFling(vx);
                         return true;
                     }
                 });
 
         mScaleGestureDetector = new ScaleGestureDetector(
                 context,
-                new ScaleGestureDetector.SimpleOnScaleGestureListener() {
-                    public boolean onScaleBegin(ScaleGestureDetector d) {
+                new ScaleGestureDetector.SimpleOnScaleGestureListener()
+                {
+                    public boolean onScaleBegin(ScaleGestureDetector d)
+                    {
                         mInitialScaleSpan = Math.abs(d.getCurrentSpanX());
                         return true;
                     }
-                    public boolean onScale(ScaleGestureDetector d) {
+                    public boolean onScale(ScaleGestureDetector d)
+                    {
                         float scale = Math.abs(d.getCurrentSpanX());
-                        if (scale - mInitialScaleSpan > 40) {
-                            mListener.waveformZoomIn();
+                        if (scale - mInitialScaleSpan > 40)
+                        {
+                            if(mListener != null)
+                                mListener.waveformZoomIn();
                             mInitialScaleSpan = scale;
                         }
-                        if (scale - mInitialScaleSpan < -40) {
-                            mListener.waveformZoomOut();
+                        if (scale - mInitialScaleSpan < -40)
+                        {
+                            if(mListener != null)
+                                mListener.waveformZoomOut();
                             mInitialScaleSpan = scale;
                         }
                         return true;
@@ -184,13 +195,18 @@ public class WaveformView extends View
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
+    public boolean onTouchEvent(MotionEvent event)
+    {
         mScaleGestureDetector.onTouchEvent(event);
-        if (mGestureDetector.onTouchEvent(event)) {
+        if (mGestureDetector.onTouchEvent(event))
+        {
             return true;
         }
+        if(mListener == null)
+            return true;
 
-        switch (event.getAction()) {
+        switch (event.getAction())
+        {
             case MotionEvent.ACTION_DOWN:
                 mListener.waveformTouchStart(event.getX());
                 break;
@@ -208,7 +224,8 @@ public class WaveformView extends View
         return mSoundFile != null;
     }
 
-    public void setSoundFile(CheapSoundFile soundFile) {
+    public void setSoundFile(AudioFileData soundFile)
+    {
         mSoundFile = soundFile;
         mSampleRate = mSoundFile.getSampleRate();
         mSamplesPerFrame = mSoundFile.getSamplesPerFrame();
@@ -231,8 +248,10 @@ public class WaveformView extends View
         return (mZoomLevel < mNumZoomLevels - 1);
     }
 
-    public void zoomIn() {
-        if (canZoomIn()) {
+    public void zoomIn()
+    {
+        if (canZoomIn())
+        {
             mZoomLevel++;
             float factor = mLenByZoomLevel[mZoomLevel] / (float) mLenByZoomLevel[mZoomLevel - 1];
             mSelectionStart *= factor;
@@ -250,8 +269,10 @@ public class WaveformView extends View
         return (mZoomLevel > 0);
     }
 
-    public void zoomOut() {
-        if (canZoomOut()) {
+    public void zoomOut()
+    {
+        if (canZoomOut())
+        {
             mZoomLevel--;
             float factor = mLenByZoomLevel[mZoomLevel + 1] / (float) mLenByZoomLevel[mZoomLevel];
             mSelectionStart /= factor;
@@ -273,27 +294,32 @@ public class WaveformView extends View
         return (int) (1.0 * seconds * mSampleRate / mSamplesPerFrame + 0.5);
     }
 
-    public int secondsToPixels(double seconds) {
+    public int secondsToPixels(double seconds)
+    {
         double z = mZoomFactorByZoomLevel[mZoomLevel];
         return (int) (z * seconds * mSampleRate / mSamplesPerFrame + 0.5);
     }
 
-    public double pixelsToSeconds(int pixels) {
+    public double pixelsToSeconds(int pixels)
+    {
         double z = mZoomFactorByZoomLevel[mZoomLevel];
         return (pixels * (double) mSamplesPerFrame / (mSampleRate * z));
     }
 
-    public int millisecsToPixels(int msecs) {
+    public int millisecsToPixels(int msecs)
+    {
         double z = mZoomFactorByZoomLevel[mZoomLevel];
         return (int) ((msecs * 1.0 * mSampleRate * z) / (1000.0 * mSamplesPerFrame) + 0.5);
     }
 
-    public int pixelsToMillisecs(int pixels) {
+    public int pixelsToMillisecs(int pixels)
+    {
         double z = mZoomFactorByZoomLevel[mZoomLevel];
         return (int) (pixels * (1000.0 * mSamplesPerFrame) / (mSampleRate * z) + 0.5);
     }
 
-    public void setParameters(int start, int end, int offset) {
+    public void setParameters(int start, int end, int offset)
+    {
         mSelectionStart = start;
         mSelectionEnd = end;
         mOffset = offset;
@@ -319,30 +345,39 @@ public class WaveformView extends View
         mListener = listener;
     }
 
-    public void setSegments(final List<Segment> segments) {
+    public void setSegments(final List<Segment> segments)
+    {
         if (segments != null) {
-            for (Segment segment : segments) {
+            for (Segment segment : segments)
+            {
                 segmentsMap.put(segment.getStop(), segment);
             }
         }
     }
 
-    public void recomputeHeights(float density) {
+    public void recomputeHeights(float density)
+    {
         mDensity = density;
         mTimecodePaint.setTextSize((int) (12 * density));
 
         invalidate();
     }
 
-    protected void drawWaveformLine(Canvas canvas, int x, int y0, int y1, Paint paint) {
+    protected void drawWaveformLine(Canvas canvas, int x, int y0, int y1, Paint paint)
+    {
         canvas.drawLine(x, y0, x, y1, paint);
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
+    protected void onDraw(Canvas canvas)
+    {
         super.onDraw(canvas);
+
         if (mSoundFile == null)
             return;
+
+        if(!mInitialized)
+            computeDoublesForAllZoomLevels();
 
         int measuredWidth = getMeasuredWidth();
         int measuredHeight = getMeasuredHeight();
@@ -361,7 +396,8 @@ public class WaveformView extends View
         double timecodeIntervalSecs = 1.0;
 
         int factor = 1;
-        while (timecodeIntervalSecs / onePixelInSecs < 50) {
+        while (timecodeIntervalSecs / onePixelInSecs < 50)
+        {
             timecodeIntervalSecs = 5.0 * factor;
             factor++;
         }
@@ -427,7 +463,8 @@ public class WaveformView extends View
             }
         }
 
-        if (mListener != null) {
+        if (mListener != null)
+        {
             mListener.waveformDraw();
         }
     }
@@ -511,7 +548,11 @@ public class WaveformView extends View
     /**
      * Called once when a new sound file is added
      */
-    protected void computeDoublesForAllZoomLevels() {
+    protected void computeDoublesForAllZoomLevels()
+    {
+        if(getMeasuredWidth() == 0 && getMeasuredHeight() == 0)
+            return;
+
         int numFrames = mSoundFile.getNumFrames();
 
         // Make sure the range is no more than 0 - 255
@@ -580,7 +621,9 @@ public class WaveformView extends View
             mZoomFactorByZoomLevel[3] = 3.0f;
 
             mZoomLevel = 0;
-        } else {
+        }
+        else
+        {
             mLenByZoomLevel[0] = numFrames;
             mZoomFactorByZoomLevel[0] = 1.0f;
 

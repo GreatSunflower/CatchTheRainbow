@@ -22,6 +22,7 @@ import android.widget.AbsoluteLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.sunflower.catchtherainbow.AudioClasses.AudioFileData;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.view.MarkerView;
@@ -60,7 +61,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected long mLoadingLastUpdateTime;
     protected boolean mLoadingKeepGoing;
     protected ProgressDialog mProgressDialog;
-    protected CheapSoundFile mSoundFile;
+    protected AudioFileData mSoundFile;
     protected File mFile;
     protected String mFilename;
     protected WaveformView mWaveformView;
@@ -481,7 +482,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         new Thread() {
             public void run() {
                 try {
-                    mSoundFile = CheapSoundFile.create(mFile.getAbsolutePath(), listener);
+                   // mSoundFile = CheapSoundFile.create(mFile.getAbsolutePath(), listener);
+                    mSoundFile = new AudioFileData(getActivity(), mFile.getAbsolutePath());
                 } catch (final Exception e) {
                     Log.e(TAG, "Error while loading sound file", e);
                     mProgressDialog.dismiss();
@@ -518,8 +520,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mFlingVelocity = 0;
         resetPositions();
 
-        mCaption = mSoundFile.getFiletype() + ", " +
-                mSoundFile.getSampleRate() + " Hz, " +
+        mCaption = mSoundFile.getSampleRate() + " Hz, " +
                 mSoundFile.getAvgBitrateKbps() + " kbps, " +
                 formatTime(mMaxPos) + " " + getResources().getString(R.string.time_seconds);
         mInfo.setText(mCaption);

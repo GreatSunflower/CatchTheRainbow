@@ -228,5 +228,14 @@ public class Helper
         return bd.doubleValue();
     }
 
-
+    public static int[] getNormalizedBuffer(byte []buffer)
+    {
+        int[] res = new int[buffer.length];
+        for(int i = 0; i < buffer.length; i++)
+        {
+           // int value = (32767 - buffer[i]) / 65536;
+            res[i] = buffer[i] + 128;
+        }
+        return res;
+    }
 }

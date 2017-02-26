@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.media.MediaMetadataRetriever;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -20,6 +21,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -42,8 +44,11 @@ import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSound
 import com.sunflower.catchtherainbow.Views.Effects.DefaultEffectsFragment;
 import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar;
+import com.un4seen.bass.BASS;
 
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
@@ -51,6 +56,8 @@ import java.util.Random;
 public class ProjectActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, View.OnClickListener, EffectsHostFragment.OnEffectsHostListener
 {
+    private static final String TAG = "Project";
+
     private ActionMenuView amvMenu;
     private ImageButton playStopButt, bNext, bPrev;
     private AudioProgressView progressView;
@@ -60,6 +67,9 @@ public class ProjectActivity extends AppCompatActivity
 
     private RelativeLayout waveFormViewContainer;
     private MainAreaFragment tracksFragment;
+
+    // updates status(position and time)
+    private Handler statusHandler = new Handler();
 
     // temp
     private boolean isPlaying = false, isDragging = false;
@@ -71,7 +81,13 @@ public class ProjectActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_project);
 
-        viewContentProject = (View) findViewById(R.id.content_project);
+        // initialize default output device
+        if (!BASS.BASS_Init(-1, 44100, 0))
+        {
+            Log.e(TAG, "Can't initialize device");
+            return;
+        }
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_FLOATDSP, 32);
 
         ////////////////////////////////////////////////////permission
         int PERMISSION_ALL = 1;
@@ -83,6 +99,8 @@ public class ProjectActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
         }
         //////////////////////////////////////////////////////////end permission
+
+        viewContentProject = (View) findViewById(R.id.content_project);
 
         // Init toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -115,6 +133,7 @@ public class ProjectActivity extends AppCompatActivity
 
         // -----------------------------------------------------FOR TESTING PURPOSES---------------------------------------
         visualizerView = (AudioVisualizerView) findViewById(R.id.audioVisualizerView);
+        //visualizerView.setDrawingKind(AudioVisualizerView.DrawingKind.Points);
 
         waveFormViewContainer = (RelativeLayout) findViewById(R.id.mainAreaContainer);
 
@@ -188,7 +207,6 @@ public class ProjectActivity extends AppCompatActivity
                 if (!isDragging) progressView.setCurrent((float) currentTime);
                 //visualizerView.updateVisualizer(audioData);
             }*/
-
             @Override
             public void onCompleted(){}
         });
@@ -211,7 +229,7 @@ public class ProjectActivity extends AppCompatActivity
                     {
                         isPlaying = true;
                         playStopButt.setImageResource(R.drawable.ic_pause);
-                        player.play();
+                        player.playPause(true);
                     }
                     catch (Exception e)
                     {
@@ -226,7 +244,8 @@ public class ProjectActivity extends AppCompatActivity
                         player.playPause(false);
                         isPlaying = false;
                         playStopButt.setImageResource(R.drawable.ic_play);
-                    } catch (Exception e)
+                    }
+                    catch (Exception e)
                     {
                         Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         e.printStackTrace();
@@ -235,6 +254,27 @@ public class ProjectActivity extends AppCompatActivity
             }
         });
         // -----------------------------------------------
+
+        // timer to update the display
+        Runnable timer = new Runnable()
+        {
+            public void run()
+            {
+                if (!isDragging) progressView.setCurrent(player.getProgress());
+
+                int bufferSize = 1024;
+                ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize*2);
+                audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
+                BASS.BASS_ChannelGetData(player.getChannel(), audioData, bufferSize*2);
+                     short[] pcm=new short[bufferSize]; // allocate a "short" array for the sample data
+                audioData.asShortBuffer().get(pcm);
+
+                visualizerView.updateVisualizer(pcm);
+
+                statusHandler.postDelayed(this, 50);
+            }
+        };
+        statusHandler.postDelayed(timer, 50);
     }
 
     @Override
@@ -256,7 +296,8 @@ public class ProjectActivity extends AppCompatActivity
                     try
                     {
                         player.playNext();
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         Toast.makeText(this, "Cannot be played!", Toast.LENGTH_SHORT).show();
                     }
@@ -270,7 +311,8 @@ public class ProjectActivity extends AppCompatActivity
                     try
                     {
                         player.playPrev();
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         Toast.makeText(this, "Cannot be played!", Toast.LENGTH_SHORT).show();
                     }
