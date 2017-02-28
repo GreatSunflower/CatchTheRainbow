@@ -1,0 +1,112 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             tools:context="com.sunflower.catchtherainbow.Views.Effects.EchoEffectFragment"
+             android:background="@color/backgroundButton">
+
+    <!-- TODO: Update blank fragment layout -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- ///////////////////start ECHO/////////////////////-->
+            <TextView
+                android:text="@string/effect_echo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tvEcho"
+                android:layout_marginTop="5dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:background="@color/backgroundListView"/>
+
+            <TextView
+                android:text="@string/fwet_dry_mix"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/echofWetDryMixSeekBar"
+                app:min="0" app:max = "100" app:current="0"/>
+
+            <TextView
+                android:text="@string/ffeed_back"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/echofFeedbackSeekBar"
+                app:min="0" app:max = "100" app:current="0"/>
+
+            <TextView
+                android:text="@string/fleft_delay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/echofLeftDelaySeekBar"
+                app:min="1" app:max = "2000" app:current="500"/>
+
+            <TextView
+                android:text="@string/fright_delay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/echofRightDelaySeekBar"
+                app:min="1" app:max = "2000" app:current="500"/>
+
+            <Switch
+                android:text="@string/ipan_delay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/switch_panDalay"
+                android:textSize="18sp"
+                android:textColor="@color/colorForeground"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginStart="20dp"
+                />
+
+            <!-- ///////////////////end ECHO/////////////////////-->
+
+        </LinearLayout>
+    </ScrollView>
+
+</FrameLayout>

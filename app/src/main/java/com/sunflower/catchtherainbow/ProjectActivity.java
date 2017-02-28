@@ -38,7 +38,6 @@ import com.sunflower.catchtherainbow.Views.AudioProgressView;
 import com.sunflower.catchtherainbow.Views.AudioVisualizerView;
 import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
-import com.sunflower.catchtherainbow.Views.Effects.DefaultEffectsFragment;
 import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
 import com.un4seen.bass.BASS;
 
@@ -368,11 +367,11 @@ public class ProjectActivity extends AppCompatActivity
             ft.addToBackStack(null);
             // Create and show the dialog.
 
-            DefaultEffectsFragment effectsFragment = DefaultEffectsFragment.newInstance(player.getChannel());
+            //ListEffectsFragment effectsFragment = ListEffectsFragment.newInstance(player.getChannel());
             //effectsFragment.setEffects(delayEffect, rateTransposer, flangerEffect);
 
             EffectsHostFragment hostFragment = EffectsHostFragment.newInstance();
-            hostFragment.setEffectsFragment(effectsFragment);
+            hostFragment.setChannel(player.getChannel());
             hostFragment.show(ft, "Effects dialog");
 
             return true;

@@ -50,11 +50,12 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         return new EffectsHostFragment();
     }
 
-    private Fragment effectsFragment;
+    private BaseEffectFragment effectsFragment = ListEffectsFragment.newInstance();
+    private int chan;
     // pass null to remove it
-    public void setEffectsFragment(Fragment fragment)
+    public void setChannel(int chan)
     {
-        effectsFragment = fragment;
+        this.chan = chan;
     }
 
 
@@ -99,6 +100,7 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         fragmentTransaction.replace(R.id.effectsFragment, effectsFragment);
+        effectsFragment.setChannel(chan);
         fragmentTransaction.commit();
 
     }
@@ -125,14 +127,14 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
     @Override
     public void onClick(View view)
     {
-        /*if(view.getId() == R.id.bOk)
+        if(view.getId() == R.id.bOk)
         {
 
         }
         else if(view.getId() == R.id.bCancel)
         {
-
-        }*/
+            effectsFragment.cancel();
+        }
 
         if (mListener != null)
         {

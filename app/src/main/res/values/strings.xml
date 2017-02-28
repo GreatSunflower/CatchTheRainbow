@@ -21,10 +21,14 @@
     <string name="mute">Mute</string>
     <string name="solo">Solo</string>
 
+
+
     <string name="no_title">No Title</string>
     <string name="unknown_artist">Unknown Artist</string>
     <string name="path">Patn</string>
     <string name="folder">Folder</string>
+
+
 
     <string name="effect_echo">ECHO</string>
     <string name="fwet_dry_mix">Wet Dry Mix</string>
@@ -33,12 +37,32 @@
     <string name="fright_delay">Right Delay</string>
     <string name="ipan_delay">Pan Delay  </string>
 
+
     <string name="effect_flanger">FLANGER</string>
     <string name="fdepth">Depth</string>
     <string name="ffrequency">Frequency</string>
     <string name="iwaveform">Waveform</string>
     <string name="fdelay">Delay</string>
     <string name="lphase">Pan Delay</string>
+
+
+
+    <string name="effect_choruse">CHORUSE</string>
+    <string name="lPhase_choruse">Phase</string>
+
+    <string-array name="lwaveform_array">
+        <item>Triangle</item>
+        <item>Sine</item>
+    </string-array>
+
+
+
+    <string name="effect_reverb">REVERB</string>
+    <string name="fin_gain">In Gain</string>
+    <string name="freverb_mix">Reverb Mix</string>
+    <string name="freverb_time">Reverb Time</string>
+    <string name="fhigh_freq_rt_ratio">High Freq RT Ratio</string>
+
 
     <string name="effect_phaser">PHASER</string>
     <string name="fdry_mix">Dry Mix</string>
@@ -48,11 +72,20 @@
     <string name="ffreq">Freq</string>
     <string name="lchannel">Channel</string>
 
+
     <string-array name="spinner_array">
         <item>TITLE</item>
         <item>ARTIST</item>
         <item>DURATION</item>
         <item>ALBUM</item>
     </string-array>
+
+
+    <string name="echo">Echo</string>
+    <string name="flanger">Flanger</string>
+    <string name="choruse">Choruse</string>
+    <string name="reverb">Reverb</string>
+    <string name="phaser">Phaser</string>
+
 
 </resources>

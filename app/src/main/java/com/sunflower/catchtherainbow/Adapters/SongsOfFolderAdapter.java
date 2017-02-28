@@ -46,8 +46,17 @@ public class SongsOfFolderAdapter extends ArrayAdapter<AudioFile>
 
     }
 
+    public void SetSelectAll(boolean value)
+    {
+        HashMap<Integer, Boolean> newSelection = new HashMap<>();
+        selectedCount = 0;
+        selection = newSelection;
+        notifyDataSetChanged();
+    }
+
     public ArrayList<AudioFile> filterAudio(String filter, ArrayList<AudioFile> allSongs)
     {
+        SetSelectAll(false); //снять выделение
         ArrayList<AudioFile> files = new ArrayList<AudioFile>();
         for(AudioFile audioFile : allSongs)
         {

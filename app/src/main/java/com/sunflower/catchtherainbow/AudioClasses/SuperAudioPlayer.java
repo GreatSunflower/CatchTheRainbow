@@ -95,7 +95,6 @@ public class SuperAudioPlayer
             listener.onInitialized(totalTime);
         }
 
-
         //Set callback
         BASS.BASS_ChannelSetSync(channel, BASS.BASS_SYNC_END, 0, EndSync, 0);
 

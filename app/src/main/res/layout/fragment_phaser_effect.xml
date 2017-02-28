@@ -1,0 +1,136 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             tools:context="com.sunflower.catchtherainbow.Views.Effects.PhaserEffectFragment"
+             android:background="@color/backgroundButton">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- ///////////////////start PHASER/////////////////////-->
+
+            <TextView
+                android:text="@string/effect_phaser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:background="@color/backgroundListView"/>
+
+            <TextView
+                android:text="@string/fdry_mix"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfDryMixSeekBar"
+                app:min="-2" app:max = "2" app:current="0"/>
+
+            <TextView
+                android:text="@string/fwet_mix"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfWetMixSeekBar"
+                app:min="-2" app:max = "2" app:current="0"/>
+
+            <TextView
+                android:text="@string/ffeed_back"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfFeedbackSeekBar"
+                app:min="-1" app:max = "1" app:current="0"/>
+
+            <TextView
+                android:text="@string/frate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfRateSeekBar"
+                app:min="0" app:max = "10" app:current="0"/>
+
+            <TextView
+                android:text="@string/frange"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfRangeSeekBar"
+                app:min="0" app:max = "10" app:current="0"/>
+
+            <TextView
+                android:text="@string/ffreq"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/phaserfFreqSeekBar"
+                app:min="0" app:max = "10" app:current="0"/>
+
+            <!-- public int   lChannel;
+            public float fRate;						// rate of sweep in cycles per second		[0<....<10]
+            public float fRange;					// sweep range in octaves					[0<....<10]
+            public float fFreq;						// base frequency of sweep					[0<...1000]-->
+
+            <!-- ///////////////////end PHASER/////////////////////-->
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

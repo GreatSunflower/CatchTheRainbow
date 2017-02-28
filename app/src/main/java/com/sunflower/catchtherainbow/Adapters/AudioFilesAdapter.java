@@ -74,6 +74,8 @@ public class AudioFilesAdapter extends CursorAdapter implements
 
     public void filterAllAudioFiles(String filter)
     {
+        SetSelectAll(false); //снять выделение
+
         searchQuery = filter;
         if(loader != null)
             loader.setSearchQuery(filter);
@@ -84,6 +86,7 @@ public class AudioFilesAdapter extends CursorAdapter implements
         this.filter = filter;
         notifyDataSetChanged();*/
     }
+
 
     boolean isASC = true;
     public void SetSortOrder(String sortOrder)
@@ -97,12 +100,15 @@ public class AudioFilesAdapter extends CursorAdapter implements
                 isASC = false;
             }
             else isASC = true;
-            //if(!this.sortOrder.contains("DESC")) this.sortOrder += " DESC";
         }
+        else isASC = true;
+
         this.sortOrder = sortOrder;
         if(loader != null)
             loader.setOrder(sort);
         context.getLoaderManager().getLoader(loaderId).forceLoad();
+
+        SetSelectAll(false);
 
         /*changeCursor(Helper.getSongsAudioCursor(context, filter, sortOrder));
         this.sortOrder = sortOrder;

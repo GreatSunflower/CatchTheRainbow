@@ -508,15 +508,15 @@ public class BASS
 	public static final int BASS_POS_SCAN = 0x40000000; // flag: scan to the position
 
 	// DX8 effect types, use with BASS_ChannelSetFX
-	public static final int BASS_FX_DX8_CHORUS = 0;
-	public static final int BASS_FX_DX8_COMPRESSOR = 1;
-	public static final int BASS_FX_DX8_DISTORTION = 2;
+	public static final int BASS_FX_DX8_CHORUS = 0;//
+	public static final int BASS_FX_DX8_COMPRESSOR = 1;//
+	public static final int BASS_FX_DX8_DISTORTION = 2;//
 	public static final int BASS_FX_DX8_ECHO = 3;
 	public static final int BASS_FX_DX8_FLANGER = 4;
 	public static final int BASS_FX_DX8_GARGLE = 5;
 	public static final int BASS_FX_DX8_I3DL2REVERB = 6;
 	public static final int BASS_FX_DX8_PARAMEQ = 7;
-	public static final int BASS_FX_DX8_REVERB = 8;
+	public static final int BASS_FX_DX8_REVERB = 8;//
 
 	public static class BASS_DX8_CHORUS {
 		public float fWetDryMix;

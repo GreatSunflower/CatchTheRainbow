@@ -1,0 +1,99 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             tools:context="com.sunflower.catchtherainbow.Views.Effects.ReverbEffectFragment"
+             android:background="@color/backgroundButton">
+
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- ///////////////////start reverb/////////////////////-->
+
+            <TextView
+                android:text="@string/effect_reverb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:background="@color/backgroundListView"/>
+
+            <TextView
+                android:text="@string/fin_gain"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/reverbfInGainSeekBar"
+                app:min="-95" app:max = "0" app:current="0"/>
+
+            <TextView
+                android:text="@string/freverb_mix"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/reverbfReverbMixSeekBar"
+                app:min="-96" app:max = "0" app:current="0"/>
+
+            <TextView
+                android:text="@string/freverb_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/reverbfReverbTimeSeekBar"
+                app:min="0.001" app:max = "3000" app:current="1000"/>
+
+            <TextView
+                android:text="@string/fhigh_freq_rt_ratio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorForeground"
+                android:textSize="18sp"/>
+
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/reverbfHighFreqRTRatioSeekBar"
+                app:min="0.001" app:max = "0.999" app:current="0.001"/>
+
+            <!-- ///////////////////end reverb/////////////////////-->
+
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>
