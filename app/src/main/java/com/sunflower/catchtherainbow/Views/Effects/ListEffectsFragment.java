@@ -44,7 +44,7 @@ public class ListEffectsFragment extends BaseEffectFragment implements AdapterVi
         ArrayList<ItemEffect> items = new ArrayList<ItemEffect>();
         items.add(new ItemEffect(getResources().getString(R.string.echo), EchoEffectFragment.class));
         items.add(new ItemEffect(getResources().getString(R.string.flanger), FlangerEffectFragment.class));
-        items.add(new ItemEffect(getResources().getString(R.string.choruse), ChoruseEfectFragment.class));
+        items.add(new ItemEffect(getResources().getString(R.string.chorus), ChoruseEfectFragment.class));
         items.add(new ItemEffect(getResources().getString(R.string.reverb), ReverbEffectFragment.class));
         items.add(new ItemEffect(getResources().getString(R.string.phaser), PhaserEffectFragment.class));
 
@@ -60,12 +60,19 @@ public class ListEffectsFragment extends BaseEffectFragment implements AdapterVi
     }
 
     BaseEffectFragment newFragment = null;
-    public void cancel()
+    public boolean cancel()
     {
         if(newFragment!=null)
         {
-            newFragment.cancel();
+            boolean res = newFragment.cancel();
+            if(res)
+            {
+                getFragmentManager().beginTransaction().remove(newFragment).commit();
+                newFragment = null;
+            }
+            return res;
         }
+        return false;
     }
 
     @Override

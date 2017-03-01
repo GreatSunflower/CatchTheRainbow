@@ -57,7 +57,6 @@ public class ProjectActivity extends AppCompatActivity
     private AudioProgressView progressView;
     private View viewContentProject;
     private AudioVisualizerView visualizerView;
-    private TextView audioInfo;
 
     private RelativeLayout waveFormViewContainer;
     private MainAreaFragment tracksFragment;
@@ -131,8 +130,6 @@ public class ProjectActivity extends AppCompatActivity
 
         waveFormViewContainer = (RelativeLayout) findViewById(R.id.mainAreaContainer);
 
-        audioInfo = (TextView) findViewById(R.id.audioInfoTextView);
-
         // play/stop/next/prev
         playStopButt = (ImageButton) findViewById(R.id.Sacha);
         bNext = (ImageButton) findViewById(R.id.playNext);
@@ -142,6 +139,8 @@ public class ProjectActivity extends AppCompatActivity
         bNext.setOnClickListener(this);
 
         progressView = (AudioProgressView) findViewById(R.id.audioProgressView);
+        progressView.setMax(1.f);
+        progressView.setCurrent(0);
         progressView.setOnSeekBar(new SeekBar.OnSeekBarChangeListener()
         {
             @Override
@@ -150,7 +149,6 @@ public class ProjectActivity extends AppCompatActivity
                 if (player != null)
                     progressView.setCurrent(progress);
             }
-
             @Override
             public void onStartTrackingTouch(SeekBar seekBar)
             {
@@ -177,7 +175,7 @@ public class ProjectActivity extends AppCompatActivity
             public void onInitialized(int totalTime/*final File file*/)
             {
                 progressView.setMax(totalTime);
-
+                progressView.setCurrent(0);
                 /*MediaMetadataRetriever mmr = new MediaMetadataRetriever();
                 mmr.setDataSource(file.getAbsolutePath());
                 String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
@@ -185,7 +183,6 @@ public class ProjectActivity extends AppCompatActivity
                 String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
                 audioInfo.setText(artist + " - " + album + " - " + title);
                 mmr.release();*/
-
                 //waveFormViewContainer.setSoundFile(CheapSoundFile.create(file.getAbsolutePath(), null));
                 //waveFormViewContainer.invalidate();
             }
@@ -254,7 +251,7 @@ public class ProjectActivity extends AppCompatActivity
         {
             public void run()
             {
-                if (!isDragging) progressView.setCurrent(player.getProgress());
+                if (!isDragging && player.isPlaying()) progressView.setCurrent(player.getProgress());
 
                 int bufferSize = 1024;
                 ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize*2);
@@ -314,6 +311,13 @@ public class ProjectActivity extends AppCompatActivity
                 break;
             }
         } // switch
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        player.disposePlayer();
+        super.onDestroy();
     }
 
     @Override
@@ -477,6 +481,7 @@ public class ProjectActivity extends AppCompatActivity
             return true;
         }
     };
+
 
     @Override
     public void onCancel()

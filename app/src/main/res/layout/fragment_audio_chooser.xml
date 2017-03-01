@@ -86,7 +86,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:background="@drawable/background_textview"
-            android:layout_height="3dp"/>
+            android:layout_height="2dp"/>
 
         <LinearLayout
             android:orientation="horizontal"

@@ -6,6 +6,7 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_effects">Effects</string>
+    <string name="action_import">Import</string>
 
     <string name="conformation">OK</string>
     <string name="deny">Cancel</string>
@@ -47,8 +48,8 @@
 
 
 
-    <string name="effect_choruse">CHORUSE</string>
-    <string name="lPhase_choruse">Phase</string>
+    <string name="effect_chorus">CHORUS</string>
+    <string name="lPhase_chorus">Phase</string>
 
     <string-array name="lwaveform_array">
         <item>Triangle</item>
@@ -83,7 +84,7 @@
 
     <string name="echo">Echo</string>
     <string name="flanger">Flanger</string>
-    <string name="choruse">Choruse</string>
+    <string name="chorus">Chorus</string>
     <string name="reverb">Reverb</string>
     <string name="phaser">Phaser</string>
 

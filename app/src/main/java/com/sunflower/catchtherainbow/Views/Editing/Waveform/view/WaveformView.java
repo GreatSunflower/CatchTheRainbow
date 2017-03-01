@@ -31,6 +31,7 @@ import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.Segment;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -113,6 +114,7 @@ public class WaveformView extends View
 
     private void init(Context context)
     {
+        setId(R.id.waveform);
         // We don't want keys, the markers get these
         setFocusable(false);
 
@@ -227,6 +229,8 @@ public class WaveformView extends View
     public void setSoundFile(AudioFileData soundFile)
     {
         mSoundFile = soundFile;
+
+        if(mSoundFile == null) return;
         mSampleRate = mSoundFile.getSampleRate();
         mSamplesPerFrame = mSoundFile.getSamplesPerFrame();
         computeDoublesForAllZoomLevels();
@@ -521,22 +525,31 @@ public class WaveformView extends View
         return paint;
     }
 
-    protected float getGain(int i, int numFrames, int[] frameGains) {
+    protected float getGain(int i, int numFrames, ArrayList<Integer> frameGains)
+    {
         int x = Math.min(i, numFrames - 1);
-        if (numFrames < 2) {
-            return frameGains[x];
-        } else {
-            if (x == 0) {
-                return (frameGains[0] / 2.0f) + (frameGains[1] / 2.0f);
-            } else if (x == numFrames - 1) {
-                return (frameGains[numFrames - 2] / 2.0f) + (frameGains[numFrames - 1] / 2.0f);
-            } else {
-                return (frameGains[x - 1] / 3.0f) + (frameGains[x] / 3.0f) + (frameGains[x + 1] / 3.0f);
+        if (numFrames < 2)
+        {
+            return frameGains.get(x);
+        }
+        else
+        {
+            if (x == 0)
+            {
+                return (frameGains.get(0) / 2.0f) + (frameGains.get(1) / 2.0f);
+            }
+            else if (x == numFrames - 1)
+            {
+                return (frameGains.get(numFrames - 2) / 2.0f) + (frameGains.get(numFrames - 1) / 2.0f);
+            }
+            else
+            {
+                return (frameGains.get(x - 1) / 3.0f) + (frameGains.get(x) / 3.0f) + (frameGains.get(x + 1) / 3.0f);
             }
         }
     }
 
-    protected float getHeight(int i, int numFrames, int[] frameGains, float scaleFactor, float minGain, float range) {
+    protected float getHeight(int i, int numFrames, ArrayList<Integer> frameGains, float scaleFactor, float minGain, float range) {
         float value = (getGain(i, numFrames, frameGains) * scaleFactor - minGain) / range;
         if (value < 0.0)
             value = 0.0f;
@@ -571,7 +584,8 @@ public class WaveformView extends View
         // Build histogram of 256 bins and figure out the new scaled max
         maxGain = 0;
         int gainHist[] = new int[256];
-        for (int i = 0; i < numFrames; i++) {
+        for (int i = 0; i < numFrames; i++)
+        {
             int smoothedGain = (int) (getGain(i, numFrames, mSoundFile.getFrameGains()) * scaleFactor);
             if (smoothedGain < 0)
                 smoothedGain = 0;
@@ -601,9 +615,9 @@ public class WaveformView extends View
 
         range = maxGain - minGain;
 
-        mNumZoomLevels = 4;
-        mLenByZoomLevel = new int[4];
-        mZoomFactorByZoomLevel = new float[4];
+        mNumZoomLevels = 5;
+        mLenByZoomLevel = new int[5];
+        mZoomFactorByZoomLevel = new float[5];
 
         float ratio = getMeasuredWidth() / (float) numFrames;
 
@@ -619,6 +633,9 @@ public class WaveformView extends View
 
             mLenByZoomLevel[3] = numFrames * 3;
             mZoomFactorByZoomLevel[3] = 3.0f;
+
+            mLenByZoomLevel[4] = numFrames * 10;
+            mZoomFactorByZoomLevel[4] = 10.0f;
 
             mZoomLevel = 0;
         }
@@ -636,8 +653,11 @@ public class WaveformView extends View
             mLenByZoomLevel[3] = numFrames * 4;
             mZoomFactorByZoomLevel[3] = 4.0f;
 
+            mLenByZoomLevel[4] = numFrames * 10;
+            mZoomFactorByZoomLevel[4] = 10.0f;
+
             mZoomLevel = 0;
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 5; i++) {
                 if (mLenByZoomLevel[mZoomLevel] - getMeasuredWidth() > 0) {
                     break;
                 } else {

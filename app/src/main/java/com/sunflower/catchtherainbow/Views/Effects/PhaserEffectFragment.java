@@ -57,9 +57,10 @@ public class PhaserEffectFragment extends BaseEffectFragment implements Detailed
         return root;
     }
 
-    public void cancel() //при закрытии окна
+    public boolean cancel() //при закрытии окна
     {
         BASS.BASS_ChannelRemoveFX(chan, phaser);
+        return true;
         // close only this fragment!
         //getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
     }

@@ -40,17 +40,6 @@
             />
     </LinearLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/audioInfoTextView"
-        android:gravity="start"
-        android:foregroundGravity="center"
-        android:textColor="@color/colorForeground"
-        android:textAlignment="textStart"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp"/>
-
     <com.sunflower.catchtherainbow.Views.AudioProgressView
         android:layout_width="match_parent"
         android:layout_below="@+id/Sacha"

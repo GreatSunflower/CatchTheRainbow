@@ -483,7 +483,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
             public void run() {
                 try {
                    // mSoundFile = CheapSoundFile.create(mFile.getAbsolutePath(), listener);
-                    mSoundFile = new AudioFileData(getActivity(), mFile.getAbsolutePath());
+                    mSoundFile = new AudioFileData(getActivity());
+                    mSoundFile.readFile(mFile.getAbsolutePath());
                 } catch (final Exception e) {
                     Log.e(TAG, "Error while loading sound file", e);
                     mProgressDialog.dismiss();
