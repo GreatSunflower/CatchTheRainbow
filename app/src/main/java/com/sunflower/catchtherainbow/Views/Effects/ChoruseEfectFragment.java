@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar;
-import com.sunflower.catchtherainbow.Views.NDSpinner;
+import com.sunflower.catchtherainbow.Views.Helpful.NDSpinner;
 import com.un4seen.bass.BASS;
 
 import java.util.ArrayList;

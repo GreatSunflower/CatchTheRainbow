@@ -28,7 +28,7 @@
                 android:background="@color/backgroundListView"
                 android:layout_marginBottom="5dp"/>
 
-            <com.sunflower.catchtherainbow.Views.NDSpinner
+            <com.sunflower.catchtherainbow.Views.Helpful.NDSpinner
                 android:layout_height="match_parent"
                 android:id="@+id/spinnerlWaveform"
                 android:layout_width="match_parent"

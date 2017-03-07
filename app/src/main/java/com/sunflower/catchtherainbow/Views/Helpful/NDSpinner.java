@@ -1,4 +1,4 @@
-package com.sunflower.catchtherainbow.Views;
+package com.sunflower.catchtherainbow.Views.Helpful;
 
 /**
  * Created by Alexandr on 25.02.2017.

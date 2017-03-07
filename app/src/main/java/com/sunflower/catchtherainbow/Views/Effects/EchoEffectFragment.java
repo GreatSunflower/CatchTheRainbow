@@ -8,6 +8,7 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import com.sunflower.catchtherainbow.R;
+import com.sunflower.catchtherainbow.Views.Helpful.CircularSeekBar;
 import com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar;
 import com.un4seen.bass.BASS;
 
@@ -24,7 +25,8 @@ public class EchoEffectFragment extends BaseEffectFragment implements DetailedSe
 
     /////////////////////////////////////ECHO//////////////////////////////////////
 
-    DetailedSeekBar sb_echofWetDryMix, sb_echofFeedback, sb_echofLeftDelay, sb_echofRightDelay;
+    DetailedSeekBar sb_echofLeftDelay, sb_echofRightDelay;
+    CircularSeekBar sb_echofWetDryMix, sb_echofFeedback;
     Switch sw_echoIPanDelay;
     private int echo;
     BASS.BASS_DX8_ECHO bass_dx8_echo;
@@ -38,14 +40,14 @@ public class EchoEffectFragment extends BaseEffectFragment implements DetailedSe
 
         /////////////////////////////////////start ECHO//////////////////////////////////////
 
-        sb_echofWetDryMix = (DetailedSeekBar) root.findViewById(R.id.echofWetDryMixSeekBar);
-        sb_echofFeedback = (DetailedSeekBar) root.findViewById(R.id.echofFeedbackSeekBar);
+        sb_echofWetDryMix = (CircularSeekBar) root.findViewById(R.id.echofWetDryMixSeekBar);
+        sb_echofFeedback = (CircularSeekBar) root.findViewById(R.id.echofFeedbackSeekBar);
         sb_echofLeftDelay = (DetailedSeekBar) root.findViewById(R.id.echofLeftDelaySeekBar);
         sb_echofRightDelay = (DetailedSeekBar) root.findViewById(R.id.echofRightDelaySeekBar);
         sw_echoIPanDelay = (Switch) root.findViewById(R.id.switch_panDalay);
 
-        sb_echofWetDryMix.setListener(this);
-        sb_echofFeedback.setListener(this);
+        sb_echofWetDryMix.setOnSeekBarChangeListener(new CircleSeekBarListener());
+        sb_echofFeedback.setOnSeekBarChangeListener(new CircleSeekBarListener());
         sb_echofLeftDelay.setListener(this);
         sb_echofRightDelay.setListener(this);
         sw_echoIPanDelay.setOnCheckedChangeListener(this);
@@ -61,6 +63,38 @@ public class EchoEffectFragment extends BaseEffectFragment implements DetailedSe
         bass_dx8_echo.fLeftDelay = 500;
         bass_dx8_echo.fRightDelay = 500;
         BASS.BASS_FXSetParameters(echo, bass_dx8_echo);
+    }
+
+    public class CircleSeekBarListener implements CircularSeekBar.OnCircularSeekBarChangeListener
+    {
+        @Override
+        public void onProgressChanged(CircularSeekBar circularSeekBar, int progress, boolean fromUser)
+        {
+            int id = circularSeekBar.getId();
+            if(id == R.id.echofWetDryMixSeekBar)
+            {
+                bass_dx8_echo.fWetDryMix = (float) progress;
+                BASS.BASS_FXSetParameters(echo, bass_dx8_echo);
+            }
+            if(id == R.id.echofFeedbackSeekBar)
+            {
+                bass_dx8_echo.fFeedback = (float) progress;
+                BASS.BASS_FXSetParameters(echo, bass_dx8_echo);
+            }
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(CircularSeekBar seekBar)
+        {
+
+        }
+
+        @Override
+        public void onStartTrackingTouch(CircularSeekBar seekBar)
+        {
+
+        }
     }
 
     public void cancel() //при закрытии окна
@@ -79,20 +113,7 @@ public class EchoEffectFragment extends BaseEffectFragment implements DetailedSe
 
         ////////////////start ECHO//////////////////
 
-        if(id == R.id.echofWetDryMixSeekBar)
-        {
-            //BASS.BASS_FXReset(echo);
-            //BASS.BASS_DX8_ECHO bass_dx8_echo = new BASS.BASS_DX8_ECHO();
-            //BASS.BASS_FXGetParameters(echo, bass_dx8_echo);
-            bass_dx8_echo.fWetDryMix = (float) res;
-            BASS.BASS_FXSetParameters(echo, bass_dx8_echo);
-        }
-        if(id == R.id.echofFeedbackSeekBar)
-        {
-            bass_dx8_echo.fFeedback = (float) res;
-            BASS.BASS_FXSetParameters(echo, bass_dx8_echo);
-        }
-        else if(id ==  R.id.echofLeftDelaySeekBar)
+        if(id ==  R.id.echofLeftDelaySeekBar)
         {
             bass_dx8_echo.fLeftDelay = (float) res;
             BASS.BASS_FXSetParameters(echo, bass_dx8_echo);
