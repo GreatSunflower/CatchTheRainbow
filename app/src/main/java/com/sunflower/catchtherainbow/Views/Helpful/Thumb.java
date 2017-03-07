@@ -157,7 +157,7 @@ public class Thumb extends RelativeLayout
                     break;
                 // actual resizing is done here
                 case MotionEvent.ACTION_MOVE:
-                    Log.d(">>","width:"+width+" height:"+height+" x:"+x+" y:"+y);
+                    //Log.d(">>","width:"+width+" height:"+height+" x:"+x+" y:"+y);
 
                     if (kind == ThumbKind.Vertical)
                     {

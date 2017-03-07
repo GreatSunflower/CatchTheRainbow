@@ -13,7 +13,9 @@ import android.provider.MediaStore;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 
+import java.io.File;
 import java.io.FileDescriptor;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
@@ -239,5 +241,48 @@ public class Helper
            // res[i] = (int)(value > 0 ? value: value*-1);
         }
         return res;
+    }
+
+    // clears old directory files or simply creates an empty one
+    public static boolean createOrRecreateDir(String dirPath)
+    {
+        File directory = new File(dirPath);
+
+        if(directory.exists())
+        {
+            // it's not a directory
+            if(!directory.isDirectory()) return false;
+
+            String[] children = directory.list();
+            for (int i = 0; i < children.length; i++)
+            {
+                deleteRecursively(new File(directory, children[i]));//.delete();
+            }
+            return true;
+        }
+        return directory.mkdir();
+    }
+
+    // makes sure that the directory exists
+    public static void checkDirectory(String dirPath)
+    {
+        File directory = new File(dirPath);
+
+        if(!directory.exists())
+            directory.mkdir();
+    }
+
+    // completely wipes out file or directory
+    public static void deleteRecursively(File fileOrDirectory)
+    {
+        if (fileOrDirectory.isDirectory())
+        {
+            for (File child : fileOrDirectory.listFiles())
+            {
+                deleteRecursively(child);
+            }
+        }
+
+        fileOrDirectory.delete();
     }
 }

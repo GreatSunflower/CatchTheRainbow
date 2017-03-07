@@ -7,6 +7,7 @@ import android.widget.Toast;
 import com.un4seen.bass.BASS;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -15,14 +16,15 @@ import java.util.ArrayList;
 
 public class SuperAudioPlayer
 {
-    private int channel;
+    protected int channelHandle;
 
-    private Activity context;
+    protected Activity context;
 
-    private boolean isPlaying = false;
+    protected boolean isPlaying = false;
 
-    private int sampleRate = 44100;
-    private int bufferSize = 512;
+    protected int sampleRate = 44100;
+    protected int channels = 2;
+    protected int bufferSize = 512;
 
     public SuperAudioPlayer(Activity context)
     {
@@ -43,7 +45,7 @@ public class SuperAudioPlayer
 
        // BASS.BASS_Init(-1, sampleRate, 0);
       //  BASS.BASS_SetConfig(BASS.BASS_CONFIG_FLOATDSP, 32);
-        channel = 0;
+        channelHandle = 0;
     }
 
     private final BASS.SYNCPROC EndSync=new BASS.SYNCPROC()
@@ -62,33 +64,34 @@ public class SuperAudioPlayer
     {
         if(play)
         {
-            BASS.BASS_ChannelPlay(channel, false);
+            BASS.BASS_ChannelPlay(channelHandle, false);
+            int error = BASS.BASS_ErrorGetCode();
             isPlaying = true;
         }
         else
         {
-            BASS.BASS_ChannelPause(channel);
+            BASS.BASS_ChannelPause(channelHandle);
             isPlaying = false;
         }
     }
 
     public void stop()
     {
-        BASS.BASS_ChannelStop(channel);
+        BASS.BASS_ChannelStop(channelHandle);
         isPlaying = false;
     }
 
-    public void open(String path, boolean autoPlay)
+    public void open(String path, boolean autoPlay) throws IOException
     {
-        BASS.BASS_ChannelStop(channel);
+        BASS.BASS_ChannelStop(channelHandle);
 
         //Free memory
-        BASS.BASS_StreamFree(channel);
+        BASS.BASS_StreamFree(channelHandle);
 
-        channel = BASS.BASS_StreamCreateFile(path, 0, 0, 0);
+        channelHandle = BASS.BASS_StreamCreateFile(path, 0, 0, 0);
 
-        long bytes = BASS.BASS_ChannelGetLength(channel, BASS.BASS_POS_BYTE);
-        int totalTime = (int)BASS.BASS_ChannelBytes2Seconds(channel, bytes);
+        long bytes = BASS.BASS_ChannelGetLength(channelHandle, BASS.BASS_POS_BYTE);
+        int totalTime = (int)BASS.BASS_ChannelBytes2Seconds(channelHandle, bytes);
 
         for(AudioPlayerListener listener: audioPlayerListeners)
         {
@@ -96,7 +99,7 @@ public class SuperAudioPlayer
         }
 
         //Set callback
-        BASS.BASS_ChannelSetSync(channel, BASS.BASS_SYNC_END, 0, EndSync, 0);
+        BASS.BASS_ChannelSetSync(channelHandle, BASS.BASS_SYNC_END, 0, EndSync, 0);
 
         if(autoPlay)
             playPause(true);
@@ -108,35 +111,35 @@ public class SuperAudioPlayer
     }
     public void disposePlayer()
     {
-        BASS.BASS_ChannelStop(channel);
+        BASS.BASS_ChannelStop(channelHandle);
 
-        BASS.BASS_MusicFree(channel);
+        BASS.BASS_MusicFree(channelHandle);
 
         //Free memory
-        BASS.BASS_StreamFree(channel);
+        BASS.BASS_StreamFree(channelHandle);
 
-        channel = 0;
+        channelHandle = 0;
     }
     public int getProgress()
     {
-        double position = BASS.BASS_ChannelBytes2Seconds(channel, BASS.BASS_ChannelGetPosition(channel, BASS.BASS_POS_BYTE));
+        double position = BASS.BASS_ChannelBytes2Seconds(channelHandle, BASS.BASS_ChannelGetPosition(channelHandle, BASS.BASS_POS_BYTE));
         return (int) position;
     }
 
     public int getDuration()
     {
-        long len = BASS.BASS_ChannelGetLength(channel, BASS.BASS_POS_BYTE);
+        long len = BASS.BASS_ChannelGetLength(channelHandle, BASS.BASS_POS_BYTE);
 
-        double time = BASS.BASS_ChannelBytes2Seconds(channel, len);
+        double time = BASS.BASS_ChannelBytes2Seconds(channelHandle, len);
         return (int) time;
     }
 
     public void setPosition(int position)
     {
-       // long len = BASS.BASS_ChannelGetLength(channel, BASS.BASS_POS_BYTE);
+       // long len = BASS.BASS_ChannelGetLength(channelHandle, BASS.BASS_POS_BYTE);
       //  long bytesPosition = len * position;
 
-        BASS.BASS_ChannelSetPosition(channel, BASS.BASS_ChannelSeconds2Bytes(channel, position), BASS.BASS_POS_BYTE);
+        BASS.BASS_ChannelSetPosition(channelHandle, BASS.BASS_ChannelSeconds2Bytes(channelHandle, position), BASS.BASS_POS_BYTE);
     }
 
     public void setVolume(int volume)
@@ -151,7 +154,7 @@ public class SuperAudioPlayer
 
     public boolean isPlaying()
     {
-        long isPlaying = BASS.BASS_ChannelIsActive(channel);
+        long isPlaying = BASS.BASS_ChannelIsActive(channelHandle);
         return isPlaying == BASS.BASS_ACTIVE_PLAYING;
     }
 
@@ -269,7 +272,7 @@ public class SuperAudioPlayer
 
 
     // Player Listeners
-    private ArrayList<AudioPlayerListener> audioPlayerListeners = new ArrayList<>();
+    protected ArrayList<AudioPlayerListener> audioPlayerListeners = new ArrayList<>();
 
     public void addPlayerListener(AudioPlayerListener listener)
     {
@@ -285,9 +288,9 @@ public class SuperAudioPlayer
         return audioPlayerListeners;
     }
 
-    public int getChannel()
+    public int getChannelHandle()
     {
-        return channel;
+        return channelHandle;
     }
 
     public interface AudioPlayerListener

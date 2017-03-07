@@ -28,7 +28,7 @@ public class BASS
 	public static final int BASS_ERROR_START = 9;	// BASS_Start has not been successfully called
 	public static final int BASS_ERROR_SSL = 10;	// SSL/HTTPS support isn't available
 	public static final int BASS_ERROR_ALREADY = 14;	// already initialized/paused/whatever
-	public static final int BASS_ERROR_NOCHAN = 18;	// can't get a free channel
+	public static final int BASS_ERROR_NOCHAN = 18;	// can't get a free channelHandle
 	public static final int BASS_ERROR_ILLTYPE = 19;	// an illegal type was specified
 	public static final int BASS_ERROR_ILLPARAM = 20;	// an illegal parameter was specified
 	public static final int BASS_ERROR_NO3D = 21;	// no 3D support
@@ -43,14 +43,14 @@ public class BASS
 	public static final int BASS_ERROR_CREATE = 33;	// couldn't create the file
 	public static final int BASS_ERROR_NOFX = 34;	// effects are not available
 	public static final int BASS_ERROR_NOTAVAIL = 37;	// requested data is not available
-	public static final int BASS_ERROR_DECODE = 38;	// the channel is a "decoding channel"
+	public static final int BASS_ERROR_DECODE = 38;	// the channelHandle is a "decoding channelHandle"
 	public static final int BASS_ERROR_DX = 39;	// a sufficient DirectX version is not installed
 	public static final int BASS_ERROR_TIMEOUT = 40;	// connection timedout
 	public static final int BASS_ERROR_FILEFORM = 41;	// unsupported file format
 	public static final int BASS_ERROR_SPEAKER = 42;	// unavailable speaker
 	public static final int BASS_ERROR_VERSION = 43;	// invalid BASS version (used by add-ons)
 	public static final int BASS_ERROR_CODEC = 44;	// codec is not available/supported
-	public static final int BASS_ERROR_ENDED = 45;	// the channel/file has ended
+	public static final int BASS_ERROR_ENDED = 45;	// the channelHandle/file has ended
 	public static final int BASS_ERROR_BUSY = 46;	// the device is busy
 	public static final int BASS_ERROR_UNKNOWN = -1;	// some other mystery problem
 
@@ -233,7 +233,7 @@ public class BASS
 		public int freq;		// default playback rate
 		public int chans;	// channels
 		public int flags;	// BASS_SAMPLE/STREAM/MUSIC/SPEAKER flags
-		public int ctype;	// type of channel
+		public int ctype;	// type of channelHandle
 		public int origres;	// original resolution
 		public int plugin;	// plugin
 		public int sample; // sample
@@ -262,7 +262,7 @@ public class BASS
 	public static final int BASS_CTYPE_MUSIC_MO3 = 0x00100; // MO3 flag
 
 	public static class BASS_PLUGINFORM {
-		public int ctype;		// channel type
+		public int ctype;		// channelHandle type
 		public String name;	// format description
 		public String exts;	// file extension filter (*.ext1;*.ext2;etc...)
 	}
@@ -282,7 +282,7 @@ public class BASS
 		public float z;	// +=front, -=behind
 	}
 
-	// 3D channel modes
+	// 3D channelHandle modes
 	public static final int BASS_3DMODE_NORMAL = 0;	// normal 3D processing
 	public static final int BASS_3DMODE_RELATIVE = 1;	// position is relative to the listener
 	public static final int BASS_3DMODE_OFF = 2;	// no 3D processing
@@ -374,7 +374,7 @@ public class BASS
 		is a "mixtime" sync, then other streams and MOD musics can't be mixed until
 		it's finished either.
 		handle : The sync that has occured
-		channel: Channel that the sync occured in
+		channelHandle: Channel that the sync occured in
 		data   : Additional data associated with the sync's occurance
 		user   : The 'user' parameter given when calling BASS_ChannelSetSync */
 	}
@@ -386,7 +386,7 @@ public class BASS
 		possible... other DSP functions, streams and MOD musics can not be processed
 		until it's finished.
 		handle : The DSP handle
-		channel: Channel that the DSP is being applied to
+		channelHandle: Channel that the DSP is being applied to
 		buffer : Buffer to apply the DSP to
 		length : Number of bytes in the buffer
 		user   : The 'user' parameter given when calling BASS_ChannelSetDSP */
@@ -428,7 +428,7 @@ public class BASS
 	public static final int BASS_ATTRIB_MUSIC_BPM = 0x103;
 	public static final int BASS_ATTRIB_MUSIC_SPEED = 0x104;
 	public static final int BASS_ATTRIB_MUSIC_VOL_GLOBAL = 0x105;
-	public static final int BASS_ATTRIB_MUSIC_VOL_CHAN = 0x200; // + channel #
+	public static final int BASS_ATTRIB_MUSIC_VOL_CHAN = 0x200; // + channelHandle #
 	public static final int BASS_ATTRIB_MUSIC_VOL_INST = 0x300; // + instrument #
 
 	// BASS_ChannelGetData flags
@@ -443,7 +443,7 @@ public class BASS
 	public static final int BASS_DATA_FFT8192 = 0x80000005;	// 8192 FFT
 	public static final int BASS_DATA_FFT16384 = 0x80000006;	// 16384 FFT
 	public static final int BASS_DATA_FFT32768 = 0x80000007;	// 32768 FFT
-	public static final int BASS_DATA_FFT_INDIVIDUAL = 0x10;	// FFT flag: FFT for each channel, else all combined
+	public static final int BASS_DATA_FFT_INDIVIDUAL = 0x10;	// FFT flag: FFT for each channelHandle, else all combined
 	public static final int BASS_DATA_FFT_NOWINDOW = 0x20;	// FFT flag: no Hanning window
 	public static final int BASS_DATA_FFT_REMOVEDC = 0x40;	// FFT flag: pre-remove DC bias
 	public static final int BASS_DATA_FFT_COMPLEX = 0x80;	// FFT flag: return complex data

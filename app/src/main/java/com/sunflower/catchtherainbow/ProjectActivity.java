@@ -2,8 +2,14 @@ package com.sunflower.catchtherainbow;
 
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +24,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -26,26 +33,26 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
+import android.widget.RemoteViews;
 import android.widget.SeekBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
+import com.sunflower.catchtherainbow.AudioClasses.AudioImporter;
+import com.sunflower.catchtherainbow.AudioClasses.SamplePlayer;
 import com.sunflower.catchtherainbow.AudioClasses.SuperAudioPlayer;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment.OnFragmentInteractionListener;
 import com.sunflower.catchtherainbow.Views.AudioProgressView;
 import com.sunflower.catchtherainbow.Views.AudioVisualizerView;
 import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
-import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
 import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
 import com.un4seen.bass.BASS;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Random;
+import java.util.Queue;
 
 public class ProjectActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, View.OnClickListener, EffectsHostFragment.OnEffectsHostListener
@@ -66,13 +73,16 @@ public class ProjectActivity extends AppCompatActivity
 
     // temp
     private boolean isPlaying = false, isDragging = false;
-    private SuperAudioPlayer player;
+    private SamplePlayer player;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_project);
+
+        // TEMP. Clears project directory on loading------------------------------------------------
+        Helper.createOrRecreateDir(SuperApplication.getAppDirectory());
 
         // initialize default output device
         if (!BASS.BASS_Init(-1, 44100, 0))
@@ -82,7 +92,7 @@ public class ProjectActivity extends AppCompatActivity
         }
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_FLOATDSP, 32);
 
-        ////////////////////////////////////////////////////permission
+        ////////////////////////////////////////////////////permissions//////////////////////////
         int PERMISSION_ALL = 1;
         String[] PERMISSIONS = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAPTURE_AUDIO_OUTPUT,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.MEDIA_CONTENT_CONTROL};
@@ -91,7 +101,7 @@ public class ProjectActivity extends AppCompatActivity
         {
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
         }
-        //////////////////////////////////////////////////////////end permission
+        //////////////////////////////////////////////////////////end permissions///////////////////////
 
         viewContentProject = (View) findViewById(R.id.content_project);
 
@@ -167,7 +177,7 @@ public class ProjectActivity extends AppCompatActivity
         });
 
         // --------------------------------------AUDIO STUFF-------------------------------------------------
-        player = new SuperAudioPlayer(this);
+        player = new SamplePlayer(this);
 
         player.addPlayerListener(new SuperAudioPlayer.AudioPlayerListener()
         {
@@ -186,23 +196,12 @@ public class ProjectActivity extends AppCompatActivity
                 //waveFormViewContainer.setSoundFile(CheapSoundFile.create(file.getAbsolutePath(), null));
                 //waveFormViewContainer.invalidate();
             }
-
-           /* @Override
-            public void OnUpdate(AudioEvent audioEvent, double realCurrentTime)
-            {
-                //  final float duration = (float) audioEvent.getFrameLength() / audioEvent.getfra();
-                final double currentTime = realCurrentTime;// (float) audioEvent.getTimeStamp();
-                final float[] audioData = audioEvent.getFloatBuffer();
-
-                //progressView.setMax(duration);
-                if (!isDragging) progressView.setCurrent((float) currentTime);
-                //visualizerView.updateVisualizer(audioData);
-            }*/
             @Override
             public void onCompleted(){}
         });
 
         tracksFragment = MainAreaFragment.newInstance("", "");
+        tracksFragment.setGlobalPlayer(player);
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.mainAreaContainer, tracksFragment)
@@ -254,13 +253,19 @@ public class ProjectActivity extends AppCompatActivity
                 if (!isDragging && player.isPlaying()) progressView.setCurrent(player.getProgress());
 
                 int bufferSize = 1024;
-                ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize*2);
+                ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize*4);
                 audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
-                BASS.BASS_ChannelGetData(player.getChannel(), audioData, bufferSize*2);
-                     short[] pcm=new short[bufferSize]; // allocate a "short" array for the sample data
-                audioData.asShortBuffer().get(pcm);
+                BASS.BASS_ChannelGetData(player.getChannelHandle(), audioData, bufferSize*4);
+                float[] pcm = new float[bufferSize]; // allocate an array for the sample data
+                audioData.asFloatBuffer().get(pcm);
 
-                visualizerView.updateVisualizer(pcm);
+                // make object array
+                Float []res = new Float[pcm.length];
+                for(int i = 0; i < pcm.length; i++)
+                    res[i] = pcm[i];
+
+                // pass new data
+                visualizerView.updateVisualizer(res);
 
                 statusHandler.postDelayed(this, 50);
             }
@@ -371,11 +376,11 @@ public class ProjectActivity extends AppCompatActivity
             ft.addToBackStack(null);
             // Create and show the dialog.
 
-            //ListEffectsFragment effectsFragment = ListEffectsFragment.newInstance(player.getChannel());
+            //ListEffectsFragment effectsFragment = ListEffectsFragment.newInstance(player.getChannelHandle());
             //effectsFragment.setEffects(delayEffect, rateTransposer, flangerEffect);
 
             EffectsHostFragment hostFragment = EffectsHostFragment.newInstance();
-            hostFragment.setChannel(player.getChannel());
+            hostFragment.setChannel(player.getChannelHandle());
             hostFragment.show(ft, "Effects dialog");
 
             return true;
@@ -447,38 +452,108 @@ public class ProjectActivity extends AppCompatActivity
     @Override
     public void onOk(ArrayList<AudioFile> selectedAudioFiles)
     {
-        //Random rand = new Random();
-        // List<String> songs = Helper.getAllSongsOnDevice(ProjectActivity.this);
-        ArrayList<AudioFile> songs = selectedAudioFiles;
-        long seed = System.nanoTime();
-        Collections.shuffle(songs, new Random(seed));
-        try
-        {
-            player.setAudioFiles(songs);
-            isPlaying = true;
-            playStopButt.setImageResource(R.drawable.ic_pause);
-            player.play();
+        AudioImporter importer = AudioImporter.getInstance();
+        importer.setListener(importerListener);
 
-            // add all of the selected sound files
-            for (AudioFile f: selectedAudioFiles)
-            {
-                tracksFragment.addTrack(f.getPath(), R.dimen.audio_track_default_width, R.dimen.audio_track_default_height);
-            }
-        }
-        catch (Exception e)
+        AudioImporter.ImporterQuery[] queries = new AudioImporter.ImporterQuery[selectedAudioFiles.size()];
+
+        // add all of the selected sound files to queue
+        for (int i = 0; i <selectedAudioFiles.size(); i++)
         {
-            Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+            AudioFile f = selectedAudioFiles.get(i);
+            String destPath = SuperApplication.getAppDirectory() + "/" + f.getTitle();
+            queries[i] = new AudioImporter.ImporterQuery(f, destPath);
+            //tracksFragment.addTrack(f.getPath(), R.dimen.audio_track_default_width, R.dimen.audio_track_default_height);
         }
+        // start loading
+        importer.addToQueue(queries);
     }
 
-    private CheapSoundFile.ProgressListener soundFileProgressListener = new CheapSoundFile.ProgressListener()
+    private AudioImporter.AudioImporterListener importerListener = new AudioImporter.AudioImporterListener()
     {
+        NotificationManager notificationManager;
+        NotificationCompat.Builder builder;
+        int notificationId = 0;
+        int count = 0, totalFiles = 0; // number of imported files
+
         @Override
-        public boolean reportProgress(double fractionComplete)
+        public void onBegin(Queue<AudioImporter.ImporterQuery> queries)
         {
-            Toast.makeText(ProjectActivity.this, fractionComplete+"%", Toast.LENGTH_SHORT).show();
-            return true;
+            count = 0;
+            totalFiles = queries.size()+1;
+
+            notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            // remove the notification in case it's there
+            notificationManager.cancel(notificationId);
+
+            // custom notification layout
+            RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.import_notification);
+            contentView.setImageViewResource(R.id.image, R.drawable.app_icon);
+            contentView.setTextViewText(R.id.title, "Audio Import");
+            contentView.setTextViewText(R.id.text, "Import progress: 1/" + queries.size());
+
+            builder = new NotificationCompat.Builder(ProjectActivity.this)
+                    .setSmallIcon(R.drawable.app_icon)
+                    .setAutoCancel(true)
+                    .setContent(contentView);
+
+            // allows to focus activity on click
+            Intent activityIntent = new Intent(ProjectActivity.this, ProjectActivity.class);
+            activityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            PendingIntent pIntent = PendingIntent.getActivity(ProjectActivity.this, 0, activityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            builder.setContentIntent(pIntent);
+
+
+            Notification notification = builder.build();
+            notification.flags |= Notification.FLAG_NO_CLEAR;
+            notification.defaults |= Notification.DEFAULT_LIGHTS;
+            notificationManager.notify(notificationId, notification);
+        }
+
+        @Override
+        public void onProgressUpdate(AudioImporter.ImporterQuery query, int progress)
+        {
+            RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.import_notification);
+            contentView.setImageViewResource(R.id.image, R.drawable.app_icon);
+            contentView.setTextViewText(R.id.title, "Audio Import");
+            contentView.setTextViewText(R.id.text, "Import progress: " + (count+1) + "/" + totalFiles);
+            contentView.setProgressBar(R.id.progressBar, 100, progress, false);
+
+            Notification notification = builder.setContent(contentView).build();
+            notification.flags |= Notification.FLAG_NO_CLEAR; // non cancellable notificaion
+            notificationManager.notify(notificationId, notification);
+
+            // audio loaded
+            if(progress == 100)
+            {
+                tracksFragment.addTrack("", 400, 300);
+                count++;
+            }
+        }
+
+        @Override
+        public void onFinish(ArrayList<AudioImporter.ImporterQuery> succeededQueries, ArrayList<AudioImporter.ImporterQuery> failedQueries)
+        {
+            RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.import_notification);
+            contentView.setImageViewResource(R.id.image, R.drawable.app_icon);
+            contentView.setTextViewText(R.id.title, "Importing has been complete!");
+
+            String detailedMessage = "Succeeded: " + succeededQueries.size();
+            if(failedQueries.size() > 0)
+                detailedMessage += "\nFailed: " + failedQueries.size();
+
+            contentView.setTextViewText(R.id.text, detailedMessage);
+
+            // hide progress bar
+            contentView.setViewVisibility(R.id.progressBar, View.GONE);
+
+            Notification notification = builder.setContent(contentView).build();
+            notification.flags |= Notification.FLAG_AUTO_CANCEL;
+            notification.defaults |= Notification.DEFAULT_VIBRATE;
+            notificationManager.notify(notificationId, notification);
+
+            // remove listener
+            AudioImporter.getInstance().setListener(null);
         }
     };
 
@@ -502,8 +577,6 @@ public class ProjectActivity extends AppCompatActivity
     {
 
     }
-
-
 
     // ----- permissions ----------
     public static boolean hasPermissions(Context context, String... permissions)

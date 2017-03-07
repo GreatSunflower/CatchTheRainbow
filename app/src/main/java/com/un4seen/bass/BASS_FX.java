@@ -33,7 +33,7 @@ public class BASS_FX
 	===========================================================================*/
 	
 	/*
-		Multi-channel order of each channel is as follows:
+		Multi-channelHandle order of each channelHandle is as follows:
 		 3 channels       left-front, right-front, center.
 		 4 channels       left-front, right-front, left-rear/side, right-rear/side.
 		 5 channels       left-front, right-front, center, left-rear/side, right-rear/side.
@@ -44,8 +44,8 @@ public class BASS_FX
 	// DSP channels flags
 	public static final int BASS_BFX_CHANALL = -1;	// all channels at once (as by default)
 	public static final int BASS_BFX_CHANNONE = 0;	// disable an effect for all channels
-	public static final int BASS_BFX_CHAN1 = 1;		// left-front channel
-	public static final int BASS_BFX_CHAN2 = 2;		// right-front channel
+	public static final int BASS_BFX_CHAN1 = 1;		// left-front channelHandle
+	public static final int BASS_BFX_CHAN2 = 2;		// right-front channelHandle
 	public static final int BASS_BFX_CHAN3 = 4;		// see above info
 	public static final int BASS_BFX_CHAN4 = 8;		// see above info
 	public static final int BASS_BFX_CHAN5 = 16;	// see above info
@@ -57,29 +57,29 @@ public class BASS_FX
 	public static int BASS_BFX_CHANNEL_N(int n) { return (1<<((n)-1)); }
 
 	// DSP effects
-	public static final int BASS_FX_BFX_ROTATE = 0x10000;		// A channels volume ping-pong	/ multi channel
+	public static final int BASS_FX_BFX_ROTATE = 0x10000;		// A channels volume ping-pong	/ multi channelHandle
 	public static final int BASS_FX_BFX_ECHO = 0x10001;			// Echo							/ 2 channels max	(deprecated)
-	public static final int BASS_FX_BFX_FLANGER = 0x10002;		// Flanger						/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_VOLUME = 0x10003;		// Volume						/ multi channel
-	public static final int BASS_FX_BFX_PEAKEQ = 0x10004;		// Peaking Equalizer			/ multi channel
+	public static final int BASS_FX_BFX_FLANGER = 0x10002;		// Flanger						/ multi channelHandle		(deprecated)
+	public static final int BASS_FX_BFX_VOLUME = 0x10003;		// Volume						/ multi channelHandle
+	public static final int BASS_FX_BFX_PEAKEQ = 0x10004;		// Peaking Equalizer			/ multi channelHandle
 	public static final int BASS_FX_BFX_REVERB = 0x10005;		// Reverb						/ 2 channels max	(deprecated)
-	public static final int BASS_FX_BFX_LPF = 0x10006;			// Low Pass Filter 24dB			/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_MIX = 0x10007;			// Swap, remap and mix channels	/ multi channel
-	public static final int BASS_FX_BFX_DAMP = 0x10008;			// Dynamic Amplification		/ multi channel
-	public static final int BASS_FX_BFX_AUTOWAH = 0x10009;		// Auto Wah						/ multi channel
-	public static final int BASS_FX_BFX_ECHO2 = 0x1000a;		// Echo 2						/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_PHASER = 0x1000b;		// Phaser						/ multi channel
-	public static final int BASS_FX_BFX_ECHO3 = 0x1000c;		// Echo 3						/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_CHORUS = 0x1000d;		// Chorus/Flanger				/ multi channel
-	public static final int BASS_FX_BFX_APF = 0x1000e;			// All Pass Filter				/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_COMPRESSOR = 0x1000f;	// Compressor					/ multi channel		(deprecated)
-	public static final int BASS_FX_BFX_DISTORTION = 0x10010;	// Distortion					/ multi channel
-	public static final int BASS_FX_BFX_COMPRESSOR2 = 0x10011;	// Compressor 2					/ multi channel
-	public static final int BASS_FX_BFX_VOLUME_ENV = 0x10012;	// Volume envelope				/ multi channel
-	public static final int BASS_FX_BFX_BQF = 0x10013;			// BiQuad filters				/ multi channel
-	public static final int BASS_FX_BFX_ECHO4 = 0x10014;		// Echo 4						/ multi channel
-	public static final int BASS_FX_BFX_PITCHSHIFT = 0x10015;	// Pitch shift using FFT		/ multi channel		(not available on mobile)
-	public static final int BASS_FX_BFX_FREEVERB = 0x10016;		// Reverb using "Freeverb" algo	/ multi channel
+	public static final int BASS_FX_BFX_LPF = 0x10006;			// Low Pass Filter 24dB			/ multi channelHandle		(deprecated)
+	public static final int BASS_FX_BFX_MIX = 0x10007;			// Swap, remap and mix channels	/ multi channelHandle
+	public static final int BASS_FX_BFX_DAMP = 0x10008;			// Dynamic Amplification		/ multi channelHandle
+	public static final int BASS_FX_BFX_AUTOWAH = 0x10009;		// Auto Wah						/ multi channelHandle
+	public static final int BASS_FX_BFX_ECHO2 = 0x1000a;		// Echo 2						/ multi channelHandle		(deprecated)
+	public static final int BASS_FX_BFX_PHASER = 0x1000b;		// Phaser						/ multi channelHandle
+	public static final int BASS_FX_BFX_ECHO3 = 0x1000c;		// Echo 3						/ multi channelHandle		(deprecated)
+	public static final int BASS_FX_BFX_CHORUS = 0x1000d;		// Chorus/Flanger				/ multi channelHandle
+	public static final int BASS_FX_BFX_APF = 0x1000e;			// All Pass Filter				/ multi channelHandle		(deprecated)
+	public static final int BASS_FX_BFX_COMPRESSOR = 0x1000f;	// Compressor					/ multi channelHandle		(deprecated)
+	public static final int BASS_FX_BFX_DISTORTION = 0x10010;	// Distortion					/ multi channelHandle
+	public static final int BASS_FX_BFX_COMPRESSOR2 = 0x10011;	// Compressor 2					/ multi channelHandle
+	public static final int BASS_FX_BFX_VOLUME_ENV = 0x10012;	// Volume envelope				/ multi channelHandle
+	public static final int BASS_FX_BFX_BQF = 0x10013;			// BiQuad filters				/ multi channelHandle
+	public static final int BASS_FX_BFX_ECHO4 = 0x10014;		// Echo 4						/ multi channelHandle
+	public static final int BASS_FX_BFX_PITCHSHIFT = 0x10015;	// Pitch shift using FFT		/ multi channelHandle		(not available on mobile)
+	public static final int BASS_FX_BFX_FREEVERB = 0x10016;		// Reverb using "Freeverb" algo	/ multi channelHandle
 
 	/*
 	    Deprecated effects in 2.4.10 version:
@@ -144,7 +144,7 @@ public class BASS_FX
 
 	// Swap, remap and mix
 	public static class BASS_BFX_MIX {
-		public int[] lChannel;					// an array of channels to mix using BASS_BFX_CHANxxx flag/s (lChannel[0] is left channel...)
+		public int[] lChannel;					// an array of channels to mix using BASS_BFX_CHANxxx flag/s (lChannel[0] is left channelHandle...)
 	}
 
 	// Dynamic Amplification
@@ -335,7 +335,7 @@ public class BASS_FX
 	public static final int BASS_ATTRIB_TEMPO_FREQ = 0x10002;
 
 	// tempo attributes options
-	public static final int BASS_ATTRIB_TEMPO_OPTION_USE_AA_FILTER = 0x10010;		// TRUE (default) / FALSE (default for multi-channel on mobile devices for lower CPU usage)
+	public static final int BASS_ATTRIB_TEMPO_OPTION_USE_AA_FILTER = 0x10010;		// TRUE (default) / FALSE (default for multi-channelHandle on mobile devices for lower CPU usage)
 	public static final int BASS_ATTRIB_TEMPO_OPTION_AA_FILTER_LENGTH = 0x10011;	// 32 default (8 .. 128 taps)
 	public static final int BASS_ATTRIB_TEMPO_OPTION_USE_QUICKALGO = 0x10012;		// TRUE (default on mobile devices for loswer CPU usage) / FALSE (default)
 	public static final int BASS_ATTRIB_TEMPO_OPTION_SEQUENCE_MS = 0x10013;			// 82 default, 0 = automatic

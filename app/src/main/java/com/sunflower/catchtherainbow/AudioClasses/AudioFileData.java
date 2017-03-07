@@ -1,33 +1,30 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
 import android.content.Context;
-import android.content.Intent;
-import android.media.AudioFormat;
-import android.support.v4.content.res.TypedArrayUtils;
+import android.os.Environment;
+import android.util.Log;
 
 import com.sunflower.catchtherainbow.Helper;
 import com.un4seen.bass.BASS;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
 
 /**
  * Created by SuperComputer on 2/25/2017.
  */
 
+enum SampleFormat
+{
+    int_8Bit,
+    int_16Bit,
+    float_32Bit
+}
+
 public class AudioFileData
 {
+    private static final String LOG_TAG = "Reader";
     // Member variables representing frame data
     private int mNumFrames;
     private ArrayList<Integer> mFrameGains = new ArrayList<Integer>();
@@ -49,98 +46,97 @@ public class AudioFileData
     }
 
     // read a file from disk
-    public void readFile(String path)
+    public boolean readFile(String path) throws IOException
     {
-        handle = BASS.BASS_StreamCreateFile(path, 0, 0, BASS.BASS_STREAM_DECODE|BASS.BASS_STREAM_PRESCAN/*|BASS.BASS_SAMPLE_FLOAT*/);
+        handle = BASS.BASS_StreamCreateFile(path, 0, 0, BASS.BASS_STREAM_DECODE|BASS.BASS_SAMPLE_FLOAT);
 
         long len = BASS.BASS_ChannelGetLength(handle, BASS.BASS_POS_BYTE);
         duration = (int)BASS.BASS_ChannelBytes2Seconds(handle, len);
 
-        // size in bytes
-        int bufferSize = (int) (len/100);
-        long bytesRead = 0;
+        // extract channelHandle info
+        BASS.BASS_CHANNELINFO info = new BASS.BASS_CHANNELINFO();
+        BASS.BASS_ChannelGetInfo(handle, info);
 
-        //ArrayList<Integer> buffer = new ArrayList<>();
+        this.mGlobalSampleRate = info.freq;
+        // number of channels
+        this.mGlobalChannels = info.chans;
+
+        // make sure that project directory is created
+        Helper.checkDirectory(Environment.getExternalStorageDirectory().toString() + "/Catch The Rainbow");
+        // path to decoded audio file
+        String trackDirectory = /*context.getApplicationInfo().dataDir*/ Environment.getExternalStorageDirectory().toString() + "/Catch The Rainbow" + "/WaveTrackTest/";
+        boolean created = Helper.createOrRecreateDir(trackDirectory);
+
+        // no directory
+        if(!created)
+        {
+            Log.e(LOG_TAG, "Track directory is in a lot of trouble!");
+            return false;
+        }
+
+        // size in bytes
+        int bufferSize = 1048576*4;
+        long totalBytesRead = 0;
+
+        // number of files
+        int fileCount = 0;
+
+        ArrayList<AudioChunk>audioChunks = new ArrayList<>();
 
         // read data piece by piece
-        while(bytesRead < len)
+        while(totalBytesRead < len)
         {
-           // bytesRead += bufferSize * 4;
+            ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize);
+            //audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
+            int bytesRead = BASS.BASS_ChannelGetData(handle, audioData, bufferSize);
 
-            ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize * 4);
-            audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
-            bytesRead += BASS.BASS_ChannelGetData(handle, audioData, bufferSize * 4);
-            int[] frameGains = new int[bufferSize/2]; // allocate a "short" array for the sample data
-            audioData.asIntBuffer().get(frameGains);
+          //  short[] frameGains = new short[bufferSize/2]; // allocate an array for the sample data
+          //  audioData.asShortBuffer().get(frameGains);
 
-            // append gains array
-            Integer[]tmpGains = Helper.getNormalizedBuffer(frameGains);
+            totalBytesRead += bytesRead;
 
-            Collections.addAll(mFrameGains, tmpGains);
+            byte buffer[] = new byte[bufferSize/2];
+            audioData.get(buffer);
 
-           // int[]oldGains = Arrays.copyOf(mFrameGains, mFrameGains.length);
+            // append file with new data
+           /* for(int i = 0; i < frameGains.length; i++)
+            {
+                outputStream.writeShort(frameGains[i]);
+            }*/
 
-            //mFrameGains = new int[tmpGains.length + oldGains.length];
+            String filePath = trackDirectory + "/" + fileCount + ".ac";
+            AudioChunk chunk = new AudioChunk(filePath, buffer.length, new AudioInfo(44100, 2));
+            chunk.writeToDisk(buffer, buffer.length);
 
-            //System.arraycopy(oldGains, 0, mFrameGains, 0, oldGains.length);
-            //System.arraycopy(tmpGains, 0, mFrameGains, oldGains.length, tmpGains.length);
+            audioChunks.add(chunk);
+
+            fileCount++;
 
             // notify about progress
             if(listener != null)
-                listener.onProgressUpdate((int) ((float)bytesRead / len * 100));
+                listener.onProgressUpdate((int) ((float)totalBytesRead / len * 100));
         }
+
+        Log.i(LOG_TAG, "Audio chunks created: " + audioChunks.size());
 
         long trackLengthInBytes = BASS.BASS_ChannelGetLength(handle, BASS.BASS_POS_BYTE);
         long frameLengthInBytes = BASS.BASS_ChannelSeconds2Bytes(handle, 0.02d);
         this.mNumFrames = (int) Math.round(1f * trackLengthInBytes / frameLengthInBytes);
 
-        /*int partSize = buffer.size() / 100;
-
-        mFrameGains = new Integer[buffer.size()];
-        for(int i = 0; i < buffer.size(); i++)
-        {
-            Integer val = buffer.remove(0);
-            mFrameGains[i] = val;
-        }*/
 
         //mFrameGains = buffer.toArray(mFrameGains);
-
-        // extract avg bitrate attribute
-        BASS.BASS_ChannelGetAttribute(handle, BASS.BASS_ATTRIB_BITRATE, mAvgBitRate);
-
-        // extract channel info
-        BASS.BASS_CHANNELINFO info = new BASS.BASS_CHANNELINFO();
-        BASS.BASS_ChannelGetInfo(handle, info);
-
-        this.mGlobalSampleRate = info.freq;
-        this.mGlobalChannels = info.chans;
-        this.mFileSize = bufferSize;
-
-
-
         // this.mNumFrames = mGlobalSampleRate * mGlobalChannels;
         //BASS.BASS_StreamFree(handle);
-
-        String appPath = context.getApplicationInfo().dataDir + "/" + "test.mo3";
-        File file = new File(appPath);
-        if(file.exists()) file.delete();
-        try
-        {
-            file.createNewFile();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
 
         //int writerHandle = BASS.BASS_StreamCreateFile(appPath, 0, 0, BASS.BASS_STREAM_DECODE/*|BASS.BASS_STREAM_PRESCAN|BASS.BASS_SAMPLE_FLOAT */);
         //BASS.BASS_StreamPutData(writerHandle, audioData, 0);
 
+       // handle = BASS.BASS_MusicLoad(path, 0, 0, BASS.BASS_MUSIC_DECODE, 0);
+        // extract channelHandle info
+        //info = new BASS.BASS_CHANNELINFO();
+        //BASS.BASS_ChannelGetInfo(handle, info);
 
-        handle = BASS.BASS_MusicLoad(path, 0, 0, BASS.BASS_MUSIC_DECODE, 0);
-        // extract channel info
-        info = new BASS.BASS_CHANNELINFO();
-        BASS.BASS_ChannelGetInfo(handle, info);
+        return true;
     }
 
     /// Retrieves the minimum, maximum, and maximum RMS of the

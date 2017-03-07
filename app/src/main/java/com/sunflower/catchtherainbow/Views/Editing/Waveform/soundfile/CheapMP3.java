@@ -181,7 +181,7 @@ public class CheapMP3 extends CheapSoundFile
 
             int gain;
             if ((buffer[3] & 0xC0) == 0xC0) {
-                // 1 channel
+                // 1 channelHandle
                 mGlobalChannels = 1;
                 if (mpgVersion == 1) {
                     gain = ((buffer[10] & 0x01) << 7) +

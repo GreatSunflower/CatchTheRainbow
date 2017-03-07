@@ -24,13 +24,13 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFileData;
+import com.sunflower.catchtherainbow.AudioClasses.SamplePlayer;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.view.WaveformView;
 import com.sunflower.catchtherainbow.Views.Helpful.Thumb;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -45,11 +45,12 @@ public class MainAreaFragment extends Fragment
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
-    private String mParam2;
+
+    // a reference to sample player
+    private SamplePlayer globalPlayer;
 
     private OnFragmentInteractionListener mListener;
 
@@ -76,7 +77,6 @@ public class MainAreaFragment extends Fragment
         MainAreaFragment fragment = new MainAreaFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
     }
@@ -88,7 +88,6 @@ public class MainAreaFragment extends Fragment
         if (getArguments() != null)
         {
             mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
 
@@ -129,9 +128,8 @@ public class MainAreaFragment extends Fragment
         TrackHeaderView head = new TrackHeaderView(getActivity());
         trow.addView(head, 0);
 
-
          // Load the sound file in a background thread
-        new SoundWaveLoader().execute(new SoundLoadingParams(trow, path));
+        //new SoundWaveLoader().execute(new SoundLoadingParams(trow, path));
 
         // add header row
         tracksLayout.addView(trow, 0);
@@ -153,9 +151,9 @@ public class MainAreaFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                WaveformView track = (WaveformView)trow.findViewById(R.id.waveform);
+                /*WaveformView track = (WaveformView)trow.findViewById(R.id.waveform);
                 track.setSoundFile(null);
-                track.setListener(null);
+                track.setListener(null);*/
 
                 tracksLayout.removeView(trow);
                 tracksLayout.removeView(thumbRow);
@@ -197,8 +195,16 @@ public class MainAreaFragment extends Fragment
                 // file = CheapSoundFile.create(params[0], progressListener);
             AudioFileData file = new AudioFileData(getActivity());
             file.setListener(progressListener);
-            file.readFile(params[0].path);
-//                file.setProgressListener(null);
+            try
+            {
+                file.readFile(params[0].path);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+                return null;
+            }
+//          file.setProgressListener(null);
 
             return file;
         }
@@ -208,7 +214,17 @@ public class MainAreaFragment extends Fragment
         {
             progressDialog.dismiss();
 
-            final WaveformView wave = new WaveformView(getActivity());
+            String filePath = getContext().getApplicationInfo().dataDir + "/" + "test.mo3";
+            try
+            {
+                globalPlayer.open(filePath, true);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+
+            /*final WaveformView wave = new WaveformView(getActivity());
             wave.setPadding(2,2,2,2);
             wave.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
             params.trow.addView(wave, 1);
@@ -236,7 +252,7 @@ public class MainAreaFragment extends Fragment
                     wave.zoomOut();
                 }
             });
-            wave.recomputeHeights(1);
+            wave.recomputeHeights(1);*/
             //finishOpeningSoundFile(result, trow);
         }
 
@@ -315,6 +331,17 @@ public class MainAreaFragment extends Fragment
         super.onDetach();
         mListener = null;
     }
+
+    public SamplePlayer getGlobalPlayer()
+    {
+        return globalPlayer;
+    }
+
+    public void setGlobalPlayer(SamplePlayer globalPlayer)
+    {
+        this.globalPlayer = globalPlayer;
+    }
+
 
     /**
      * This interface must be implemented by activities that contain this
