@@ -1,6 +1,7 @@
 package com.sunflower.catchtherainbow.Views.Effects;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,12 +31,11 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
 
-
     private OnEffectsHostListener mListener;
 
     public EffectsHostFragment()
     {
-        // Required empty public constructor
+
     }
 
     /**
@@ -133,7 +134,8 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         }
         else if(view.getId() == R.id.bCancel)
         {
-            effectsFragment.cancel();
+            boolean res = effectsFragment.cancel();
+            if(res) return;
         }
 
         if (mListener != null)

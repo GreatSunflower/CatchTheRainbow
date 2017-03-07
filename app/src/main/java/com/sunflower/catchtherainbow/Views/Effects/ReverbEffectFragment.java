@@ -47,9 +47,10 @@ public class ReverbEffectFragment extends BaseEffectFragment implements Detailed
         return root;
     }
 
-    public void cancel() //при закрытии окна
+    public boolean cancel() //при закрытии окна
     {
         BASS.BASS_ChannelRemoveFX(chan, reverb);
+        return true;
     }
 
     public void setEffect()

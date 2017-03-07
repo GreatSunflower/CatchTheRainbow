@@ -97,9 +97,10 @@ public class EchoEffectFragment extends BaseEffectFragment implements DetailedSe
         }
     }
 
-    public void cancel() //при закрытии окна
+    public boolean cancel() //при закрытии окна
     {
         BASS.BASS_ChannelRemoveFX(chan, echo);
+        return true;
         // close only this fragment!
         //getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
     }

@@ -51,9 +51,10 @@ public class FlangerEffectFragment extends BaseEffectFragment implements Detaile
         return root;
     }
 
-    public void cancel() //при закрытии окна
+    public boolean cancel() //при закрытии окна
     {
         BASS.BASS_ChannelRemoveFX(chan, flanger);
+        return true;
         // close only this fragment!
         //getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
     }

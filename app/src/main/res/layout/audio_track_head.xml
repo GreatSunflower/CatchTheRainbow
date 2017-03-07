@@ -44,7 +44,7 @@
 
         <ImageButton
             app:srcCompat="@android:drawable/ic_delete"
-            android:id="@+id/imageButton"
+            android:id="@+id/removeButton"
             android:background="@null"
             android:foregroundGravity="center"
             android:layout_gravity="center"

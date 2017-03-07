@@ -21,8 +21,8 @@ public abstract class BaseEffectFragment extends Fragment
 
     }
 
-    public void cancel()
+    public boolean cancel()
     {
-
+        return false;
     }
 }

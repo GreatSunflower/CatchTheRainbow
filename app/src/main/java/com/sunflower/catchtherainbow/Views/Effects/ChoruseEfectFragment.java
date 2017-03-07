@@ -99,9 +99,10 @@ public class ChoruseEfectFragment extends BaseEffectFragment
         BASS.BASS_FXSetParameters(choruse, bass_dx8_chorus);
     }
 
-    public void cancel() //при закрытии окна
+    public boolean cancel() //при закрытии окна
     {
         BASS.BASS_ChannelRemoveFX(chan, choruse);
+        return true;
         // close only this fragment!
         //getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
     }

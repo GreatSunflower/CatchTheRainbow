@@ -14,7 +14,8 @@
             android:textColor="@color/colorAccent"
             android:textSize="20sp"
             android:textAlignment="center"
-            android:background="@color/backgroundListView"/>
+            android:background="@color/backgroundListView"
+            android:padding="5dp"/>
 
         <ListView
             android:layout_width="match_parent"
