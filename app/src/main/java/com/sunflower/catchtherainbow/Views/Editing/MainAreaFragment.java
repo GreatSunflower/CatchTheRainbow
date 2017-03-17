@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFileData;
 import com.sunflower.catchtherainbow.AudioClasses.SamplePlayer;
+import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.view.WaveformView;
@@ -68,11 +69,10 @@ public class MainAreaFragment extends Fragment
      * this fragment using the provided parameters.
      *
      * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
      * @return A new instance of fragment MainAreaFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static MainAreaFragment newInstance(String param1, String param2)
+    public static MainAreaFragment newInstance(String param1)
     {
         MainAreaFragment fragment = new MainAreaFragment();
         Bundle args = new Bundle();
@@ -101,16 +101,11 @@ public class MainAreaFragment extends Fragment
         tracksLayout = (TableLayout)root.findViewById(R.id.tracks_layout);
         verticalScrollView = (ScrollView) root.findViewById(R.id.verticalScrollView);
 
-       /* addTrack(350, 150);
-        addTrack(350, 150);
-        addTrack(350, 160);
-        addTrack(100, 200);*/
-
         return root;
     }
 
     ProgressDialog progressDialog;
-    public void addTrack(final String path, int w, int h)
+    public void addTrack(final WaveTrack track, int w, int h)
     {
         final TableRow trow = new TableRow(getActivity());
 
@@ -159,6 +154,11 @@ public class MainAreaFragment extends Fragment
                 tracksLayout.removeView(thumbRow);
             }
         });
+    }
+
+    public void clearTracks()
+    {
+        tracksLayout.removeAllViews();
     }
 
     class SoundLoadingParams
@@ -299,38 +299,6 @@ public class MainAreaFragment extends Fragment
 
        // wave.invalidate();
     }*/
-
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri)
-    {
-        if (mListener != null)
-        {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context)
-    {
-        super.onAttach(context);
-        /*if (context instanceof OnFragmentInteractionListener)
-        {
-            mListener = (OnFragmentInteractionListener) context;
-        }
-        else
-        {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }*/
-    }
-
-    @Override
-    public void onDetach()
-    {
-        super.onDetach();
-        mListener = null;
-    }
 
     public SamplePlayer getGlobalPlayer()
     {

@@ -15,13 +15,6 @@ import java.util.ArrayList;
  * Created by SuperComputer on 2/25/2017.
  */
 
-enum SampleFormat
-{
-    int_8Bit,
-    int_16Bit,
-    float_32Bit
-}
-
 public class AudioFileData
 {
     private static final String LOG_TAG = "Reader";

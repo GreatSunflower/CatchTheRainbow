@@ -1,6 +1,5 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
-import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 
@@ -8,12 +7,10 @@ import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.SuperApplication;
 import com.un4seen.bass.BASS;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.PriorityQueue;
 import java.util.Queue;
 
 /**
@@ -26,6 +23,8 @@ public class AudioImporter implements Runnable
     private static final String LOG_TAG = "Audio Importer";
 
     private Queue<ImporterQuery> filesToLoad = new LinkedList<>();
+
+    private Project project;
 
     private AudioImporterListener listener;
 
@@ -46,6 +45,11 @@ public class AudioImporter implements Runnable
     public static AudioImporter getInstance()
     {
         return importerInstance;
+    }
+
+    public void setProject(Project project)
+    {
+        this.project = project;
     }
 
     public synchronized void addToQueue(ImporterQuery... files)
@@ -110,24 +114,29 @@ public class AudioImporter implements Runnable
             Helper.checkDirectory(SuperApplication.getAppDirectory());
             // path to decoded audio file
             //String trackDirectory = Environment.getExternalStorageDirectory().toString() + "/Catch The Rainbow" + "/WaveTrackTest/";
-            boolean created = Helper.createOrRecreateDir(query.destDirectory);
+            //boolean created = Helper.createOrRecreateDir(query.destDirectory);
 
             // no directory
-            if(!created)
+            /*if(!created)
             {
                 Log.e(LOG_TAG, "Track directory is in a lot of trouble!");
                 failedQueries.add(query);
                 continue;
-            }
+            }*/
 
             // size in bytes
-            int bufferSize = 1048576*4;
+            int bufferSize = AudioSequence.maxChunkSize; /*1048576*4*/;
             long totalBytesRead = 0;
 
             // number of files
             int fileCount = 0;
 
             ArrayList<AudioChunk>audioChunks = new ArrayList<>();
+
+            //WaveTrack track = new WaveTrack("", project.getFileManager());
+            //final AudioSequence sequence = new AudioSequence(project.getFileManager(), new AudioInfo(info.freq, info.chans));
+
+            final Clip clip = new Clip(project.getFileManager(), new AudioInfo(info.freq, info.chans));
 
             // read data piece by piece
             while(totalBytesRead < len)
@@ -138,24 +147,19 @@ public class AudioImporter implements Runnable
 
                 totalBytesRead += bytesRead;
 
-                byte buffer[] = new byte[bufferSize/2];
+                byte buffer[] = new byte[bufferSize/4];
                 audioData.get(buffer);
 
-                String filePath = query.destDirectory + "/" + fileCount + ".ac";
-                AudioChunk chunk = new AudioChunk(filePath, buffer.length, new AudioInfo(44100, 2));
+                ByteBuffer resBuff = ByteBuffer.allocate(bufferSize/2);//.wrap(buffer);
+                resBuff.put(buffer);
                 try
                 {
-                    // try to write chunk to disk
-                    chunk.writeToDisk(buffer, buffer.length);
+                    clip.getSequence().append(resBuff, bytesRead);
                 }
                 catch (IOException e)
                 {
                     e.printStackTrace();
-                    failedQueries.add(query);
-                    break;
                 }
-
-                audioChunks.add(chunk);
 
                 // increment files count
                 fileCount++;
@@ -171,16 +175,16 @@ public class AudioImporter implements Runnable
                     public void run()
                     {
                         if(listener != null)
-                            listener.onProgressUpdate(processedQuery, (int) ((float)totalBytes / len * 100));
+                            listener.onProgressUpdate(processedQuery, (int) ((float)totalBytes / len * 100), clip);
                     }
                 });
 
-            }
+            } // while file is not decoded
             Log.i(LOG_TAG, "Audio chunks created: " + audioChunks.size());
 
             // add the query to the finished list
             finishedQueries.add(query);
-        }
+        } // while
 
         isRunning = false;
 
@@ -221,7 +225,7 @@ public class AudioImporter implements Runnable
     {
         void onBegin(Queue<ImporterQuery> queries);
         // progress in percents(0-100)
-        void onProgressUpdate(ImporterQuery query, int progress);
+        void onProgressUpdate(ImporterQuery query, int progress, Clip clip);
         void onFinish(ArrayList<ImporterQuery> succeededQueries, ArrayList<ImporterQuery> failedQueries);
     }
 

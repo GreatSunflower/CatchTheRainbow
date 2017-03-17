@@ -5,11 +5,9 @@ import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -39,8 +37,11 @@ import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 import com.sunflower.catchtherainbow.AudioClasses.AudioImporter;
+import com.sunflower.catchtherainbow.AudioClasses.Clip;
+import com.sunflower.catchtherainbow.AudioClasses.Project;
 import com.sunflower.catchtherainbow.AudioClasses.SamplePlayer;
 import com.sunflower.catchtherainbow.AudioClasses.SuperAudioPlayer;
+import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment.OnFragmentInteractionListener;
 import com.sunflower.catchtherainbow.Views.AudioProgressView;
@@ -75,6 +76,8 @@ public class ProjectActivity extends AppCompatActivity
     private boolean isPlaying = false, isDragging = false;
     private SamplePlayer player;
 
+    private Project project;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -83,6 +86,8 @@ public class ProjectActivity extends AppCompatActivity
 
         // TEMP. Clears project directory on loading------------------------------------------------
         Helper.createOrRecreateDir(SuperApplication.getAppDirectory());
+
+        project = Project.createNewProject("Dandelion", projectListener);
 
         // initialize default output device
         if (!BASS.BASS_Init(-1, 44100, 0))
@@ -200,7 +205,7 @@ public class ProjectActivity extends AppCompatActivity
             public void onCompleted(){}
         });
 
-        tracksFragment = MainAreaFragment.newInstance("", "");
+        tracksFragment = MainAreaFragment.newInstance("");
         tracksFragment.setGlobalPlayer(player);
 
         getSupportFragmentManager().beginTransaction()
@@ -447,12 +452,39 @@ public class ProjectActivity extends AppCompatActivity
         return true;
     }
 
+
+    private Project.ProjectListener projectListener = new Project.ProjectListener()
+    {
+        @Override
+        public void onCreate(Project project)
+        {
+
+        }
+
+        @Override
+        public void onUpdate(Project project)
+        {
+            tracksFragment.clearTracks();
+            for(WaveTrack track: project.getTracks())
+            {
+                tracksFragment.addTrack(track, 400, 250);
+            }
+        }
+
+        @Override
+        public void onClose(Project project)
+        {
+
+        }
+    };
+
     // ---------------------------------SONG CHOOSER LISTENER INTERFACE----------------------------------
 
     @Override
     public void onOk(ArrayList<AudioFile> selectedAudioFiles)
     {
         AudioImporter importer = AudioImporter.getInstance();
+        importer.setProject(project);
         importer.setListener(importerListener);
 
         AudioImporter.ImporterQuery[] queries = new AudioImporter.ImporterQuery[selectedAudioFiles.size()];
@@ -511,7 +543,7 @@ public class ProjectActivity extends AppCompatActivity
         }
 
         @Override
-        public void onProgressUpdate(AudioImporter.ImporterQuery query, int progress)
+        public void onProgressUpdate(AudioImporter.ImporterQuery query, int progress, Clip clip)
         {
             RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.import_notification);
             contentView.setImageViewResource(R.id.image, R.drawable.app_icon);
@@ -526,7 +558,10 @@ public class ProjectActivity extends AppCompatActivity
             // audio loaded
             if(progress == 100)
             {
-                tracksFragment.addTrack("", 400, 300);
+                WaveTrack track = new WaveTrack(query.audioFileInfo.getTitle(), project.getFileManager());
+                track.addClip(clip);
+
+                project.addTrack(track);
                 count++;
             }
         }
