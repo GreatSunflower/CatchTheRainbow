@@ -3,13 +3,11 @@ package com.sunflower.catchtherainbow.AudioClasses;
 import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.SuperApplication;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by SuperComputer on 3/16/2017.
@@ -35,6 +33,11 @@ public class Project
         {
             listener.onCreate(this);
         }
+    }
+
+    public String getName()
+    {
+        return name;
     }
 
     // creates a new project

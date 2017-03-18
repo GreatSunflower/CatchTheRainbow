@@ -18,11 +18,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -78,6 +78,12 @@ public class ProjectActivity extends AppCompatActivity
 
     private Project project;
 
+    Project currentProject;
+    public void setCurrentProject(Project currentProject)
+    {
+        this.currentProject = currentProject;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -87,7 +93,12 @@ public class ProjectActivity extends AppCompatActivity
         // TEMP. Clears project directory on loading------------------------------------------------
         Helper.createOrRecreateDir(SuperApplication.getAppDirectory());
 
-        project = Project.createNewProject("Dandelion", projectListener);
+        Intent intent = getIntent();
+        String nameProject = intent.getStringExtra("nameProject");
+        String openProjectWithName = intent.getStringExtra("openProjectWithName");
+
+        if(nameProject != null) project = Project.createNewProject(nameProject, projectListener);
+        if(openProjectWithName != null) {}
 
         // initialize default output device
         if (!BASS.BASS_Init(-1, 44100, 0))
@@ -281,7 +292,7 @@ public class ProjectActivity extends AppCompatActivity
     @Override
     protected void onStop()
     {
-        player.stop();
+        if(player!=null) player.stop();
         super.onStop();
     }
 

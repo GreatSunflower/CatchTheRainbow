@@ -1,15 +1,29 @@
 <resources>
     <string name="app_name">Catch The Rainbow</string>
 
+    <string name="delete">Delete</string>
+    <string name="ask_delete">Do you want to Delete</string>
+    <string name="ask_open">A project with this name already exists, open it?</string>
+    <string name="warning">Warning</string>
+
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="navigation_swipe_open_project">Swipe to open an existing project</string>
+    <string name="navigation_swipe_create_project">Swipe to create a new project</string>
+    <string name="create_a_new_project">Create A New Project</string>
 
     <string name="action_settings">Settings</string>
     <string name="action_effects">Effects</string>
     <string name="action_import">Import</string>
 
     <string name="conformation">OK</string>
-    <string name="deny">Cancel</string>
+    <string name="cancel">Cancel</string>
+    <string name="error_select_a_project">Error! Select a project.</string>
+    <string name="error_enter_name_project">Error! Enter the name of the project.</string>
+    <string name="select_a_project">Select a project</string>
+    <string name="new_project">New Project</string>
+
 
     <string name="songs_count">Audio Files</string>
     <string name="select_all_musics">All</string>
@@ -23,12 +37,10 @@
     <string name="solo">Solo</string>
 
 
-
     <string name="no_title">No Title</string>
     <string name="unknown_artist">Unknown Artist</string>
     <string name="path">Patn</string>
     <string name="folder">Folder</string>
-
 
 
     <string name="effect_echo">ECHO</string>
@@ -47,7 +59,6 @@
     <string name="lphase">Pan Delay</string>
 
 
-
     <string name="effect_chorus">CHORUS</string>
     <string name="lPhase_chorus">Phase</string>
 
@@ -55,7 +66,6 @@
         <item>Triangle</item>
         <item>Sine</item>
     </string-array>
-
 
 
     <string name="effect_reverb">REVERB</string>

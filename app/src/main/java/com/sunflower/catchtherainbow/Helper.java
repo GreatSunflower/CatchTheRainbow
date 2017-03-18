@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
@@ -15,7 +16,6 @@ import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 
 import java.io.File;
 import java.io.FileDescriptor;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
@@ -30,6 +30,19 @@ import java.util.concurrent.TimeUnit;
 //
 public class Helper
 {
+    public static void deleteDirectoryRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory())
+            for (File child : fileOrDirectory.listFiles())
+                deleteDirectoryRecursive(child);
+
+        fileOrDirectory.delete();
+    }
+
+    public static String getPathOfProject()
+    {
+        return Environment.getExternalStorageDirectory().toString() + "/Catch The Rainbow";
+    }
+
     // time converters
     public static String secondToString(double seconds)
     {
