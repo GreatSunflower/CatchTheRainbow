@@ -1,18 +1,26 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
+import android.util.Log;
+
+import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.RandomAccessFile;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
+import java.nio.channels.FileChannel;
+import java.util.Date;
 
 /**
  * Created by SuperComputer on 3/6/2017.
  */
 
-enum SampleFormat
+enum SampleFormat implements Serializable
 {
     int_8Bit(1),
     int_16Bit(2),
@@ -65,19 +73,31 @@ public class AudioChunk implements Serializable
         this.audioInfo = audioInfo;
     }
 
-    public boolean writeToDisk(byte []buffer, int samplesLen) throws IOException
+    public boolean writeToDisk(ByteBuffer buffer, int samplesLen) throws IOException
     {
         if(buffer == null) return false;
 
+        FileOutputStream fileOutputStream = new FileOutputStream(path);
         // buffer for outputting in ctr format
-        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(path));
+        ObjectOutputStream outputStream = new ObjectOutputStream(fileOutputStream);
 
         ChunkHeader header = new ChunkHeader(audioInfo, samplesLen);
         // write header
         outputStream.writeObject(header);
 
+        buffer.rewind();
+        // test
+        /*float []shortBuffer = new float[samplesLen/4];
+        buffer.asFloatBuffer().get(shortBuffer);
+        for(int i = 0; i < shortBuffer.length; i++)
+            outputStream.writeFloat(shortBuffer[i]);*/
+       // fileChannel.write(buffer);
+
+        byte[]res = new byte[samplesLen];
+        buffer.get(res);
+
         // write sample data
-        outputStream.write(buffer);
+        outputStream.write(res);
 
         // write all of the data
         outputStream.flush();
@@ -93,30 +113,76 @@ public class AudioChunk implements Serializable
     // @param start - first sample to get
     // @param length - number of samples after start
     // @return number of samples read or -1 if the was an error
-    public int readToBuffer(byte []buffer, int start, int length)
+    public int readToBuffer(ByteBuffer buffer, int start, int length)
     {
         int sampleSize = audioInfo.format.sampleSize;
-        // NOt tested yet!!!
+
         try
         {
+            Date startDate = new Date();
+
             FileInputStream fileInputStream = new FileInputStream(path);
-            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+
+            BufferedInputStream buffStream = new BufferedInputStream(fileInputStream, 4096*4096*2);
+            ObjectInputStream objectInputStream = new ObjectInputStream(buffStream);
 
             // first read the header
             ChunkHeader header = (ChunkHeader)objectInputStream.readObject();
 
             //objectInputStream.skipBytes(start * 4/* Size of one sample */);
 
-            int read = objectInputStream.read(buffer, start * sampleSize, length/sampleSize);
+            int read = 0;
+
+            objectInputStream.skipBytes(start);
+           // read = (int) fileChannel.read(new ByteBuffer[]{buffer}, start, length);
+            while (read < length)
+            {
+                if(objectInputStream.available() == 0)
+                    break;
+
+                if(sampleSize == 4)
+                {
+                    float b = objectInputStream.readFloat();
+
+                    buffer.putFloat(b);
+                    read += 4;
+                }
+            }
+
+            /*objectInputStream.skipBytes(start);
+            for (int i = 0; i < length; i++)
+            {
+                if(objectInputStream.available() == 0)
+                    break;
+                //float b = (float) objectInputStream.readFloat();
+               // buffer.putFloat(b);
+                float b = objectInputStream.readFloat();
+                //buffer[i] = b;
+                buffer.putFloat(b);
+                read+=4;
+            }*/
+           /* byte []arr = new byte[length];
+            int read = buffStream.read(arr, start, length);
+            buffer.put(arr);*/
+
+            //int read = objectInputStream.read(buffer, start/* * sampleSize*/, length/*/sampleSize*/);
+            //int read = buffer.length;
 
             objectInputStream.close();
 
-            return read / sampleSize;
+            Date endDate = new Date();
+            long difference = endDate.getTime() - startDate.getTime();
+
+            Log.e("TIME", difference+"" + ", Read: " + read + ", Needed: " + length);
+
+            return read;
         }
         catch (IOException | ClassNotFoundException e)
         {
             e.printStackTrace();
         }
+
+
         return -1;
     }
 

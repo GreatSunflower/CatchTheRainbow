@@ -99,7 +99,7 @@ public class AudioFileData
 
             String filePath = trackDirectory + "/" + fileCount + ".ac";
             AudioChunk chunk = new AudioChunk(filePath, buffer.length, new AudioInfo(44100, 2));
-            chunk.writeToDisk(buffer, buffer.length);
+            chunk.writeToDisk(audioData, buffer.length);
 
             audioChunks.add(chunk);
 

@@ -97,6 +97,7 @@ public class FragTabCreateProject extends Fragment implements View.OnClickListen
                     Intent intent = new Intent(FragTabCreateProject.this.getActivity(), ProjectActivity.class);
                     intent.putExtra("nameProject", tv_nameProject.getText().toString());
                     startActivity(intent);
+                    getActivity().finish();
                 }
                break;
             }
@@ -108,6 +109,7 @@ public class FragTabCreateProject extends Fragment implements View.OnClickListen
         Intent intent = new Intent(FragTabCreateProject.this.getActivity(), ProjectActivity.class);
         intent.putExtra("openProjectWithName", tv_nameProject.getText().toString());
         startActivity(intent);
+        getActivity().finish();
     }
 
     public AlertDialog AskOption(Context context)

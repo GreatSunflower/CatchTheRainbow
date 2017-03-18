@@ -24,7 +24,9 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFileData;
+import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
 import com.sunflower.catchtherainbow.AudioClasses.SamplePlayer;
+import com.sunflower.catchtherainbow.AudioClasses.SuperAudioPlayer;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
@@ -51,7 +53,7 @@ public class MainAreaFragment extends Fragment
     private String mParam1;
 
     // a reference to sample player
-    private SamplePlayer globalPlayer;
+    private AudioIO globalPlayer;
 
     private OnFragmentInteractionListener mListener;
 
@@ -92,8 +94,7 @@ public class MainAreaFragment extends Fragment
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState)
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.fragment_main_area, container, false);
@@ -300,12 +301,12 @@ public class MainAreaFragment extends Fragment
        // wave.invalidate();
     }*/
 
-    public SamplePlayer getGlobalPlayer()
+    public AudioIO getGlobalPlayer()
     {
         return globalPlayer;
     }
 
-    public void setGlobalPlayer(SamplePlayer globalPlayer)
+    public void setGlobalPlayer(AudioIO globalPlayer)
     {
         this.globalPlayer = globalPlayer;
     }

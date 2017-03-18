@@ -113,7 +113,7 @@ public class AudioSequence implements Serializable
         {
             final long chunkLen = Math.min(maxSamples, len);
 
-            ByteBuffer res = ByteBuffer.allocate((int) chunkLen);
+            ByteBuffer res = ByteBuffer.allocateDirect((int) chunkLen * info.format.sampleSize);
             AudioHelper.copySamples(res, buffer, 0, (int) chunkLen, info);
 
             AudioChunk file = fileManager.createAudioChunk(res, (int)chunkLen, info);
@@ -141,7 +141,7 @@ public class AudioSequence implements Serializable
     // returns -1 if failed
     public int findChunk(int pos)
     {
-        if(pos < 0 || pos >= chunks.size())
+        if(pos < 0 || pos >= samplesCount)
             return -1;
 
         int chunksCount = chunks.size();
@@ -156,8 +156,9 @@ public class AudioSequence implements Serializable
             guess = Math.min(hi - 1, lo + (int) (frac * (hi - lo)));
             final AudioChunkRef chunk = chunks.get(guess);
 
+            //lo <= guess && guess < hi && lo < hi
             if(chunk.getChunk().getSamplesCount() < 0 ||
-                    (lo > guess || guess < hi || lo > hi))
+                    (lo > guess || guess > hi || lo > hi))
                 return -1;
 
             if (pos < chunk.getStart())
@@ -185,8 +186,11 @@ public class AudioSequence implements Serializable
     {
         AudioChunk chunk = chunkRef.getChunk();
 
-        byte[]b = new byte[len];
-        int res = chunk.readToBuffer(b, start, len);
+       // byte[]b = new byte[len];
+        int res = chunk.readToBuffer(buffer, start, len);
+
+        //ByteBuffer fff= ByteBuffer.allocateDirect(66);
+        //buffer.put(b);
 
         if (res != len)
         {
@@ -197,15 +201,15 @@ public class AudioSequence implements Serializable
     }
 
     // fills buffer with samples
-    public boolean get(ByteBuffer buffer, int start, int len)
+    public int get(ByteBuffer buffer, int start, int len)
     {
         if(start == samplesCount)
-            return len == 0;
+            return 0;
 
         if(start < 0 || start > samplesCount || start + len > samplesCount)
         {
             Log.e(LOG_TAG, "Get: out of range");
-            return false;
+            return -1;
         }
 
         int pos = findChunk(start);
@@ -213,8 +217,9 @@ public class AudioSequence implements Serializable
         return get(pos, buffer, start, len);
     }
 
-    public boolean get(int pos, ByteBuffer buffer, int start, int len)
+    public int get(int pos, ByteBuffer buffer, int start, int len)
     {
+        int bytesRead = 0;
         while (len > 0)
         {
             AudioChunkRef chunkRef = chunks.get(pos);
@@ -223,14 +228,14 @@ public class AudioSequence implements Serializable
             // bstart is not more than block length
             int blen = Math.min(len, chunkRef.getChunk().getSamplesCount() - bstart);
 
-            read(buffer, chunkRef, bstart, blen);
+            bytesRead += read(buffer, chunkRef, bstart, blen);
 
             len -= blen;
             pos++;
             start += blen;
         }
 
-        return true;
+        return bytesRead;
     }
 
     public AudioInfo getInfo()

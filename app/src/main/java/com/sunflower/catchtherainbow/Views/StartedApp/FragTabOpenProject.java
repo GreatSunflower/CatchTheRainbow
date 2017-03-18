@@ -107,8 +107,9 @@ public class FragTabOpenProject extends Fragment implements View.OnClickListener
                 else
                 {
                     Intent intent = new Intent(FragTabOpenProject.this.getActivity(), ProjectActivity.class);
-                    //intent.putExtra("ProjectForOpen", selectProject);
+                    intent.putExtra("openProjectWithName", selectProject.getName());
                     startActivity(intent);
+                    getActivity().finish();
                     //setCurrentProject(selectProject);
                 }
                 break;

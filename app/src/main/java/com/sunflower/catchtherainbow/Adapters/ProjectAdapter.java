@@ -84,7 +84,7 @@ public class ProjectAdapter extends ArrayAdapter<Project> implements View.OnClic
                 if (fileList.get(i).isDirectory())
                 {
                     if(fileList.get(i).getName().toLowerCase().contains(search.toLowerCase()))
-                        add(Project.createNewProject(fileList.get(i).getName(), null));
+                        add(Project.openProject(fileList.get(i).getName(), null));
                 }
             }
             notifyDataSetChanged();

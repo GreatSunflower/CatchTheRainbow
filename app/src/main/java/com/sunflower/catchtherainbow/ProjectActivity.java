@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -36,6 +37,7 @@ import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
+import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
 import com.sunflower.catchtherainbow.AudioClasses.AudioImporter;
 import com.sunflower.catchtherainbow.AudioClasses.Clip;
 import com.sunflower.catchtherainbow.AudioClasses.Project;
@@ -48,8 +50,10 @@ import com.sunflower.catchtherainbow.Views.AudioProgressView;
 import com.sunflower.catchtherainbow.Views.AudioVisualizerView;
 import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
 import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
+import com.sunflower.catchtherainbow.Views.StartedApp.ProjectStartActivity;
 import com.un4seen.bass.BASS;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -59,6 +63,8 @@ public class ProjectActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, View.OnClickListener, EffectsHostFragment.OnEffectsHostListener
 {
     private static final String TAG = "Project";
+
+    private int notificationId = 0;
 
     private ActionMenuView amvMenu;
     private ImageButton playStopButt, bNext, bPrev;
@@ -74,7 +80,7 @@ public class ProjectActivity extends AppCompatActivity
 
     // temp
     private boolean isPlaying = false, isDragging = false;
-    private SamplePlayer player;
+    private AudioIO player;
 
     private Project project;
 
@@ -89,24 +95,15 @@ public class ProjectActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_project);
+    }
+
+    @Override
+    protected void onStart()
+    {
+        super.onStart();
 
         // TEMP. Clears project directory on loading------------------------------------------------
-        Helper.createOrRecreateDir(SuperApplication.getAppDirectory());
-
-        Intent intent = getIntent();
-        String nameProject = intent.getStringExtra("nameProject");
-        String openProjectWithName = intent.getStringExtra("openProjectWithName");
-
-        if(nameProject != null) project = Project.createNewProject(nameProject, projectListener);
-        if(openProjectWithName != null) {}
-
-        // initialize default output device
-        if (!BASS.BASS_Init(-1, 44100, 0))
-        {
-            Log.e(TAG, "Can't initialize device");
-            return;
-        }
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_FLOATDSP, 32);
+        //Helper.createOrRecreateDir(SuperApplication.getAppDirectory());
 
         ////////////////////////////////////////////////////permissions//////////////////////////
         int PERMISSION_ALL = 1;
@@ -192,37 +189,6 @@ public class ProjectActivity extends AppCompatActivity
             }
         });
 
-        // --------------------------------------AUDIO STUFF-------------------------------------------------
-        player = new SamplePlayer(this);
-
-        player.addPlayerListener(new SuperAudioPlayer.AudioPlayerListener()
-        {
-            @Override
-            public void onInitialized(int totalTime/*final File file*/)
-            {
-                progressView.setMax(totalTime);
-                progressView.setCurrent(0);
-                /*MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-                mmr.setDataSource(file.getAbsolutePath());
-                String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-                String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                audioInfo.setText(artist + " - " + album + " - " + title);
-                mmr.release();*/
-                //waveFormViewContainer.setSoundFile(CheapSoundFile.create(file.getAbsolutePath(), null));
-                //waveFormViewContainer.invalidate();
-            }
-            @Override
-            public void onCompleted(){}
-        });
-
-        tracksFragment = MainAreaFragment.newInstance("");
-        tracksFragment.setGlobalPlayer(player);
-
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainAreaContainer, tracksFragment)
-                .commit();
-
         // play stop handler
         playStopButt.setOnClickListener(new View.OnClickListener()
         {
@@ -261,8 +227,64 @@ public class ProjectActivity extends AppCompatActivity
         });
         // -----------------------------------------------
 
+        // creates tracks fragment
+        tracksFragment = MainAreaFragment.newInstance("");
+        tracksFragment.setGlobalPlayer(player);
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.mainAreaContainer, tracksFragment)
+                .commit();
+
+        // force to create views
+        getSupportFragmentManager().executePendingTransactions();
+
+        Intent intent = getIntent();
+        String nameProject = intent.getStringExtra("nameProject");
+        String openProjectWithName = intent.getStringExtra("openProjectWithName");
+
+        if(nameProject != null) project = Project.createNewProject(nameProject, projectListener);
+        if(openProjectWithName != null)
+        {
+            // open it!
+            try
+            {
+                project = Project.openProject(openProjectWithName, projectListener);
+            }
+            catch (IOException | ClassNotFoundException e)
+            {
+                e.printStackTrace();
+                finish();
+            }
+        }
+        // ----------------------------- finish handling project----------------------------
+
+        // --------------------------------------AUDIO STUFF-------------------------------------------------
+        player = new AudioIO(this, project);
+
+        player.addPlayerListener(new SuperAudioPlayer.AudioPlayerListener()
+        {
+            @Override
+            public void onInitialized(int totalTime/*final File file*/)
+            {
+                progressView.setMax(totalTime);
+                progressView.setCurrent(0);
+                /*MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                mmr.setDataSource(file.getAbsolutePath());
+                String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+                String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                audioInfo.setText(artist + " - " + album + " - " + title);
+                mmr.release();*/
+                //waveFormViewContainer.setSoundFile(CheapSoundFile.create(file.getAbsolutePath(), null));
+                //waveFormViewContainer.invalidate();
+            }
+            @Override
+            public void onCompleted(){}
+        });
+        // player
+
         // timer to update the display
-        Runnable timer = new Runnable()
+        updateTimer = new Runnable()
         {
             public void run()
             {
@@ -286,13 +308,15 @@ public class ProjectActivity extends AppCompatActivity
                 statusHandler.postDelayed(this, 50);
             }
         };
-        statusHandler.postDelayed(timer, 50);
+        statusHandler.postDelayed(updateTimer, 50);
     }
-
+    Runnable updateTimer;
     @Override
     protected void onStop()
     {
-        if(player!=null) player.stop();
+       // if(player != null)
+            player.stop();
+        statusHandler.removeCallbacks(updateTimer);
         super.onStop();
     }
 
@@ -337,7 +361,16 @@ public class ProjectActivity extends AppCompatActivity
     @Override
     public void onDestroy()
     {
-        player.disposePlayer();
+       // if(player != null)
+            player.disposePlayer();
+        statusHandler.removeCallbacks(updateTimer);
+
+        project.setListener(null);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        // remove the notification in case it's there
+        notificationManager.cancel(notificationId);
+
         super.onDestroy();
     }
 
@@ -351,7 +384,7 @@ public class ProjectActivity extends AppCompatActivity
         }
         else
         {
-            super.onBackPressed();
+            //super.onBackPressed();
         }
     }
 
@@ -405,8 +438,6 @@ public class ProjectActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-
-
     // Universal method for creating dialog fragments
     private DialogFragment createNewDialog(int fragmentId, Class<? extends DialogFragment> fragmentClass, boolean showImmediately)
     {
@@ -439,24 +470,19 @@ public class ProjectActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera)
+        if (id == R.id.nav_import)
         {
             // Handle the camera action
-        } else if (id == R.id.nav_gallery)
+        }
+        else if (id == R.id.nav_export)
         {
 
-        } else if (id == R.id.nav_slideshow)
+        }
+        else if (id == R.id.nav_close)
         {
-
-        } else if (id == R.id.nav_manage)
-        {
-
-        } else if (id == R.id.nav_share)
-        {
-
-        } else if (id == R.id.nav_send)
-        {
-
+            Intent intent = new Intent(this, ProjectStartActivity.class);
+            startActivity(intent);
+            finish();
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -469,7 +495,11 @@ public class ProjectActivity extends AppCompatActivity
         @Override
         public void onCreate(Project project)
         {
-
+            tracksFragment.clearTracks();
+            for(WaveTrack track: project.getTracks())
+            {
+                tracksFragment.addTrack(track, 400, 250);
+            }
         }
 
         @Override
@@ -485,7 +515,7 @@ public class ProjectActivity extends AppCompatActivity
         @Override
         public void onClose(Project project)
         {
-
+            tracksFragment.clearTracks();
         }
     };
 
@@ -516,7 +546,6 @@ public class ProjectActivity extends AppCompatActivity
     {
         NotificationManager notificationManager;
         NotificationCompat.Builder builder;
-        int notificationId = 0;
         int count = 0, totalFiles = 0; // number of imported files
 
         @Override
@@ -600,6 +629,15 @@ public class ProjectActivity extends AppCompatActivity
 
             // remove listener
             AudioImporter.getInstance().setListener(null);
+
+            try
+            {
+                player.open("", true);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
         }
     };
 

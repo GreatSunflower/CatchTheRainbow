@@ -3,8 +3,10 @@ package com.sunflower.catchtherainbow.AudioClasses;
 import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.SuperApplication;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ import java.util.ArrayList;
  * Main project class
  */
 
-public class Project
+public class Project implements Serializable
 {
     private String name;
 
@@ -24,15 +26,13 @@ public class Project
 
     private FileManager fileManager;
 
+    // audio info
+    private AudioInfo projectAudioInfo = new AudioInfo(44100, 2);
+
     private Project(String name, ProjectListener listener)
     {
         this.name = name;
         this.listener = listener;
-
-        if(listener != null)
-        {
-            listener.onCreate(this);
-        }
     }
 
     public String getName()
@@ -55,6 +55,48 @@ public class Project
 
         project.updateProjectFile();
 
+        if(listener != null)
+        {
+            listener.onCreate(project);
+        }
+
+        return project;
+    }
+
+
+    // creates a new project
+    // if something is wrong with the name null will be returned
+    public static Project openProject(String name, ProjectListener listener) throws IOException, ClassNotFoundException
+    {
+        if(name == null || name.equals(""))
+            return null;
+
+        Project project = new Project(name, listener);
+        // create project and samples directories
+
+        String path = project.getProjectFolderLocation() + "/" + name + ".ctr";
+
+        // buffer for outputting in ctr format
+        ObjectInputStream objectInputStreamStream = null;
+
+        objectInputStreamStream = new ObjectInputStream(new FileInputStream(path));
+        ProjectHeader header = (ProjectHeader)objectInputStreamStream.readObject();
+
+        project.tracks = header.tracks;
+        project.fileManager = header.manager;
+        project.projectAudioInfo = header.info;
+
+        // close the steam
+        objectInputStreamStream.close();
+
+        Helper.createOrRecreateDir(project.getSamplesDirectory());
+
+        // notify listener
+        if(listener != null)
+        {
+            listener.onCreate(project);
+        }
+
         return project;
     }
 
@@ -67,7 +109,7 @@ public class Project
         try
         {
             outputStream = new ObjectOutputStream(new FileOutputStream(path));
-            ProjectHeader header = new ProjectHeader(name, tracks, fileManager);
+            ProjectHeader header = new ProjectHeader(name, tracks, fileManager, projectAudioInfo);
             // write header
             outputStream.writeObject(header);
 
@@ -96,6 +138,11 @@ public class Project
     public FileManager getFileManager()
     {
         return fileManager;
+    }
+
+    public AudioInfo getProjectAudioInfo()
+    {
+        return projectAudioInfo;
     }
 
     // ----- Tracks-------
@@ -156,19 +203,23 @@ public class Project
         void onClose(Project project);
     }
 
-    private class ProjectHeader implements Serializable
+
+}
+
+class ProjectHeader implements Serializable
+{
+    String name;
+    ArrayList<WaveTrack> tracks;
+    FileManager manager;
+    AudioInfo info;
+
+    public ProjectHeader(){}
+
+    public ProjectHeader(String name, ArrayList<WaveTrack> tracks, FileManager manager, AudioInfo info)
     {
-        String name;
-        ArrayList<WaveTrack> tracks;
-        FileManager manager;
-
-        public ProjectHeader(){}
-
-        public ProjectHeader(String name, ArrayList<WaveTrack> tracks, FileManager manager)
-        {
-            this.name = name;
-            this.tracks = tracks;
-            this.manager = manager;
-        }
+        this.name = name;
+        this.tracks = tracks;
+        this.manager = manager;
+        this.info = info;
     }
 }

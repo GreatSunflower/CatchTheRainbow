@@ -20,7 +20,7 @@ public class FileManager implements Serializable
     private Long currentFileCount = 0L;
 
     // keeps references for each audio chunk
-    HashMap<String, Integer> audioChunks = new HashMap<>();
+    private HashMap<AudioChunk, Integer> audioChunks = new HashMap<>();
 
     public FileManager(String samplesFolder)
     {
@@ -32,9 +32,9 @@ public class FileManager implements Serializable
         String fileName = samplesFolder + "/" + currentFileCount + ".ac";
 
         AudioChunk chunk = new AudioChunk(fileName, len, format);
-        chunk.writeToDisk(sampleData.array(), len);
+        chunk.writeToDisk(sampleData, len);
 
-        audioChunks.put(fileName, 0);
+        audioChunks.put(chunk, 0);
 
         currentFileCount++;
 
@@ -49,6 +49,11 @@ public class FileManager implements Serializable
             res = audioChunks.get(filename);
 
         return res;
+    }
+
+    public HashMap<AudioChunk, Integer> getAudioChunks()
+    {
+        return audioChunks;
     }
 
 

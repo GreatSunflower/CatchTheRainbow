@@ -25,17 +25,17 @@
             android:configChanges="orientation|screenSize"
             android:label="@string/app_name"
             android:launchMode="singleTask"
+            android:noHistory="true"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.DEFAULT" />
+                <action android:name="android.intent.action.HOME" />
             </intent-filter>
         </activity>
-        <activity android:name=".Views.StartedApp.ProjectStartActivity">
+        <activity android:name=".Views.StartedApp.ProjectStartActivity"
+                  android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>

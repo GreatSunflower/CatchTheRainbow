@@ -106,10 +106,6 @@ public class AudioImporter implements Runnable
             BASS.BASS_CHANNELINFO info = new BASS.BASS_CHANNELINFO();
             BASS.BASS_ChannelGetInfo(handle, info);
 
-            /*this.mGlobalSampleRate = info.freq;
-            // number of channels
-            this.mGlobalChannels = info.chans;*/
-
             // make sure that project directory is created
             Helper.checkDirectory(SuperApplication.getAppDirectory());
             // path to decoded audio file
@@ -147,14 +143,14 @@ public class AudioImporter implements Runnable
 
                 totalBytesRead += bytesRead;
 
-                byte buffer[] = new byte[bufferSize/4];
+               /* byte buffer[] = new byte[bufferSize/4];
                 audioData.get(buffer);
 
                 ByteBuffer resBuff = ByteBuffer.allocate(bufferSize/2);//.wrap(buffer);
-                resBuff.put(buffer);
+                resBuff.put(buffer);*/
                 try
                 {
-                    clip.getSequence().append(resBuff, bytesRead);
+                    clip.getSequence().append(audioData, bytesRead/4);
                 }
                 catch (IOException e)
                 {

@@ -14,7 +14,9 @@ import java.util.ArrayList;
 public class WaveTrack implements Serializable
 {
     private ArrayList<Clip> clips = new ArrayList<>();
+
     private AudioInfo info = new AudioInfo(44100, 2);
+
     private float gain;
     private float pan;
     protected String name;
@@ -26,7 +28,7 @@ public class WaveTrack implements Serializable
         this.manager = manager;
     }
 
-    public boolean get(ByteBuffer buffer, int start, int len)
+    public int get(ByteBuffer buffer, int start, int len)
     {
         boolean doClear = true;
         for (final Clip clip: clips)
@@ -43,6 +45,7 @@ public class WaveTrack implements Serializable
             AudioHelper.clearSamples(buffer, 0, len, info);
         }
 
+        int bytesRead = 0;
         for (final Clip clip: clips)
         {
             int clipStart = clip.getStartSample();
@@ -66,16 +69,48 @@ public class WaveTrack implements Serializable
                     // startDelta is zero
                 }
 
-                clip.getSamples(buffer, inClipDelta, samplesToCopy);
+                bytesRead += clip.getSamples(buffer, inClipDelta, samplesToCopy);
                 //clip->GetSamples((samplePtr)(((char*)buffer) + startDelta.as_size_t() * SAMPLE_SIZE(format)), format, inclipDelta, samplesToCopy.as_size_t() )
             } // in the range
         } // for each clip
 
-        return true;
+        return bytesRead;
     }
 
     public void addClip(Clip clip)
     {
         clips.add(clip);
     }
+
+    // ------- Getters setters -------------
+    public ArrayList<Clip> getClips()
+    {
+        return clips;
+    }
+
+    public AudioInfo getInfo()
+    {
+        return info;
+    }
+
+    public float getGain()
+    {
+        return gain;
+    }
+
+    public void setGain(float gain)
+    {
+        this.gain = gain;
+    }
+
+    public float getPan()
+    {
+        return pan;
+    }
+
+    public void setPan(float pan)
+    {
+        this.pan = pan;
+    }
+
 }
