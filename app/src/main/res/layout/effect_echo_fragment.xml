@@ -19,7 +19,6 @@
 
             <!-- ///////////////////start ECHO/////////////////////-->
             <TextView
-                android:id="@+id/tvEcho"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
@@ -28,7 +27,14 @@
                 android:textAlignment="center"
                 android:textColor="@color/colorForeground"
                 android:textSize="18sp"/>
-
+            <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
+                android:id="@+id/_64db"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:tag="1"
+                app:current="0"
+                app:max="12"
+                app:min="-12"/>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

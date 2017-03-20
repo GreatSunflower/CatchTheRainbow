@@ -44,9 +44,11 @@ public class ListEffectsFragment extends BaseEffectFragment implements AdapterVi
         ArrayList<ItemEffect> items = new ArrayList<ItemEffect>();
         items.add(new ItemEffect(getResources().getString(R.string.echo), EchoEffectFragment.class));
         items.add(new ItemEffect(getResources().getString(R.string.flanger), FlangerEffectFragment.class));
+        items.add(new ItemEffect(getResources().getString(R.string.distortion), DistortionEffectFragment.class));
         items.add(new ItemEffect(getResources().getString(R.string.chorus), ChoruseEfectFragment.class));
         items.add(new ItemEffect(getResources().getString(R.string.reverb), ReverbEffectFragment.class));
         items.add(new ItemEffect(getResources().getString(R.string.phaser), PhaserEffectFragment.class));
+        items.add(new ItemEffect(getResources().getString(R.string.equalizer), EqualizerEffectFragment.class));
 
         // --------------------------------ADAPTER----------------------------------
         effectListView = (ListView) root.findViewById(R.id.lv_effects);

@@ -11,7 +11,7 @@
 
     <string name="audio_files_saved">Аудио файл сохранен в папку Music</string>
 
-    <string name="track_loaded_in_the_notification">Трек загружается в панели уведомлений.</string>
+    <string name="track_loaded_in_the_notification">Аудио загружается в панели уведомлений.</string>
     <string name="select_audio_files">Выберите аудио файлы!</string>
 
     <!-- Menu -->
@@ -71,6 +71,12 @@
     <string name="fdelay">Задержка</string>
     <string name="lphase">Задержка панорамирования</string>
 
+    <string name="effect_distortion">ИСКАЖЕНИЕ</string>
+    <string name="fgain">Gain</string>
+    <string name="fedge">Граница</string>
+    <string name="fpost_eq_center_frequency">Центральная частота пост эквалайзера</string>
+    <string name="fpost_eq_band_width">Пропуск полосы пропускания эквалайзера</string>
+    <string name="fpre_low_pass_cut_off">Отрезание переднего прохода</string>
 
     <string name="effect_chorus">ХОР</string>
     <string name="lPhase_chorus">Фаза</string>
@@ -96,6 +102,9 @@
     <string name="ffreq">Частота</string>
     <string name="lchannel">Канал</string>
 
+    <string name="effect_equalizer">"ЭКВАЛАЙЗЕР</string>
+
+    <string name="reset">Сбросить настройки</string>
 
     <string-array name="spinner_array">
         <item>TITLE</item>
@@ -109,9 +118,11 @@
 
     <string name="echo">Эхо</string>
     <string name="flanger">Флэнжер</string>
+    <string name="distortion">Искажение</string>
     <string name="chorus">Хор</string>
     <string name="reverb">Реверберация</string>
     <string name="phaser">Phaser</string>
+    <string name="equalizer">Эквалайзер</string>
 
 
 </resources>

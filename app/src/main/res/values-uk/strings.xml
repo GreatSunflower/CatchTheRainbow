@@ -11,8 +11,8 @@
 
     <string name="audio_files_saved">Аудіо файл збережений в папку Music</string>
 
-    <string name="track_loaded_in_the_notification">Трек завантажується в панелі повідомлень.</string>
-    <string name="select_audio_files">Виберіть аудіо файли!</string>
+    <string name="track_loaded_in_the_notification">Аудіо завантажується в панелі повідомлень.</string>
+    <string name="select_audio_files">Оберіть аудіо файли!</string>
 
     <!-- Menu -->
     <string name="menu_import">Імпорт пісень</string>
@@ -34,10 +34,10 @@
 
     <string name="conformation">Добре</string>
     <string name="cancel">Відміна</string>
-    <string name="error_select_a_project">Помилка! Виберіть проект.</string>
+    <string name="error_select_a_project">Помилка! Оберіть проект.</string>
     <string name="error_enter_name_project">Помилка! Введіть назву проекту.</string>
     <string name="error_fill_all_fields">Помилка! Заповніть всі поля.</string>
-    <string name="select_a_project">Виберіть проект</string>
+    <string name="select_a_project">Оберіть проект</string>
     <string name="new_project">Новий проект</string>
 
 
@@ -72,6 +72,14 @@
     <string name="lphase">Затримка панорамування</string>
 
 
+    <string name="effect_distortion">СПОТВОРЕННЯ</string>
+    <string name="fgain">Gain</string>
+    <string name="fedge">Край</string>
+    <string name="fpost_eq_center_frequency">Post EQ Центральна частота</string>
+    <string name="fpost_eq_band_width">Post EQ Пропускна здатність</string>
+    <string name="fpre_low_pass_cut_off">Попередньо низькочастотні відрізи</string>
+
+
     <string name="effect_chorus">ХОР</string>
     <string name="lPhase_chorus">Фаза</string>
 
@@ -96,6 +104,9 @@
     <string name="ffreq">Частота</string>
     <string name="lchannel">Канал</string>
 
+    <string name="effect_equalizer">ЕКВАЛАЙЗЕР</string>
+
+    <string name="reset">Скасувати налаштування</string>
 
     <string-array name="spinner_array">
         <item>TITLE</item>
@@ -109,9 +120,10 @@
 
     <string name="echo">Луна</string>
     <string name="flanger">Фленжер</string>
+    <string name="distortion">Спотворення</string>
     <string name="chorus">Хор</string>
     <string name="reverb">Відлуння</string>
     <string name="phaser">Фазообертач</string>
-
+    <string name="equalizer">Еквалайзер</string>
 
 </resources>

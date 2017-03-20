@@ -25,10 +25,10 @@ public class EchoEffectFragment extends BaseEffectFragment implements DetailedSe
 
     /////////////////////////////////////ECHO//////////////////////////////////////
 
-    DetailedSeekBar sb_echofLeftDelay, sb_echofRightDelay;
-    CircularSeekBar sb_echofWetDryMix, sb_echofFeedback;
-    Switch sw_echoIPanDelay;
-    private int echo;
+    private DetailedSeekBar sb_echofLeftDelay, sb_echofRightDelay;
+    private CircularSeekBar sb_echofWetDryMix, sb_echofFeedback;
+    private Switch sw_echoIPanDelay;
+    int echo;
     BASS.BASS_DX8_ECHO bass_dx8_echo;
 
     @Override

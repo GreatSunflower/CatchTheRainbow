@@ -520,7 +520,22 @@ public class CircularSeekBar extends View {
         int xPos = (int)(mPointerRadius - mPointerHaloWidth);
         int yPos = (int) (mPointerRadius - mPointerHaloWidth);
         //((textPaint.descent() + textPaint.ascent()) / 2) is the distance from the baseline to the center.
-        canvas.drawText(mProgress + "", xPos, yPos + 10, textPaint);
+        if(!flagValue) canvas.drawText(mProgress + "", xPos, yPos + 10, textPaint);
+        else
+        {
+            mProgress -= 200;
+            canvas.drawText(mProgress + "", xPos, yPos + 10, textPaint);
+        }
+    }
+
+    protected float minValue;
+    protected float maxValue;
+    protected boolean flagValue = false;
+    public void setMinMaxValue(float maxValue, float minValue)
+    {
+        this.minValue = minValue;
+        this.maxValue = maxValue;
+        flagValue = true;
     }
 
     /**

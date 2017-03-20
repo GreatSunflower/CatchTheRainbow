@@ -28,11 +28,20 @@
                 android:background="@color/backgroundListView"
                 android:layout_marginBottom="5dp"/>
 
-            <com.sunflower.catchtherainbow.Views.Helpful.NDSpinner
-                android:layout_height="match_parent"
-                android:id="@+id/spinnerlWaveform"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:textAlignment="textEnd"/>
+                android:layout_height="wrap_content"
+                android:background="@drawable/background_textview"
+                android:orientation="horizontal">
+
+                <com.sunflower.catchtherainbow.Views.Helpful.NDSpinner
+                    android:id="@+id/spinnerlWaveform"
+                    android:layout_width="match_parent"
+                    android:layout_height="43dp"
+                    android:layout_marginRight="5dp"/>
+
+            </LinearLayout>
+
 
             <TextView
                 android:text="@string/fwet_dry_mix"

@@ -8,45 +8,26 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.sunflower.catchtherainbow.R;
+import com.sunflower.catchtherainbow.Views.Helpful.CircularSeekBar;
+import com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar;
+import com.un4seen.bass.BASS;
 
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link DistortionEffectFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class DistortionEffectFragment extends Fragment
+public class DistortionEffectFragment extends BaseEffectFragment
+        implements DetailedSeekBar.OnSuperSeekBarListener
 {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-
     public DistortionEffectFragment()
     {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment DistortionEffectFragment.
-     */
-    // TODO: Rename and change types and number of parameters
     public static DistortionEffectFragment newInstance(String param1, String param2)
     {
         DistortionEffectFragment fragment = new DistortionEffectFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
         return fragment;
     }
 
@@ -54,19 +35,102 @@ public class DistortionEffectFragment extends Fragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null)
-        {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
+
+    //public static class BASS_DX8_DISTORTION {
+    private CircularSeekBar fEdge;
+    private DetailedSeekBar fPreLowpassCutoff, fGain, fPostEQCenterFrequency, fPostEQBandwidth;
+
+    private int distortion;
+    private BASS.BASS_DX8_DISTORTION bass_dx8_distortion;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.effect_distortion_fragment, container, false);
+        View root = inflater.inflate(R.layout.effect_distortion_fragment, container, false);
+
+        fEdge = (CircularSeekBar) root.findViewById(R.id.fEdge);
+        fPreLowpassCutoff = (DetailedSeekBar) root.findViewById(R.id.fPreLowpassCutoff);
+        fGain = (DetailedSeekBar) root.findViewById(R.id.fGain);
+        fPostEQCenterFrequency = (DetailedSeekBar) root.findViewById(R.id.fPostEQCenterFrequency);
+        fPostEQBandwidth = (DetailedSeekBar) root.findViewById(R.id.fPostEQBandwidth);
+
+        fEdge.setOnSeekBarChangeListener(new CircleSeekBarListener());
+        fPreLowpassCutoff.setListener(this);
+        fGain.setListener(this);
+        fPostEQCenterFrequency.setListener(this);
+        fPostEQBandwidth.setListener(this);
+
+        return root;
     }
 
+    public void setEffect()
+    {
+        distortion = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_DISTORTION, 0);
+        bass_dx8_distortion = new BASS.BASS_DX8_DISTORTION();
+        BASS.BASS_FXSetParameters(distortion, bass_dx8_distortion);
+    }
+
+    public class CircleSeekBarListener implements CircularSeekBar.OnCircularSeekBarChangeListener
+    {
+        @Override
+        public void onProgressChanged(CircularSeekBar circularSeekBar, int progress, boolean fromUser)
+        {
+            int id = circularSeekBar.getId();
+            if(id == R.id.fEdge)
+            {
+                bass_dx8_distortion.fEdge = (float) progress;
+                BASS.BASS_FXSetParameters(distortion, bass_dx8_distortion);
+            }
+        }
+
+        @Override
+        public void onStopTrackingTouch(CircularSeekBar seekBar)
+        {
+
+        }
+
+        @Override
+        public void onStartTrackingTouch(CircularSeekBar seekBar)
+        {
+
+        }
+    }
+
+    public boolean cancel() //при закрытии окна
+    {
+        BASS.BASS_ChannelRemoveFX(chan, distortion);
+        return true;
+    }
+
+    @Override
+    public void onChange(DetailedSeekBar seekBar, float selectedValue)
+    {
+        double res = (double)selectedValue;
+
+        int id = seekBar.getId();
+
+        if(id ==  R.id.fPreLowpassCutoff)
+        {
+            bass_dx8_distortion.fPreLowpassCutoff = (float) res;
+            BASS.BASS_FXSetParameters(distortion, bass_dx8_distortion);
+        }
+        else if(id ==  R.id.fGain)
+        {
+            bass_dx8_distortion.fGain = (float) res;
+            BASS.BASS_FXSetParameters(distortion, bass_dx8_distortion);
+        }
+        else if(id ==  R.id.fPostEQCenterFrequency)
+        {
+            bass_dx8_distortion.fPostEQCenterFrequency = (float) res;
+            BASS.BASS_FXSetParameters(distortion, bass_dx8_distortion);
+        }
+        else if(id ==  R.id.fPostEQBandwidth)
+        {
+            bass_dx8_distortion.fPostEQBandwidth = (float) res;
+            BASS.BASS_FXSetParameters(distortion, bass_dx8_distortion);
+        }
+    }
 }

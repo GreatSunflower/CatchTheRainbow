@@ -11,7 +11,7 @@
 
     <string name="audio_files_saved">Audio file saved in the Music folder</string>
 
-    <string name="track_loaded_in_the_notification">The track loaded in the notification.</string>
+    <string name="track_loaded_in_the_notification">Audio loaded in the notification.</string>
     <string name="select_audio_files">Select the audio files!</string>
 
     <!-- Menu -->
@@ -78,6 +78,14 @@
     <string name="lphase">Pan Delay</string>
 
 
+    <string name="effect_distortion">DISTORTION</string>
+    <string name="fgain">Gain</string>
+    <string name="fedge">Edge</string>
+    <string name="fpost_eq_center_frequency">Post EQ Center Frequency</string>
+    <string name="fpost_eq_band_width">Post EQ Bandwidth</string>
+    <string name="fpre_low_pass_cut_off">Pre Low pass Cut off</string>
+
+
     <string name="effect_chorus">CHORUS</string>
     <string name="lPhase_chorus">Phase</string>
 
@@ -102,6 +110,9 @@
     <string name="ffreq">Freq</string>
     <string name="lchannel">Channel</string>
 
+    <string name="effect_equalizer">EQUALIZER</string>
+
+    <string name="reset">Reset</string>
 
     <string-array name="spinner_array">
         <item>TITLE</item>
@@ -116,9 +127,11 @@
 
     <string name="echo">Echo</string>
     <string name="flanger">Flanger</string>
+    <string name="distortion">Distortion</string>
     <string name="chorus">Chorus</string>
     <string name="reverb">Reverb</string>
     <string name="phaser">Phaser</string>
+    <string name="equalizer">Equalizer</string>
 
 
 </resources>
