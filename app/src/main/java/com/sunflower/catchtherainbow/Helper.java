@@ -11,6 +11,11 @@ import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 
@@ -297,5 +302,30 @@ public class Helper
         }
 
         fileOrDirectory.delete();
+    }
+
+    // Universal method for creating dialog fragments
+    private DialogFragment createNewDialog(AppCompatActivity context, int fragmentId, Class<? extends DialogFragment> fragmentClass, boolean showImmediately)
+    {
+        FragmentTransaction ft = context.getSupportFragmentManager().beginTransaction();
+        Fragment prev = context.getSupportFragmentManager().findFragmentById(fragmentId);
+        if (prev != null)
+        {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        // Create and show the dialog.
+        DialogFragment newFragment = null;
+        try
+        {
+            newFragment = fragmentClass.newInstance();
+            if (showImmediately) newFragment.show(ft, "Effects dialog");
+            return newFragment;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

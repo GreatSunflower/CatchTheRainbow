@@ -34,9 +34,26 @@ public class Clip implements Serializable
         return sequence.append(buffer, len);
     }
 
+    double getStartTime()
+    {
+        // offset is the minimum value and it is returned; no clipping to 0
+        return offset;
+    }
+
+    double getEndTime()
+    {
+        int numSamples = sequence.samplesCount;
+
+        double maxLen = offset + (numSamples)/info.sampleRate/info.channels;
+        // calculated value is not the length;
+        // it is a maximum value and can be negative; no clipping to 0
+
+        return maxLen;
+    }
+
     public int getStartSample()
     {
-        return (int)Math.floor(offset * info.sampleRate + 0.5);
+        return (int)Math.floor(offset * info.sampleRate * info.channels + 0.5);
     }
 
     public int getEndSample()

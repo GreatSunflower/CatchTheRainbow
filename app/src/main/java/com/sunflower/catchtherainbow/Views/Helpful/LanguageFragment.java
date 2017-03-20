@@ -1,14 +1,17 @@
 package com.sunflower.catchtherainbow.Views.Helpful;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.sunflower.catchtherainbow.Adapters.EnamLanguages;
+import com.sunflower.catchtherainbow.Adapters.SupportedLanguages;
 import com.sunflower.catchtherainbow.Adapters.LanguageAdapter;
 import com.sunflower.catchtherainbow.ProjectActivity;
 import com.sunflower.catchtherainbow.R;
@@ -57,7 +60,7 @@ public class LanguageFragment extends DialogFragment implements AdapterView.OnIt
 
     private ListView listView;
     private LanguageAdapter adapter;
-    ArrayList<EnamLanguages> languages =null;
+    ArrayList<SupportedLanguages> languages =null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -66,25 +69,28 @@ public class LanguageFragment extends DialogFragment implements AdapterView.OnIt
         // Inflate the layout for this fragment
         View resView = inflater.inflate(R.layout.language_fragment, container, false);
 
-        languages = new ArrayList<EnamLanguages>();
-        languages.add(EnamLanguages.English);
-        languages.add(EnamLanguages.Українська);
-        languages.add(EnamLanguages.Русский);
+        languages = new ArrayList<SupportedLanguages>();
+        languages.add(SupportedLanguages.English);
+        languages.add(SupportedLanguages.Українська);
+        languages.add(SupportedLanguages.Русский);
         listView = (ListView) resView.findViewById(R.id.listViewLanguage);
         // ”казать xml-файл с шаблоном пункта
         adapter = new LanguageAdapter(getContext(), R.layout.language_fragment, languages);
-        adapter.setCurrentLanguage(EnamLanguages.valueOf(mlanguage));
+        adapter.setCurrentLanguage(SupportedLanguages.valueOf(mlanguage));
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         listView.setAdapter(adapter);
 
         listView.setOnItemClickListener(this);
+
+        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         return resView;
     }
 
     public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3)
     {
-        EnamLanguages item = adapter.getlanguages().get(position);
+        SupportedLanguages item = adapter.getlanguages().get(position);
         if(adapter.getCurrentLanguage().equals(item))  dismiss();
         adapter.setCurrentLanguage(item);
         projectActivity.setLanguage(item);

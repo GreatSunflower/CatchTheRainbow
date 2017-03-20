@@ -14,14 +14,14 @@ import com.sunflower.catchtherainbow.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LanguageAdapter extends ArrayAdapter<EnamLanguages>
+public class LanguageAdapter extends ArrayAdapter<SupportedLanguages>
 {
     Context context;
-    private ArrayList<EnamLanguages> languages;
-    private EnamLanguages currentLanguage = EnamLanguages.English;
+    private ArrayList<SupportedLanguages> languages;
+    private SupportedLanguages currentLanguage = SupportedLanguages.English;
     int res;
 
-    public LanguageAdapter(Context context, int resource, ArrayList<EnamLanguages> languages)
+    public LanguageAdapter(Context context, int resource, ArrayList<SupportedLanguages> languages)
     {
         super(context, resource, languages);
         this.context = context;
@@ -29,18 +29,18 @@ public class LanguageAdapter extends ArrayAdapter<EnamLanguages>
         this.languages = languages;
     }
 
-    public void setCurrentLanguage(EnamLanguages currentLanguage)
+    public void setCurrentLanguage(SupportedLanguages currentLanguage)
     {
         this.currentLanguage = currentLanguage;
         notifyDataSetChanged();
     }
 
-    public EnamLanguages getCurrentLanguage()
+    public SupportedLanguages getCurrentLanguage()
     {
         return currentLanguage;
     }
 
-    public List<EnamLanguages> getlanguages()
+    public List<SupportedLanguages> getlanguages()
     {
         return languages;
     }
@@ -48,7 +48,7 @@ public class LanguageAdapter extends ArrayAdapter<EnamLanguages>
     @Override
     public View getView(int position, View convertView, ViewGroup parent)
     {
-        EnamLanguages language = getItem(position);
+        SupportedLanguages language = getItem(position);
 
         if(convertView==null)
         {
@@ -68,9 +68,9 @@ public class LanguageAdapter extends ArrayAdapter<EnamLanguages>
         ImageView tvImage = (ImageView)convertView.findViewById(R.id.im_language);
         Drawable dr = null;
 
-        if(language.equals(EnamLanguages.English)) dr = context.getResources().getDrawable(R.drawable.flag_of_the_united_kingdom);
-        if(language.equals(EnamLanguages.Українська)) dr = context.getResources().getDrawable(R.drawable.flag_of_ukraine);
-        if(language.equals(EnamLanguages.Русский)) dr = context.getResources().getDrawable(R.drawable.flag_of_russia);
+        if(language.equals(SupportedLanguages.English)) dr = context.getResources().getDrawable(R.drawable.flag_of_the_united_kingdom);
+        if(language.equals(SupportedLanguages.Українська)) dr = context.getResources().getDrawable(R.drawable.flag_of_ukraine);
+        if(language.equals(SupportedLanguages.Русский)) dr = context.getResources().getDrawable(R.drawable.flag_of_russia);
 
             tvImage.setImageDrawable(dr);
         return convertView;

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group
+        android:id="@+id/group_one"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_import"
             android:icon="@drawable/ic_import_song"
@@ -16,13 +18,12 @@
             android:title="@string/menu_language"/>
     </group>
 
-    <item android:title="Communicate">
-        <menu>
-            <item
-                android:id="@+id/nav_close"
-                android:icon="@drawable/ic_close_project"
-                android:title="@string/menu_close"/>
-        </menu>
-    </item>
-
+    <group
+        android:id="@+id/group_three"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_close"
+            android:icon="@drawable/ic_close_project"
+            android:title="@string/menu_close"/>
+    </group>
 </menu>

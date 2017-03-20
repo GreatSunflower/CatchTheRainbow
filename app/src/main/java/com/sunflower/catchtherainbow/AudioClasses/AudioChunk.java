@@ -93,7 +93,7 @@ public class AudioChunk implements Serializable
             outputStream.writeFloat(shortBuffer[i]);*/
        // fileChannel.write(buffer);
 
-        byte[]res = new byte[samplesLen];
+        byte[]res = new byte[samplesLen*audioInfo.format.sampleSize];
         buffer.get(res);
 
         // write sample data
@@ -133,9 +133,9 @@ public class AudioChunk implements Serializable
 
             int read = 0;
 
-            objectInputStream.skipBytes(start);
+            objectInputStream.skipBytes(start * sampleSize);
            // read = (int) fileChannel.read(new ByteBuffer[]{buffer}, start, length);
-            while (read < length)
+            while (read < length * sampleSize)
             {
                 if(objectInputStream.available() == 0)
                     break;
@@ -148,7 +148,6 @@ public class AudioChunk implements Serializable
                     read += 4;
                 }
             }
-
             /*objectInputStream.skipBytes(start);
             for (int i = 0; i < length; i++)
             {
@@ -173,7 +172,7 @@ public class AudioChunk implements Serializable
             Date endDate = new Date();
             long difference = endDate.getTime() - startDate.getTime();
 
-            Log.e("TIME", difference+"" + ", Read: " + read + ", Needed: " + length);
+            Log.e("TIME", difference+"" + ", Read: " + (read/sampleSize) + ", Needed: " + length);
 
             return read;
         }

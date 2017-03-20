@@ -61,8 +61,8 @@ public class AudioSequence implements Serializable
         this.fileManager = manager;
         this.info = info;
 
-        minSamples = maxChunkSize / info.format.sampleSize * 2;
-        maxSamples = minSamples * 2;
+        minSamples = maxChunkSize / info.format.sampleSize;
+        maxSamples = minSamples;
     }
 
     // adds samples to the end
@@ -192,9 +192,9 @@ public class AudioSequence implements Serializable
         //ByteBuffer fff= ByteBuffer.allocateDirect(66);
         //buffer.put(b);
 
-        if (res != len)
+        if (res/info.format.sampleSize != len)
         {
-            Log.e(LOG_TAG, "Expected to read " + len + " bytes. Read: " + res);
+            Log.e(LOG_TAG, "Expected to read " + len + " bytes. Read: " + (res/info.format.sampleSize));
         }
 
         return res;

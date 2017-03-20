@@ -36,15 +36,16 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.RemoteViews;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sunflower.catchtherainbow.Adapters.EnamLanguages;
+import com.sunflower.catchtherainbow.Adapters.SupportedLanguages;
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
 import com.sunflower.catchtherainbow.AudioClasses.AudioImporter;
+import com.sunflower.catchtherainbow.AudioClasses.BasePlayer;
 import com.sunflower.catchtherainbow.AudioClasses.Clip;
 import com.sunflower.catchtherainbow.AudioClasses.Project;
-import com.sunflower.catchtherainbow.AudioClasses.SuperAudioPlayer;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment.OnFragmentInteractionListener;
@@ -55,11 +56,8 @@ import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.ExportSongFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.LanguageFragment;
 import com.sunflower.catchtherainbow.Views.StartedApp.ProjectStartActivity;
-import com.un4seen.bass.BASS;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Queue;
@@ -87,7 +85,7 @@ public class ProjectActivity extends AppCompatActivity
     private Handler statusHandler = new Handler();
 
     // temp
-    private boolean isPlaying = false, isDragging = false;
+    private boolean isDragging = false;
     private AudioIO player;
 
     private Project project;
@@ -98,38 +96,44 @@ public class ProjectActivity extends AppCompatActivity
         this.currentProject = currentProject;
     }
 
+  /*  @Override
+    protected void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_project);
+    }*/
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-        // Reading with SharedPreferences object favorit language
         super.onCreate(savedInstanceState);
+
         SharedPreferences shared = getSharedPreferences("info",MODE_PRIVATE);
         //Using getXXX- with XX is type date you wrote to file "name_file"
         String language = "English";
         if(shared != null) language = shared.getString("language", "English");
-        currentLanguage = EnamLanguages.valueOf(language);
+        currentLanguage = SupportedLanguages.valueOf(language);
+
         setContentView(R.layout.activity_project);
-    }
 
-    @Override
-    protected void onStart()
-    {
-        super.onStart();
-
-
-        //currentLanguage = EnamLanguages.English;
+        //currentLanguage = SupportedLanguages.English;
 
         // TEMP. Clears project directory on loading------------------------------------------------
         //Helper.createOrRecreateDir(SuperApplication.getAppDirectory());
 
         ////////////////////////////////////////////////////permissions//////////////////////////
-        int PERMISSION_ALL = 1;
-        String[] PERMISSIONS = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAPTURE_AUDIO_OUTPUT,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.MEDIA_CONTENT_CONTROL};
-
-        if (!hasPermissions(this, PERMISSIONS))
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT)
         {
-            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
+            int PERMISSION_ALL = 1;
+            String[] PERMISSIONS = new String[0];
+
+            PERMISSIONS = new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.CAPTURE_AUDIO_OUTPUT,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.MEDIA_CONTENT_CONTROL};
+
+            if (!hasPermissions(this, PERMISSIONS))
+            {
+                ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
+            }
         }
         //////////////////////////////////////////////////////////end permissions///////////////////////
 
@@ -207,53 +211,8 @@ public class ProjectActivity extends AppCompatActivity
         });
 
         // play stop handler
-        playStopButt.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                if (!isPlaying)
-                {
-                    try
-                    {
-                        isPlaying = true;
-                        playStopButt.setImageResource(R.drawable.ic_pause);
-                        player.playPause(true);
-                    }
-                    catch (Exception e)
-                    {
-                        Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        player.playPause(false);
-                        isPlaying = false;
-                        playStopButt.setImageResource(R.drawable.ic_play);
-                    }
-                    catch (Exception e)
-                    {
-                        Toast.makeText(ProjectActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
+        playStopButt.setOnClickListener(this);
         // -----------------------------------------------
-
-        // creates tracks fragment
-        tracksFragment = MainAreaFragment.newInstance("");
-        tracksFragment.setGlobalPlayer(player);
-
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainAreaContainer, tracksFragment)
-                .commit();
-
-        // force to create views
-        getSupportFragmentManager().executePendingTransactions();
 
         Intent intent = getIntent();
         String nameProject = intent.getStringExtra("nameProject");
@@ -271,33 +230,25 @@ public class ProjectActivity extends AppCompatActivity
             {
                 e.printStackTrace();
                 finish();
+                return;
             }
         }
         // ----------------------------- finish handling project----------------------------
 
+        // creates tracks fragment
+        tracksFragment = MainAreaFragment.newInstance(project);
+        tracksFragment.setGlobalPlayer(player);
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.mainAreaContainer, tracksFragment)
+                .commit();
+
+        // force to create views
+        getSupportFragmentManager().executePendingTransactions();
+
         // --------------------------------------AUDIO STUFF-------------------------------------------------
         player = new AudioIO(this, project);
-
-        player.addPlayerListener(new SuperAudioPlayer.AudioPlayerListener()
-        {
-            @Override
-            public void onInitialized(int totalTime/*final File file*/)
-            {
-                progressView.setMax(totalTime);
-                progressView.setCurrent(0);
-                /*MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-                mmr.setDataSource(file.getAbsolutePath());
-                String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-                String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                audioInfo.setText(artist + " - " + album + " - " + title);
-                mmr.release();*/
-                //waveFormViewContainer.setSoundFile(CheapSoundFile.create(file.getAbsolutePath(), null));
-                //waveFormViewContainer.invalidate();
-            }
-            @Override
-            public void onCompleted(){}
-        });
+        player.addPlayerListener(playerListener);
         // player
 
         // timer to update the display
@@ -305,9 +256,9 @@ public class ProjectActivity extends AppCompatActivity
         {
             public void run()
             {
-                if (!isDragging && player.isPlaying()) progressView.setCurrent(player.getProgress());
+                if (!isDragging && player.isInitialized()) progressView.setCurrent((float) player.getProgress());
 
-                int bufferSize = 1024;
+                /*int bufferSize = 1024;
                 ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize*4);
                 audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
                 BASS.BASS_ChannelGetData(player.getChannelHandle(), audioData, bufferSize*4);
@@ -320,7 +271,7 @@ public class ProjectActivity extends AppCompatActivity
                     res[i] = pcm[i];
 
                 // pass new data
-                visualizerView.updateVisualizer(res);
+                visualizerView.updateVisualizer(res);*/
 
                 statusHandler.postDelayed(this, 50);
             }
@@ -329,10 +280,11 @@ public class ProjectActivity extends AppCompatActivity
     }
 
     Runnable updateTimer;
+
     @Override
     protected void onStop()
     {
-       // if(player != null)
+        if(player != null)
             player.stop();
         statusHandler.removeCallbacks(updateTimer);
         super.onStop();
@@ -343,13 +295,19 @@ public class ProjectActivity extends AppCompatActivity
     {
         switch (v.getId())
         {
+            case R.id.Sacha:
+            {
+                if(player.isPlaying()) player.pause();
+                else player.play();
+                break;
+            }
             case R.id.playNext:
             {
                 if (player != null)
                 {
                     try
                     {
-                        player.playNext();
+                       // player.playNext();
                     }
                     catch (Exception ex)
                     {
@@ -364,7 +322,7 @@ public class ProjectActivity extends AppCompatActivity
                 {
                     try
                     {
-                        player.playPrev();
+                        //player.playPrev();
                     }
                     catch (Exception ex)
                     {
@@ -379,11 +337,11 @@ public class ProjectActivity extends AppCompatActivity
     @Override
     public void onDestroy()
     {
-       // if(player != null)
-            player.disposePlayer();
+        if(player != null)
+            player.eject();
         statusHandler.removeCallbacks(updateTimer);
 
-        project.setListener(null);
+        project.removeListener(projectListener);
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         // remove the notification in case it's there
@@ -440,7 +398,7 @@ public class ProjectActivity extends AppCompatActivity
             //effectsFragment.setEffects(delayEffect, rateTransposer, flangerEffect);
 
             EffectsHostFragment hostFragment = EffectsHostFragment.newInstance();
-            hostFragment.setChannel(player.getChannelHandle());
+           // hostFragment.setChannel(tracksFragment.getSelectedTrack());
             hostFragment.show(ft, "Effects dialog");
 
             return true;
@@ -449,32 +407,7 @@ public class ProjectActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    // Universal method for creating dialog fragments
-    private DialogFragment createNewDialog(int fragmentId, Class<? extends DialogFragment> fragmentClass, boolean showImmediately)
-    {
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        Fragment prev = getSupportFragmentManager().findFragmentById(fragmentId);
-        if (prev != null)
-        {
-            ft.remove(prev);
-        }
-        ft.addToBackStack(null);
-        // Create and show the dialog.
-        DialogFragment newFragment = null;
-        try
-        {
-            newFragment = fragmentClass.newInstance();
-            if (showImmediately) newFragment.show(ft, "Effects dialog");
-            return newFragment;
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    EnamLanguages currentLanguage;
+    SupportedLanguages currentLanguage;
     DrawerLayout drawer;
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -533,12 +466,12 @@ public class ProjectActivity extends AppCompatActivity
         super.onConfigurationChanged(newConfig);
     }
 
-    public void setLanguage(EnamLanguages enamLanguag)
+    public void setLanguage(SupportedLanguages language)
     {
-        currentLanguage = enamLanguag;
+        currentLanguage = language;
         Locale locale = new Locale("en");
-        if(enamLanguag.equals(EnamLanguages.Русский)) locale = new Locale("ru");
-        if(enamLanguag.equals(EnamLanguages.Українська)) locale = new Locale("uk");
+        if(language.equals(SupportedLanguages.Русский)) locale = new Locale("ru");
+        if(language.equals(SupportedLanguages.Українська)) locale = new Locale("uk");
         Locale.setDefault(locale);
         Configuration configuration = new Configuration();
         configuration.locale = locale;
@@ -567,27 +500,66 @@ public class ProjectActivity extends AppCompatActivity
         startActivity(intent);
     }
 
+    BasePlayer.AudioPlayerListener playerListener = new BasePlayer.AudioPlayerListener()
+    {
+        @Override
+        public void onInitialized(float totalTime/*final File file*/)
+        {
+            progressView.setMax(totalTime);
+            progressView.setCurrent(0);
+                /*MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                mmr.setDataSource(file.getAbsolutePath());
+                String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+                String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                audioInfo.setText(artist + " - " + album + " - " + title);
+                mmr.release();*/
+            //waveFormViewContainer.setSoundFile(CheapSoundFile.create(file.getAbsolutePath(), null));
+            //waveFormViewContainer.invalidate();
+        }
+
+        @Override
+        public void onPlay()
+        {
+            playStopButt.setImageResource(R.drawable.ic_pause);
+        }
+
+        @Override
+        public void onPause()
+        {
+            playStopButt.setImageResource(R.drawable.ic_play);
+        }
+
+        @Override
+        public void onCompleted()
+        {
+            progressView.setCurrent(0);
+            playStopButt.setImageResource(R.drawable.ic_play);
+        }
+    };
 
     private Project.ProjectListener projectListener = new Project.ProjectListener()
     {
         @Override
         public void onCreate(Project project)
         {
-            tracksFragment.clearTracks();
-            for(WaveTrack track: project.getTracks())
-            {
-                tracksFragment.addTrack(track, 400, 250);
-            }
         }
 
         @Override
         public void onUpdate(Project project)
         {
-            tracksFragment.clearTracks();
-            for(WaveTrack track: project.getTracks())
-            {
-                tracksFragment.addTrack(track, 400, 250);
-            }
+        }
+
+        @Override
+        public void onTrackRemoved(Project project, WaveTrack track)
+        {
+            player.reinitialize();
+        }
+
+        @Override
+        public void onTrackAdded(Project project, WaveTrack track)
+        {
+            player.reinitialize();
         }
 
         @Override
@@ -602,6 +574,8 @@ public class ProjectActivity extends AppCompatActivity
     @Override
     public void onOk(ArrayList<AudioFile> selectedAudioFiles)
     {
+        if(selectedAudioFiles.size() == 0) return;
+
         AudioImporter importer = AudioImporter.getInstance();
         importer.setProject(project);
         importer.setListener(importerListener);
@@ -621,8 +595,14 @@ public class ProjectActivity extends AppCompatActivity
 
         Toast toast = Toast.makeText(ProjectActivity.this, R.string.track_loaded_in_the_notification, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.getView().setBackgroundResource(R.drawable.background_fragment);
+        TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
+        if( v != null) v.setGravity(Gravity.CENTER);
         toast.show();
     }
+
+    @Override
+    public void onCancel(){}
 
     private AudioImporter.AudioImporterListener importerListener = new AudioImporter.AudioImporterListener()
     {
@@ -657,11 +637,13 @@ public class ProjectActivity extends AppCompatActivity
             PendingIntent pIntent = PendingIntent.getActivity(ProjectActivity.this, 0, activityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             builder.setContentIntent(pIntent);
 
-
             Notification notification = builder.build();
             notification.flags |= Notification.FLAG_NO_CLEAR;
             notification.defaults |= Notification.DEFAULT_LIGHTS;
             notificationManager.notify(notificationId, notification);
+
+            // tip
+            //Toast.makeText(ProjectActivity.this, R.string.import_notification, Toast.LENGTH_LONG).show();
         }
 
         @Override
@@ -712,23 +694,10 @@ public class ProjectActivity extends AppCompatActivity
             // remove listener
             AudioImporter.getInstance().setListener(null);
 
-            try
-            {
-                player.open("", true);
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
+            player.initialize();
         }
     };
 
-
-    @Override
-    public void onCancel()
-    {
-
-    }
 
     // ---------------------------------Effects Host LISTENER INTERFACE----------------------------------
 

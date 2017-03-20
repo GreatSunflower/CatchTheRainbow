@@ -14,13 +14,13 @@ import java.util.ArrayList;
  * Created by SuperComputer on 2/19/2017.
  */
 
-public class SuperAudioPlayer
+public class SuperAudioPlayer extends BasePlayer
 {
     protected int channelHandle;
 
-    protected Activity context;
-
     protected boolean isPlaying = false;
+
+    private Activity activity;
 
     protected int sampleRate = 44100;
     protected int channels = 2;
@@ -28,20 +28,9 @@ public class SuperAudioPlayer
 
     public SuperAudioPlayer(Activity context)
     {
-        this.context = context;
+        super(context);
+        this.activity = context;
 
-        // !!!-----Load plugins-----!!!
-        ApplicationInfo info = context.getApplicationInfo();
-        if(info != null)
-        {
-            String path = info.nativeLibraryDir;
-            String[] list = new File(path).list();
-            for (String s: list)
-            {
-                BASS.BASS_PluginLoad(path+"/"+s, 0);
-            }
-        }
-        // plugins end
 
        // BASS.BASS_Init(-1, sampleRate, 0);
       //  BASS.BASS_SetConfig(BASS.BASS_CONFIG_FLOATDSP, 32);
@@ -53,7 +42,7 @@ public class SuperAudioPlayer
         public void SYNCPROC(int handle, int channel, int data, Object user)
         {
             isPlaying = false;
-            for(AudioPlayerListener listener: audioPlayerListeners)
+            for(BasePlayer.AudioPlayerListener listener: audioPlayerListeners)
             {
                 listener.onCompleted();
             }
@@ -93,7 +82,7 @@ public class SuperAudioPlayer
         long bytes = BASS.BASS_ChannelGetLength(channelHandle, BASS.BASS_POS_BYTE);
         int totalTime = (int)BASS.BASS_ChannelBytes2Seconds(channelHandle, bytes);
 
-        for(AudioPlayerListener listener: audioPlayerListeners)
+        for(BasePlayer.AudioPlayerListener listener: audioPlayerListeners)
         {
             listener.onInitialized(totalTime);
         }
@@ -120,13 +109,13 @@ public class SuperAudioPlayer
 
         channelHandle = 0;
     }
-    public int getProgress()
+    public double getProgress()
     {
         double position = BASS.BASS_ChannelBytes2Seconds(channelHandle, BASS.BASS_ChannelGetPosition(channelHandle, BASS.BASS_POS_BYTE));
-        return (int) position;
+        return position;
     }
 
-    public int getDuration()
+    public double getDuration()
     {
         long len = BASS.BASS_ChannelGetLength(channelHandle, BASS.BASS_POS_BYTE);
 
@@ -158,7 +147,7 @@ public class SuperAudioPlayer
         return isPlaying == BASS.BASS_ACTIVE_PLAYING;
     }
 
-    public int getPercentage()
+    public double getPercentage()
     {
         if(getDuration() == 0)
             return 0;
@@ -169,7 +158,7 @@ public class SuperAudioPlayer
 
     public void onAudioLoaded(final int duration)
     {
-        context.runOnUiThread(new Runnable()
+        activity.runOnUiThread(new Runnable()
         {
             @Override
             public void run()
@@ -181,7 +170,7 @@ public class SuperAudioPlayer
 
     public void onLoadError()
     {
-        context.runOnUiThread(new Runnable()
+        activity.runOnUiThread(new Runnable()
         {
             @Override
             public void run()
@@ -270,33 +259,5 @@ public class SuperAudioPlayer
         return audioFiles;
     }
 
-
-    // Player Listeners
-    protected ArrayList<AudioPlayerListener> audioPlayerListeners = new ArrayList<>();
-
-    public void addPlayerListener(AudioPlayerListener listener)
-    {
-        audioPlayerListeners.add(listener);
-    }
-    public void removePayerListener(AudioPlayerListener listener)
-    {
-        audioPlayerListeners.remove(listener);
-    }
-
-    public ArrayList<AudioPlayerListener> getAudioPlayerListeners()
-    {
-        return audioPlayerListeners;
-    }
-
-    public int getChannelHandle()
-    {
-        return channelHandle;
-    }
-
-    public interface AudioPlayerListener
-    {
-        void onInitialized(int totalTime);
-        void onCompleted();
-    }
 
 }

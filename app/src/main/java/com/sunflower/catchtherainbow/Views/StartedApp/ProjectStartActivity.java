@@ -9,7 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.sunflower.catchtherainbow.Adapters.EnamLanguages;
+import com.sunflower.catchtherainbow.Adapters.SupportedLanguages;
 import com.sunflower.catchtherainbow.Adapters.StartProjectPagerAdapter;
 import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.R;
@@ -23,11 +23,11 @@ public class ProjectStartActivity extends AppCompatActivity
     private ViewPager viewPager;
     private StartProjectPagerAdapter pagerAdapter;
 
-    public void setLanguage(EnamLanguages enamLanguag)
+    public void setLanguage(SupportedLanguages enamLanguag)
     {
         Locale locale = new Locale("en");
-        if(enamLanguag.equals(EnamLanguages.Русский)) locale = new Locale("ru");
-        if(enamLanguag.equals(EnamLanguages.Українська)) locale = new Locale("uk");
+        if(enamLanguag.equals(SupportedLanguages.Русский)) locale = new Locale("ru");
+        if(enamLanguag.equals(SupportedLanguages.Українська)) locale = new Locale("uk");
         Locale.setDefault(locale);
         Configuration configuration = new Configuration();
         configuration.locale = locale;
@@ -45,7 +45,7 @@ public class ProjectStartActivity extends AppCompatActivity
         //Using getXXX- with XX is type date you wrote to file "name_file"
         String language = "English";
         if(shared != null) language = shared.getString("language", "English");
-        setLanguage(EnamLanguages.valueOf(language));
+        setLanguage(SupportedLanguages.valueOf(language));
 
         setContentView(R.layout.activity_project_start);
 

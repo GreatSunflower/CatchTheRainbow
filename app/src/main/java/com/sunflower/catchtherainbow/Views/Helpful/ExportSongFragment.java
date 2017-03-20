@@ -1,11 +1,14 @@
 package com.sunflower.catchtherainbow.Views.Helpful;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -62,6 +65,10 @@ public class ExportSongFragment extends DialogFragment implements View.OnClickLi
         bCancel = (Button)resView.findViewById(R.id.bCancel);
         bOk.setOnClickListener(this);
         bCancel.setOnClickListener(this);
+
+        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+
         return  resView;
     }
 

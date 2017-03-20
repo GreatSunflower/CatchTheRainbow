@@ -20,7 +20,7 @@ public class Project implements Serializable
 {
     private String name;
 
-    private ProjectListener listener;
+    private transient ArrayList<ProjectListener> listeners = new ArrayList<>();
 
     private ArrayList<WaveTrack> tracks = new ArrayList<>();
 
@@ -32,7 +32,7 @@ public class Project implements Serializable
     private Project(String name, ProjectListener listener)
     {
         this.name = name;
-        this.listener = listener;
+        listeners.add(listener);
     }
 
     public String getName()
@@ -89,7 +89,10 @@ public class Project implements Serializable
         // close the steam
         objectInputStreamStream.close();
 
-        Helper.createOrRecreateDir(project.getSamplesDirectory());
+        Helper.checkDirectory(project.getSamplesDirectory());
+
+        for(WaveTrack track: project.tracks)
+            track.addListener(project.trackListener);
 
         // notify listener
         if(listener != null)
@@ -150,29 +153,36 @@ public class Project implements Serializable
     {
         tracks.add(track);
 
+        track.addListener(trackListener);
+
         updateProjectFile();
 
-        if(listener != null)
-            listener.onUpdate(this);
+        for(ProjectListener listener: listeners)
+            listener.onTrackAdded(this, track);
     }
 
     public void removeTrack(WaveTrack track)
     {
+        track.removeListener(trackListener);
+
         tracks.remove(track);
 
         updateProjectFile();
 
-        if(listener != null)
-            listener.onUpdate(this);
+        for(ProjectListener listener: listeners)
+            listener.onTrackRemoved(this, track);
     }
 
     public void clearTracks()
     {
+        for(WaveTrack track: tracks)
+            track.removeListener(trackListener);
+
         tracks.clear();
 
         updateProjectFile();
 
-        if(listener != null)
+        for(ProjectListener listener: listeners)
             listener.onUpdate(this);
     }
 
@@ -183,15 +193,30 @@ public class Project implements Serializable
 
     // ----- Tracks-End------
 
-    // ----- Listener -------
-    public ProjectListener getListener()
+    private WaveTrack.WaveTrackListener trackListener = new WaveTrack.WaveTrackListener()
     {
-        return listener;
+        @Override
+        public void onPropertyUpdated(WaveTrack track)
+        {
+            updateProjectFile();
+        }
+    };
+
+    // ----- Listener -------
+    public ArrayList<ProjectListener> getListeners()
+    {
+        return listeners;
     }
 
-    public void setListener(ProjectListener listener)
+    public void addListener(ProjectListener listener)
     {
-        this.listener = listener;
+        if(listener != null)
+            listeners.add(listener);
+    }
+    public void removeListener(ProjectListener listener)
+    {
+        if(listener != null)
+            listeners.remove(listener);
     }
     // ----- listener end-----
 
@@ -200,6 +225,8 @@ public class Project implements Serializable
     {
         void onCreate(Project project);
         void onUpdate(Project project);
+        void onTrackRemoved(Project project, WaveTrack track);
+        void onTrackAdded(Project project, WaveTrack track);
         void onClose(Project project);
     }
 

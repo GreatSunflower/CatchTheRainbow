@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFileData;
 import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
+import com.sunflower.catchtherainbow.AudioClasses.Project;
 import com.sunflower.catchtherainbow.AudioClasses.SamplePlayer;
 import com.sunflower.catchtherainbow.AudioClasses.SuperAudioPlayer;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
@@ -34,6 +35,7 @@ import com.sunflower.catchtherainbow.Views.Editing.Waveform.view.WaveformView;
 import com.sunflower.catchtherainbow.Views.Helpful.Thumb;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -45,12 +47,7 @@ import java.io.IOException;
  */
 public class MainAreaFragment extends Fragment
 {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
+    private Project project;
 
     // a reference to sample player
     private AudioIO globalPlayer;
@@ -58,7 +55,9 @@ public class MainAreaFragment extends Fragment
     private OnFragmentInteractionListener mListener;
 
     private TableLayout tracksLayout;
-    private ScrollView verticalScrollView;
+
+    // a list of track holders
+    private ArrayList<TrackHolder> tracks = new ArrayList<>();
 
     public MainAreaFragment()
     {
@@ -66,20 +65,11 @@ public class MainAreaFragment extends Fragment
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @return A new instance of fragment MainAreaFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static MainAreaFragment newInstance(String param1)
+    public static MainAreaFragment newInstance(Project project)
     {
         MainAreaFragment fragment = new MainAreaFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        fragment.setArguments(args);
+        fragment.project = project;
+        fragment.project.addListener(fragment.projectListener);
         return fragment;
     }
 
@@ -87,10 +77,6 @@ public class MainAreaFragment extends Fragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null)
-        {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-        }
     }
 
     @Override
@@ -100,14 +86,35 @@ public class MainAreaFragment extends Fragment
         View root = inflater.inflate(R.layout.fragment_main_area, container, false);
 
         tracksLayout = (TableLayout)root.findViewById(R.id.tracks_layout);
-        verticalScrollView = (ScrollView) root.findViewById(R.id.verticalScrollView);
+
+        clearTracks();
+        for(WaveTrack track: project.getTracks())
+        {
+            addTrack(track, 400, 250);
+        }
 
         return root;
     }
 
-    ProgressDialog progressDialog;
+    @Override
+    public void onAttach(Context context)
+    {
+        super.onAttach(context);
+    }
+
+    @Override
+    public void onDetach()
+    {
+        project.removeListener(projectListener);
+
+        super.onDetach();
+    }
+
     public void addTrack(final WaveTrack track, int w, int h)
     {
+        // we already have this track
+        if(containsTrack(track)) return;
+
         final TableRow trow = new TableRow(getActivity());
 
         // needs to be set to be able to select track
@@ -124,11 +131,8 @@ public class MainAreaFragment extends Fragment
         TrackHeaderView head = new TrackHeaderView(getActivity());
         trow.addView(head, 0);
 
-         // Load the sound file in a background thread
-        //new SoundWaveLoader().execute(new SoundLoadingParams(trow, path));
-
         // add header row
-        tracksLayout.addView(trow, 0);
+        tracksLayout.addView(trow);
 
         // thumb for resizing row
         final TableRow thumbRow = new TableRow(getActivity());
@@ -138,168 +142,87 @@ public class MainAreaFragment extends Fragment
         thumbRow.addView(th, 0);
 
         // add thumb row
-        tracksLayout.addView(thumbRow, 1);
+        tracksLayout.addView(thumbRow);
 
-        // will be deleted
-        ImageButton remove = (ImageButton)head.findViewById(R.id.removeButton);
-        remove.setOnClickListener(new View.OnClickListener()
+        TrackHolder holder = new TrackHolder(track, trow, head, null, thumbRow);
+        tracks.add(holder);
+    }
+
+    public void removeTrack(WaveTrack track)
+    {
+        // loop through the tracks
+        for(TrackHolder holder: tracks)
         {
-            @Override
-            public void onClick(View v)
+            if(holder.track == track)
             {
-                /*WaveformView track = (WaveformView)trow.findViewById(R.id.waveform);
-                track.setSoundFile(null);
-                track.setListener(null);*/
-
-                tracksLayout.removeView(trow);
-                tracksLayout.removeView(thumbRow);
+                tracksLayout.removeView(holder.row);
+                tracksLayout.removeView(holder.thumb);
+                tracks.remove(holder);
+                break;
             }
-        });
+        } // for
+    }
+
+    public boolean containsTrack(WaveTrack track)
+    {
+        // loop through the tracks
+        for(TrackHolder holder: tracks)
+        {
+            if(holder.track == track)
+            {
+                return true;
+            }
+        } // for
+        return false;
     }
 
     public void clearTracks()
     {
+        tracks.clear();
         tracksLayout.removeAllViews();
     }
 
-    class SoundLoadingParams
+    private Project.ProjectListener projectListener = new Project.ProjectListener()
     {
-        TableRow trow;
-        String path;
-
-        public SoundLoadingParams(TableRow trow, String path)
-        {
-            this.trow = trow;
-            this.path = path;
-        }
-    }
-
-    private final Handler mHandler = new Handler();
-
-    // used for loading audio data to be used in track waveform drawing later
-    private class SoundWaveLoader extends AsyncTask<SoundLoadingParams, Integer, AudioFileData>
-    {
-        SoundLoadingParams params;
-        //private long loadingLastUpdateTime;
         @Override
-        protected AudioFileData doInBackground(SoundLoadingParams... params)
+        public void onCreate(Project project)
         {
-            this.params = params[0];
-            AudioFileData.AudioFileProgressListener progressListener = new AudioFileData.AudioFileProgressListener()
+            clearTracks();
+            for(WaveTrack track: project.getTracks())
             {
-                @Override
-                public void onProgressUpdate(int progress)
-                {
-                    publishProgress(progress);
-                }
-            };
-                // file = CheapSoundFile.create(params[0], progressListener);
-            AudioFileData file = new AudioFileData(getActivity());
-            file.setListener(progressListener);
-            try
-            {
-                file.readFile(params[0].path);
+                addTrack(track, 400, 250);
             }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-                return null;
-            }
-//          file.setProgressListener(null);
-
-            return file;
         }
 
         @Override
-        protected void onPostExecute(AudioFileData result)
+        public void onUpdate(Project project)
         {
-            progressDialog.dismiss();
-
-            String filePath = getContext().getApplicationInfo().dataDir + "/" + "test.mo3";
-            try
+            clearTracks();
+            for(WaveTrack track: project.getTracks())
             {
-                globalPlayer.open(filePath, true);
+                addTrack(track, 400, 250);
             }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-            /*final WaveformView wave = new WaveformView(getActivity());
-            wave.setPadding(2,2,2,2);
-            wave.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
-            params.trow.addView(wave, 1);
-            wave.setSoundFile(result);
-            wave.setListener(new WaveformView.WaveformListener()
-            {
-                @Override
-                public void waveformTouchStart(float x){}
-                @Override
-                public void waveformTouchMove(float x){}
-                @Override
-                public void waveformTouchEnd(){}
-                @Override
-                public void waveformFling(float x){}
-                @Override
-                public void waveformDraw(){}
-                @Override
-                public void waveformZoomIn()
-                {
-                    wave.zoomIn();
-                }
-                @Override
-                public void waveformZoomOut()
-                {
-                    wave.zoomOut();
-                }
-            });
-            wave.recomputeHeights(1);*/
-            //finishOpeningSoundFile(result, trow);
         }
 
         @Override
-        protected void onPreExecute()
+        public void onTrackRemoved(Project project, WaveTrack track)
         {
-            progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            progressDialog.setTitle(R.string.progress_dialog_loading);
-            progressDialog.setCancelable(false);
-            //progressDialog.setIndeterminate(true);
-            progressDialog.show();
+            removeTrack(track);
         }
 
         @Override
-        protected void onProgressUpdate(Integer... values)
+        public void onTrackAdded(Project project, WaveTrack track)
         {
-            progressDialog.setProgress((int) (/*progressDialog.getMax() * */values[0]));
+            addTrack(track, 400, 250);
         }
-    }
 
-
-  /*  protected void finishOpeningSoundFile(final AudioFileData file, final TableRow tableRow)
-    {
-       /* mHandler.post(new Runnable()
+        @Override
+        public void onClose(Project project)
         {
-          @Override
-          public void run()
-          {*/
-              /*WaveformView wave = new WaveformView(getActivity());
-              wave.setPadding(2,2,2,2);
-              wave.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
-              tableRow.addView(wave, 1);
-              //wave.setSoundFile(file);
-              wave.invalidate();
-              /*TextView v = new TextView(getContext());
-              v.setBackgroundColor(Color.RED);
-              v.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT));
-              trow.addView(v, 1);*/
-          /*}
-        });
+            clearTracks();
+        }
+    };
 
-        // add track row
-
-       // wave.invalidate();
-    }*/
 
     public AudioIO getGlobalPlayer()
     {
@@ -311,20 +234,29 @@ public class MainAreaFragment extends Fragment
         this.globalPlayer = globalPlayer;
     }
 
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener
     {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    // holds views and main track
+    class TrackHolder
+    {
+        protected WaveTrack track;
+        protected TableRow row;
+        protected TableRow thumb;
+        protected TrackHeaderView header;
+        protected View waveformView;
+
+        public TrackHolder(WaveTrack track, TableRow row, TrackHeaderView header, View waveformView, TableRow thumb)
+        {
+            this.track = track;
+            this.row = row;
+            this.header = header;
+            this.waveformView = waveformView;
+            this.thumb = thumb;
+            header.setTrack(track, project);
+        }
+
     }
 }

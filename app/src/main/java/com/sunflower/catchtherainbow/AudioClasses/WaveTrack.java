@@ -17,15 +17,28 @@ public class WaveTrack implements Serializable
 
     private AudioInfo info = new AudioInfo(44100, 2);
 
-    private float gain;
-    private float pan;
+    private float gain = 0.5f;
+    private float pan = 0;
+
+    private boolean solo = false;
+    private boolean mute = false;
+
     protected String name;
     private FileManager manager;
+
+    protected transient ArrayList<WaveTrackListener> listeners = new ArrayList<>();
 
     public WaveTrack(String name, FileManager manager)
     {
         this.name = name;
         this.manager = manager;
+    }
+
+    // to initialize transient variable during deserialization
+    private Object readResolve()
+    {
+        listeners = new ArrayList<>();
+        return this;
     }
 
     public int get(ByteBuffer buffer, int start, int len)
@@ -77,6 +90,69 @@ public class WaveTrack implements Serializable
         return bytesRead;
     }
 
+    /** Get the time at which the first clip in the track starts
+     *
+     * @return time in seconds, or zero if there are no clips in the track
+     */
+    public  double getStartTime()
+    {
+        boolean found = false;
+        double best = 0.0;
+
+        if (clips.isEmpty())
+            return 0;
+
+        for (Clip clip : clips)
+        if (!found)
+        {
+            found = true;
+            best = clip.getStartTime();
+        }
+        else if (clip.getStartTime() < best)
+            best = clip.getStartTime();
+
+        return best;
+    }
+
+    /** Get the time at which the last clip in the track ends, plus
+     * recorded stuff
+     *
+     * @return time in seconds, or zero if there are no clips in the track.
+     */
+    public double getEndTime()
+    {
+        boolean found = false;
+        double best = 0.0;
+
+        if (clips.isEmpty())
+            return 0;
+
+        for (final Clip clip : clips)
+        if (!found)
+        {
+            found = true;
+            best = clip.getEndTime();
+        }
+        else if (clip.getEndTime() > best)
+            best = clip.getEndTime();
+
+        return best;
+    }
+
+    public int timeToSamples(double time)
+    {
+        return (int) Math.floor(time * info.sampleRate * info.channels + 0.5);
+    }
+    /** @brief Convert correctly between an number of samples and an (absolute) time in seconds.
+     *
+     * @param pos The time number of samples from the start of the track to convert.
+     * @return The time in seconds.
+     */
+    public double samplesToTime(int pos)
+    {
+        return pos / info.sampleRate / info.channels;
+    }
+
     public void addClip(Clip clip)
     {
         clips.add(clip);
@@ -100,7 +176,11 @@ public class WaveTrack implements Serializable
 
     public void setGain(float gain)
     {
+        if(gain < 0 || gain > 1) return;
+
         this.gain = gain;
+        for(WaveTrackListener listener: listeners)
+            listener.onPropertyUpdated(this);
     }
 
     public float getPan()
@@ -111,6 +191,66 @@ public class WaveTrack implements Serializable
     public void setPan(float pan)
     {
         this.pan = pan;
+        for(WaveTrackListener listener: listeners)
+            listener.onPropertyUpdated(this);
     }
 
+    public boolean isSolo()
+    {
+        return solo;
+    }
+
+    public void setSolo(boolean solo)
+    {
+        this.solo = solo;
+        for(WaveTrackListener listener: listeners)
+            listener.onPropertyUpdated(this);
+    }
+
+    public boolean isMuted()
+    {
+        return mute;
+    }
+
+    public void setMuted(boolean mute)
+    {
+        this.mute = mute;
+        for(WaveTrackListener listener: listeners)
+            listener.onPropertyUpdated(this);
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
+        for(WaveTrackListener listener: listeners)
+            listener.onPropertyUpdated(this);
+    }
+
+    // ----- Listeners -------
+    public ArrayList<WaveTrackListener> getListeners()
+    {
+        return listeners;
+    }
+
+    public void addListener(WaveTrackListener listener)
+    {
+        if(listener != null)
+            listeners.add(listener);
+    }
+    public void removeListener(WaveTrackListener listener)
+    {
+        if(listener != null)
+            listeners.remove(listener);
+    }
+    // ----- listeners end-----
+
+    public interface WaveTrackListener
+    {
+        void onPropertyUpdated(WaveTrack track);
+    }
 }

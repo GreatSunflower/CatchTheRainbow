@@ -40,6 +40,9 @@
     <string name="select_a_project">Select a project</string>
     <string name="new_project">New Project</string>
 
+    <string name="remove_track_conformation">Are you sure you want to remove this track?</string>
+    <string name="import_notification">Audio is importing. You can view the progress in notification panel.</string>
+
 
     <string name="songs_count">Audio Files</string>
     <string name="select_all_musics">All</string>

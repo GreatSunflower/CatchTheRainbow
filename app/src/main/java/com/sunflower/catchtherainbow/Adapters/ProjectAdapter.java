@@ -232,7 +232,11 @@ public class ProjectAdapter extends ArrayAdapter<Project> implements View.OnClic
     {
         for(Project project : projects)
         {
-            if(project.getName().equals(strFileName)) projects.remove(project);
+            if(project.getName().equals(strFileName))
+            {
+                projects.remove(project);
+                break;
+            }
         }
         notifyDataSetChanged();
     }

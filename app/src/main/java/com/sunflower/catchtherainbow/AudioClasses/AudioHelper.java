@@ -48,16 +48,19 @@ public class AudioHelper
         long lastChunkSamplesCount = chunk.getSamplesCount();
 
         // original data
-        byte[] lastChunkBuffer = new byte[(int) lastChunkSamplesCount];
-        ByteBuffer lastChunkWrapper = ByteBuffer.wrap(lastChunkBuffer);
+        byte[] lastChunkBuffer = new byte[(int) lastChunkSamplesCount*info.format.sampleSize];
+        ByteBuffer lastChunkWrapper = ByteBuffer.allocateDirect((int) lastChunkSamplesCount*info.format.sampleSize);
         chunk.readToBuffer(lastChunkWrapper, 0, (int)lastChunkSamplesCount);
+        lastChunkWrapper.rewind();
+        lastChunkWrapper.get(lastChunkBuffer);
 
         // data to add
-        byte[] addBuffer = new byte[addLen];
-        orig.get(addBuffer, 0, addLen/*/info.format.sampleSize*/);
+        byte[] addBuffer = new byte[addLen*info.format.sampleSize];
+        orig.rewind();
+        orig.get(addBuffer, 0, addLen * info.format.sampleSize);
 
         // put it all together
-        ByteBuffer chunkBuffer = ByteBuffer.allocateDirect(addLen*info.format.sampleSize);
+        ByteBuffer chunkBuffer = ByteBuffer.allocateDirect((int) (addLen * info.format.sampleSize + lastChunkSamplesCount * info.format.sampleSize));
         chunkBuffer.put(lastChunkBuffer);
         chunkBuffer.put(addBuffer);
 
