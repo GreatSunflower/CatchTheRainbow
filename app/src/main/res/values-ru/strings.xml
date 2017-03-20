@@ -1,0 +1,117 @@
+<resources>
+    <string name="app_name">Catch The Rainbow</string>
+
+    <string name="delete">Удалить</string>
+    <string name="name">Название:</string>
+    <string name="album">Альбом:</string>
+    <string name="my_album">Мой альбом</string>
+    <string name="ask_delete">Вы действительно хотите удалить?</string>
+    <string name="ask_open">Проект с таким именем уже существует, открыть его?</string>
+    <string name="warning">Предупреждение</string>
+
+    <string name="audio_files_saved">Аудио файл сохранен в папку Music</string>
+
+    <string name="track_loaded_in_the_notification">Трек загружается в панели уведомлений.</string>
+    <string name="select_audio_files">Выберите аудио файлы!</string>
+
+    <!-- Menu -->
+    <string name="menu_import">Импорт песен</string>
+    <string name="menu_export">Экспорт песни</string>
+    <string name="menu_language">Язык</string>
+    <string name="menu_close">Закрыть проект</string>
+    <!-- end Menu -->
+
+    <string name="navigation_drawer_open">Открыть панель навигации</string>
+    <string name="navigation_drawer_close">Закрыть панель навигации</string>
+
+    <string name="navigation_swipe_open_project">Проведите по экрану, чтобы открыть сущ. проект.</string>
+    <string name="navigation_swipe_create_project">Проведите по экрану, чтобы создать новый проект.</string>
+    <string name="create_a_new_project">Создать новый проект</string>
+
+    <string name="action_settings">Настройки</string>
+    <string name="action_effects">Эффекты</string>
+    <string name="action_import">Импортировать</string>
+
+    <string name="conformation">OK</string>
+    <string name="cancel">Отмена</string>
+    <string name="error_select_a_project">Ошибка! Выберите проект.</string>
+    <string name="error_enter_name_project">Ошибка! Введите название проекта.</string>
+    <string name="error_fill_all_fields">Ошибка! Заполните все поля.</string>
+    <string name="select_a_project">Выберите проект</string>
+    <string name="new_project">Новый проект</string>
+
+
+    <string name="songs_count">Аудиофайлы</string>
+    <string name="select_all_musics">Все</string>
+    <string name="getAudio">Получить аудио</string>
+
+    <string name="new_audio_stack">Новая звуковая дорожка</string>
+    <string name="mute">Отключить звук</string>
+    <string name="solo">Соло</string>
+
+
+    <string name="no_title">Без названия</string>
+    <string name="unknown_artist">Неизвестный артист</string>
+    <string name="path">Путь</string>
+    <string name="folder">Папка</string>
+
+
+    <string name="effect_echo">ЭХО</string>
+    <string name="fwet_dry_mix">Wet Dry Mix</string>
+    <string name="ffeed_back">Обратная связь</string>
+    <string name="fleft_delay">Левая задержка</string>
+    <string name="fright_delay">Правая задержка</string>
+    <string name="ipan_delay">Задержка панорамирования  </string>
+
+
+    <string name="effect_flanger">ФЛЭНЖЕР</string>
+    <string name="fdepth">Глубина</string>
+    <string name="ffrequency">Частота</string>
+    <string name="iwaveform">Форма волны</string>
+    <string name="fdelay">Задержка</string>
+    <string name="lphase">Задержка панорамирования</string>
+
+
+    <string name="effect_chorus">ХОР</string>
+    <string name="lPhase_chorus">Фаза</string>
+
+    <string-array name="lwaveform_array">
+        <item>Треугольник</item>
+        <item>Синус</item>
+    </string-array>
+
+
+    <string name="effect_reverb">REVERB</string>
+    <string name="fin_gain">In Gain</string>
+    <string name="freverb_mix">Reverb Mix</string>
+    <string name="freverb_time">Время реверберации</string>
+    <string name="fhigh_freq_rt_ratio">Высокое отношение Freq RT</string>
+
+
+    <string name="effect_phaser">PHASER</string>
+    <string name="fdry_mix">Dry Mix</string>
+    <string name="fwet_mix">Wet Mix</string>
+    <string name="frate">Темп</string>
+    <string name="frange">Ассортимент</string>
+    <string name="ffreq">Частота</string>
+    <string name="lchannel">Канал</string>
+
+
+    <string-array name="spinner_array">
+        <item>TITLE</item>
+        <item>ARTIST</item>
+        <item>DURATION</item>
+        <item>ALBUM</item>
+    </string-array>
+
+    <string name="audio_files">Аудиофайлы</string>
+    <string name="folders">Папки</string>
+
+    <string name="echo">Эхо</string>
+    <string name="flanger">Флэнжер</string>
+    <string name="chorus">Хор</string>
+    <string name="reverb">Реверберация</string>
+    <string name="phaser">Phaser</string>
+
+
+</resources>

@@ -2,9 +2,24 @@
     <string name="app_name">Catch The Rainbow</string>
 
     <string name="delete">Delete</string>
-    <string name="ask_delete">Do you want to Delete</string>
+    <string name="name">Name:</string>
+    <string name="album">Album:</string>
+    <string name="my_album">My album</string>
+    <string name="ask_delete">Do you want to Delete?</string>
     <string name="ask_open">A project with this name already exists, open it?</string>
     <string name="warning">Warning</string>
+
+    <string name="audio_files_saved">Audio file saved in the Music folder</string>
+
+    <string name="track_loaded_in_the_notification">The track loaded in the notification.</string>
+    <string name="select_audio_files">Select the audio files!</string>
+
+    <!-- Menu -->
+    <string name="menu_import">Import songs</string>
+    <string name="menu_export">Export song</string>
+    <string name="menu_language">Language</string>
+    <string name="menu_close">Close project</string>
+    <!-- end Menu -->
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -21,6 +36,7 @@
     <string name="cancel">Cancel</string>
     <string name="error_select_a_project">Error! Select a project.</string>
     <string name="error_enter_name_project">Error! Enter the name of the project.</string>
+    <string name="error_fill_all_fields">Error! Fill in all the fields.</string>
     <string name="select_a_project">Select a project</string>
     <string name="new_project">New Project</string>
 
@@ -39,7 +55,7 @@
 
     <string name="no_title">No Title</string>
     <string name="unknown_artist">Unknown Artist</string>
-    <string name="path">Patn</string>
+    <string name="path">Path</string>
     <string name="folder">Folder</string>
 
 
@@ -90,6 +106,9 @@
         <item>DURATION</item>
         <item>ALBUM</item>
     </string-array>
+
+    <string name="audio_files">Audio Files</string>
+    <string name="folders">Folders</string>
 
 
     <string name="echo">Echo</string>

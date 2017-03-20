@@ -287,11 +287,15 @@ public class AudioChooserFragment extends DialogFragment
             case R.id.bOk:
             {
                 SongsSelectable currentItem = (SongsSelectable)fragPagerAdapter.GetFragmentByPosition(viewPager.getCurrentItem());
-                if(mListener != null) mListener.onOk(currentItem.getSelectionAudioFiles());
-                //if(mListener != null) mListener.onOk(fragPagerAdapter.GetFragTabAudioFiles().GetAudioFilesAdapter().getSelectionAudioFiles());
-                // Закрытие текущего фрагмента
-                dismiss();
-               // getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+                if(currentItem.getSelectionAudioFiles().size() != 0)
+                {
+                    if (mListener != null) mListener.onOk(currentItem.getSelectionAudioFiles());
+                    //if(mListener != null) mListener.onOk(fragPagerAdapter.GetFragTabAudioFiles().GetAudioFilesAdapter().getSelectionAudioFiles());
+                    // Закрытие текущего фрагмента
+                    dismiss();
+                    // getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+                }
+                else Toast.makeText(getActivity(), R.string.select_audio_files, Toast.LENGTH_SHORT).show();
                 break;
             }
             case R.id.bCancel:
@@ -304,6 +308,7 @@ public class AudioChooserFragment extends DialogFragment
             }
         }
     }
+
 
     public interface OnFragmentInteractionListener
     {

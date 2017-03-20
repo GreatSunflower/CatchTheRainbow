@@ -1,0 +1,117 @@
+<resources>
+    <string name="app_name">Catch The Rainbow</string>
+
+    <string name="delete">Видалити</string>
+    <string name="name">Назва:</string>
+    <string name="album">Альбом:</string>
+    <string name="my_album">Мій альбом</string>
+    <string name="ask_delete">Ви дійсно хочете видалити?</string>
+    <string name="ask_open">Проект з таким ім\'ям вже існує, відкрити його?</string>
+    <string name="warning">Попередження</string>
+
+    <string name="audio_files_saved">Аудіо файл збережений в папку Music</string>
+
+    <string name="track_loaded_in_the_notification">Трек завантажується в панелі повідомлень.</string>
+    <string name="select_audio_files">Виберіть аудіо файли!</string>
+
+    <!-- Menu -->
+    <string name="menu_import">Імпорт пісень</string>
+    <string name="menu_export">Експорт пісні</string>
+    <string name="menu_language">Мова</string>
+    <string name="menu_close">Закрити проект</string>
+    <!-- end Menu -->
+
+    <string name="navigation_drawer_open">Відкрити панель навігації</string>
+    <string name="navigation_drawer_close">Закрити панель навігації</string>
+
+    <string name="navigation_swipe_open_project">Проведіть по екрану, щоб відкрити існуючий проект.</string>
+    <string name="navigation_swipe_create_project">Проведіть по екрану, щоб створити новий проект.</string>
+    <string name="create_a_new_project">Створити новий проект</string>
+
+    <string name="action_settings">Налаштування</string>
+    <string name="action_effects">Ефекти</string>
+    <string name="action_import">Імпортувати</string>
+
+    <string name="conformation">Добре</string>
+    <string name="cancel">Відміна</string>
+    <string name="error_select_a_project">Помилка! Виберіть проект.</string>
+    <string name="error_enter_name_project">Помилка! Введіть назву проекту.</string>
+    <string name="error_fill_all_fields">Помилка! Заповніть всі поля.</string>
+    <string name="select_a_project">Виберіть проект</string>
+    <string name="new_project">Новий проект</string>
+
+
+    <string name="songs_count">Аудіофайли</string>
+    <string name="select_all_musics">Всі</string>
+    <string name="getAudio">Отримати аудіо</string>
+
+    <string name="new_audio_stack">Нова звукова доріжка</string>
+    <string name="mute">Вимкнути звук</string>
+    <string name="solo">Соло</string>
+
+
+    <string name="no_title">Без назви</string>
+    <string name="unknown_artist">Невідомий артист</string>
+    <string name="path">Путь</string>
+    <string name="folder">Папка</string>
+
+
+    <string name="effect_echo">ЛУНА</string>
+    <string name="fwet_dry_mix">Wet Dry Mix</string>
+    <string name="ffeed_back">Зворотний зв\'язок</string>
+    <string name="fleft_delay">Ліва затримка</string>
+    <string name="fright_delay">Права затримка</string>
+    <string name="ipan_delay">Затримка панорамування  </string>
+
+
+    <string name="effect_flanger">ФЛЕНЖЕР</string>
+    <string name="fdepth">Глибина</string>
+    <string name="ffrequency">Частота</string>
+    <string name="iwaveform">Форма хвилі</string>
+    <string name="fdelay">Затримка</string>
+    <string name="lphase">Затримка панорамування</string>
+
+
+    <string name="effect_chorus">ХОР</string>
+    <string name="lPhase_chorus">Фаза</string>
+
+    <string-array name="lwaveform_array">
+        <item>Трикутник</item>
+        <item>Синус</item>
+    </string-array>
+
+
+    <string name="effect_reverb">ВIДЛУННЯ</string>
+    <string name="fin_gain">In Gain</string>
+    <string name="freverb_mix">Reverb Mix</string>
+    <string name="freverb_time">Час реверберації</string>
+    <string name="fhigh_freq_rt_ratio">Високе відношення Freq RT</string>
+
+
+    <string name="effect_phaser">ФАЗООБЕРТАЧ</string>
+    <string name="fdry_mix">Dry Mix</string>
+    <string name="fwet_mix">Wet Mix</string>
+    <string name="frate">Темп</string>
+    <string name="frange">Асортимент</string>
+    <string name="ffreq">Частота</string>
+    <string name="lchannel">Канал</string>
+
+
+    <string-array name="spinner_array">
+        <item>TITLE</item>
+        <item>ARTIST</item>
+        <item>DURATION</item>
+        <item>ALBUM</item>
+    </string-array>
+
+    <string name="audio_files">Аудіофайли</string>
+    <string name="folders">Папки</string>
+
+    <string name="echo">Луна</string>
+    <string name="flanger">Фленжер</string>
+    <string name="chorus">Хор</string>
+    <string name="reverb">Відлуння</string>
+    <string name="phaser">Фазообертач</string>
+
+
+</resources>

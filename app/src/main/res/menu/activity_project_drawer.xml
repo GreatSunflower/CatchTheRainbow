@@ -4,20 +4,24 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_import"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="Import"/>
+            android:icon="@drawable/ic_import_song"
+            android:title="@string/menu_import"/>
         <item
             android:id="@+id/nav_export"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="Export"/>
+            android:icon="@drawable/ic_export_song"
+            android:title="@string/menu_export"/>
+        <item
+            android:id="@+id/nav_language"
+            android:icon="@drawable/ic_translate"
+            android:title="@string/menu_language"/>
     </group>
 
     <item android:title="Communicate">
         <menu>
             <item
                 android:id="@+id/nav_close"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Close"/>
+                android:icon="@drawable/ic_close_project"
+                android:title="@string/menu_close"/>
         </menu>
     </item>
 

@@ -16,6 +16,17 @@ import com.sunflower.catchtherainbow.Views.AudioChooserFragment;
 import com.sunflower.catchtherainbow.Views.FragTabAudioFiles;
 import com.sunflower.catchtherainbow.Views.FragTabFolders;
 
+/*
+private String fragments[];
+private Context context;
+
+public FragPagerAdapter(FragmentManager supportFragmentManager, Context applicationContext, TabLayout tabLayout, AudioChooserFragment audioChooserFragment)
+{
+    this.context = audioChooserFragment.getContext();
+    fragments[0] = this.context.getResources().getString(R.string.audio_files);
+    fragments[1] = this.context.getResources().getString(R.string.folders);
+}*/
+
 public class FragPagerAdapter extends FragmentPagerAdapter //implements  sdffg
 {
     private String fragments [] = {"Audio Files", "Folders"};

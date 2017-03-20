@@ -65,16 +65,20 @@ public class FragTabCreateProject extends Fragment implements View.OnClickListen
     {
         super.onResume();
         //To check the availability of projects
-        if(new File(Helper.getPathOfProject()).listFiles().length == 0)
+        try
         {
-            if(tvNavigation!=null) tvNavigation.setVisibility(View.GONE);
-            if(iv_strelochka!=null) iv_strelochka.setVisibility(View.GONE);
+            if(new File(Helper.getPathOfProject()).listFiles().length == 0)
+            {
+                if(tvNavigation!=null) tvNavigation.setVisibility(View.GONE);
+                if(iv_strelochka!=null) iv_strelochka.setVisibility(View.GONE);
+            }
+            else
+            {
+                if(tvNavigation!=null) tvNavigation.setVisibility(View.VISIBLE);
+                if(iv_strelochka!=null) iv_strelochka.setVisibility(View.VISIBLE);
+            }
         }
-        else
-        {
-            if(tvNavigation!=null) tvNavigation.setVisibility(View.VISIBLE);
-            if(iv_strelochka!=null) iv_strelochka.setVisibility(View.VISIBLE);
-        }
+        catch (Exception ex) {}
     }
 
     @Override

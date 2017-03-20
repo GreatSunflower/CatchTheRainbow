@@ -7,11 +7,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -26,7 +28,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,12 +38,12 @@ import android.widget.RemoteViews;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import com.sunflower.catchtherainbow.Adapters.EnamLanguages;
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
 import com.sunflower.catchtherainbow.AudioClasses.AudioImporter;
 import com.sunflower.catchtherainbow.AudioClasses.Clip;
 import com.sunflower.catchtherainbow.AudioClasses.Project;
-import com.sunflower.catchtherainbow.AudioClasses.SamplePlayer;
 import com.sunflower.catchtherainbow.AudioClasses.SuperAudioPlayer;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.Views.AudioChooserFragment;
@@ -50,6 +52,8 @@ import com.sunflower.catchtherainbow.Views.AudioProgressView;
 import com.sunflower.catchtherainbow.Views.AudioVisualizerView;
 import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
 import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
+import com.sunflower.catchtherainbow.Views.Helpful.ExportSongFragment;
+import com.sunflower.catchtherainbow.Views.Helpful.LanguageFragment;
 import com.sunflower.catchtherainbow.Views.StartedApp.ProjectStartActivity;
 import com.un4seen.bass.BASS;
 
@@ -57,10 +61,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Queue;
 
 public class ProjectActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, View.OnClickListener, EffectsHostFragment.OnEffectsHostListener
+        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener,
+        View.OnClickListener, EffectsHostFragment.OnEffectsHostListener,
+        ExportSongFragment.OnFragmentExportSongListener
 {
     private static final String TAG = "Project";
 
@@ -71,6 +78,7 @@ public class ProjectActivity extends AppCompatActivity
     private AudioProgressView progressView;
     private View viewContentProject;
     private AudioVisualizerView visualizerView;
+    private NavigationView navigationView;
 
     private RelativeLayout waveFormViewContainer;
     private MainAreaFragment tracksFragment;
@@ -93,7 +101,13 @@ public class ProjectActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        // Reading with SharedPreferences object favorit language
         super.onCreate(savedInstanceState);
+        SharedPreferences shared = getSharedPreferences("info",MODE_PRIVATE);
+        //Using getXXX- with XX is type date you wrote to file "name_file"
+        String language = "English";
+        if(shared != null) language = shared.getString("language", "English");
+        currentLanguage = EnamLanguages.valueOf(language);
         setContentView(R.layout.activity_project);
     }
 
@@ -101,6 +115,9 @@ public class ProjectActivity extends AppCompatActivity
     protected void onStart()
     {
         super.onStart();
+
+
+        //currentLanguage = EnamLanguages.English;
 
         // TEMP. Clears project directory on loading------------------------------------------------
         //Helper.createOrRecreateDir(SuperApplication.getAppDirectory());
@@ -144,7 +161,7 @@ public class ProjectActivity extends AppCompatActivity
         toggle.syncState();
 
         // Init nav view
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         // -----------------------------------------------------FOR TESTING PURPOSES---------------------------------------
@@ -310,6 +327,7 @@ public class ProjectActivity extends AppCompatActivity
         };
         statusHandler.postDelayed(updateTimer, 50);
     }
+
     Runnable updateTimer;
     @Override
     protected void onStop()
@@ -407,14 +425,7 @@ public class ProjectActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings)
         {
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            Fragment prev = getSupportFragmentManager().findFragmentById(R.id.SuperAudioChooser);
-            if (prev != null)  ft.remove(prev);
-            ft.addToBackStack(null);
-            // Create and show the dialog.
-            AudioChooserFragment newFragment = AudioChooserFragment.newInstance();
-            newFragment.show(ft, "Song chooser dialog");
-            return true;
+
         }
         if (id == R.id.action_effects)
         {
@@ -463,6 +474,8 @@ public class ProjectActivity extends AppCompatActivity
         return null;
     }
 
+    EnamLanguages currentLanguage;
+    DrawerLayout drawer;
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item)
@@ -472,11 +485,36 @@ public class ProjectActivity extends AppCompatActivity
 
         if (id == R.id.nav_import)
         {
-            // Handle the camera action
+           //drawer.closeDrawer(GravityCompat.END);
+            this.onBackPressed();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            Fragment prev = getSupportFragmentManager().findFragmentById(R.id.SuperAudioChooser);
+            if (prev != null)  ft.remove(prev);
+            ft.addToBackStack(null);
+            // Create and show the dialog.
+            AudioChooserFragment newFragment = AudioChooserFragment.newInstance();
+            newFragment.show(ft, "Song chooser dialog");
         }
         else if (id == R.id.nav_export)
         {
-
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            Fragment prev = getSupportFragmentManager().findFragmentById(R.id.ExportSongLayout);
+            if (prev != null)  ft.remove(prev);
+            ft.addToBackStack(null);
+            // Create and show the dialog.
+            ExportSongFragment newFragment = ExportSongFragment.newInstance(project.getName());
+            newFragment.show(ft, "Song chooser dialog");
+        }
+        else if (id == R.id.nav_language)
+        {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            Fragment prev = getSupportFragmentManager().findFragmentById(R.id.LanguageChooserLayout);
+            if (prev != null)  ft.remove(prev);
+            ft.addToBackStack(null);
+            // Create and show the dialog.
+            LanguageFragment newFragment = LanguageFragment.newInstance(currentLanguage.toString());
+            newFragment.show(ft, "Song chooser dialog");
+            newFragment.setFragmentOwner(this);
         }
         else if (id == R.id.nav_close)
         {
@@ -484,9 +522,49 @@ public class ProjectActivity extends AppCompatActivity
             startActivity(intent);
             finish();
         }
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        // refresh your views here
+        super.onConfigurationChanged(newConfig);
+    }
+
+    public void setLanguage(EnamLanguages enamLanguag)
+    {
+        currentLanguage = enamLanguag;
+        Locale locale = new Locale("en");
+        if(enamLanguag.equals(EnamLanguages.Русский)) locale = new Locale("ru");
+        if(enamLanguag.equals(EnamLanguages.Українська)) locale = new Locale("uk");
+        Locale.setDefault(locale);
+        Configuration configuration = new Configuration();
+        configuration.locale = locale;
+        getBaseContext().getResources().updateConfiguration(configuration, null);
+
+        // выводим английский текст на русской локали устройства
+        setTitle(R.string.app_name);
+
+        //onConfigurationChanged(configuration);
+
+        //save data obout favorit language
+        SharedPreferences pref = getSharedPreferences("info", MODE_PRIVATE);
+        //Using putXXX - with XXX is type data you want to write like: putString, putInt...   from      Editor object
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("language", currentLanguage.toString());
+        //finally, when you are done saving the values, call the commit() method.
+        editor.commit();
+
+        /*Intent intent = new Intent(this, ProjectStartActivity.class);
+        startActivity(intent);
+        finish();*/
+
+        Intent intent = new Intent(this, ProjectActivity.class);
+        intent.putExtra("openProjectWithName", project.getName());
+        this.finish();
+        startActivity(intent);
     }
 
 
@@ -540,6 +618,10 @@ public class ProjectActivity extends AppCompatActivity
         }
         // start loading
         importer.addToQueue(queries);
+
+        Toast toast = Toast.makeText(ProjectActivity.this, R.string.track_loaded_in_the_notification, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
     }
 
     private AudioImporter.AudioImporterListener importerListener = new AudioImporter.AudioImporterListener()
@@ -676,6 +758,17 @@ public class ProjectActivity extends AppCompatActivity
             }
         }
         return true;
+    }
+
+    //get result from ExportSongFragment
+    @Override
+    public void onOk(String name, String album)
+    {
+        String pathStorageMusic = getResources().getString(R.string.audio_files_saved) + ":\n\""
+                + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath() + "/" + name + "\"";
+        Toast toast = Toast.makeText(ProjectActivity.this, pathStorageMusic, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
     }
 }
 

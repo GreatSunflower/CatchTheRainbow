@@ -15,6 +15,9 @@
     <color name="iconFolder">#bfbdc0</color>
     <color name="iconMusic">#bfbdc0</color>
 
+    <color name="menu">#74737e</color>
+
+
     <color name="selectedListItem">#4e4d5b</color>
     <color name="pressedListItem">#565561</color>
 
