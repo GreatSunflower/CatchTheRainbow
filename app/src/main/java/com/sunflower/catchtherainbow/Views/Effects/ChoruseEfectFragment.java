@@ -44,7 +44,7 @@ public class ChoruseEfectFragment extends BaseEffectFragment
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View root = inflater.inflate(R.layout.fragment_choruse_efect, container, false);
+        View root = inflater.inflate(R.layout.effect_choruse_fragment, container, false);
 
         sb_chorusefWetDryMix = (DetailedSeekBar) root.findViewById(R.id.chorusefWetDryMixSeekBar);
         sb_chorusefDepth = (DetailedSeekBar) root.findViewById(R.id.chorusefDepthSeekBar);

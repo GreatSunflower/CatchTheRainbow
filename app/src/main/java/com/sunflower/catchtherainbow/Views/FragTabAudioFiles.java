@@ -34,7 +34,7 @@ public class FragTabAudioFiles extends Fragment implements AudioChooserFragment.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        resView = inflater.inflate(R.layout.frag_tab_audio_files,container,false);
+        resView = inflater.inflate(R.layout.tab_frag_audio_files,container,false);
         // --------------------------------ADAPTER----------------------------------
         //Создание потока
 

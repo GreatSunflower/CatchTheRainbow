@@ -85,7 +85,7 @@ public class AudioChooserFragment extends DialogFragment
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         // Inflate the layout for this fragment
-        View resView = inflater.inflate(R.layout.fragment_audio_chooser, container, false);
+        View resView = inflater.inflate(R.layout.import_audio_fragment, container, false);
 
         spinner_array = getResources().getStringArray(R.array.spinner_array);
         searchViewAudio = (SearchView)resView.findViewById(R.id.searchViewAudio);

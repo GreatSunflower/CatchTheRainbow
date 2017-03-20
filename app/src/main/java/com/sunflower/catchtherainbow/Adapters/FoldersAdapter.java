@@ -63,7 +63,7 @@ public class FoldersAdapter extends ArrayAdapter<Folder>
         if(convertView==null)
         {
             LayoutInflater inflator = LayoutInflater.from(context);
-            convertView=inflator.inflate(R.layout.child_folder,parent,false);
+            convertView=inflator.inflate(R.layout.item_folder,parent,false);
         }
 
         View itemView = convertView.findViewById(R.id.folders_layout);

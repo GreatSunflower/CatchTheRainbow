@@ -118,7 +118,7 @@ public class SongsOfFolderAdapter extends ArrayAdapter<AudioFile>
         if (convertView == null)
         {
             LayoutInflater inflator = LayoutInflater.from(context);
-            convertView = inflator.inflate(R.layout.child_audio, null, true);
+            convertView = inflator.inflate(R.layout.item_audio, null, true);
         }
 
         View itemView = convertView.findViewById(R.id.music_layout);

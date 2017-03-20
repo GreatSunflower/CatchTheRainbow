@@ -181,7 +181,7 @@ public class AudioFilesAdapter extends CursorAdapter implements
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent)
     {
-        return inflater.inflate(R.layout.child_audio, parent, false);
+        return inflater.inflate(R.layout.item_audio, parent, false);
     }
 
     @Override
@@ -193,7 +193,7 @@ public class AudioFilesAdapter extends CursorAdapter implements
         // if the view isn't generated
         if (view == null)
         {
-            rowView = inflater.inflate(R.layout.child_audio, null, true);
+            rowView = inflater.inflate(R.layout.item_audio, null, true);
         }
         else rowView = view;
 

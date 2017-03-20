@@ -1,7 +1,6 @@
 package com.sunflower.catchtherainbow.Views.Effects;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -9,7 +8,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -80,7 +78,7 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         // Inflate the layout for this fragment
-        View root = inflater.inflate(R.layout.fragment_effects_host, container, false);
+        View root = inflater.inflate(R.layout.effects_host_fragment, container, false);
 
         Button okButt = (Button) root.findViewById(R.id.bOk);
         Button cancelButt = (Button) root.findViewById(R.id.bCancel);

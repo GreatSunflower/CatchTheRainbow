@@ -58,13 +58,13 @@ public class FragTabFolders extends Fragment implements AudioChooserFragment.Son
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        resView = inflater.inflate(R.layout.frag_tab_folders,container,false);
+        resView = inflater.inflate(R.layout.tab_frag_folders,container,false);
         folderListView = (ListView) resView.findViewById(R.id.listViewFolders);
         folderListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
         // --------------------------------ADAPTER----------------------------------
         folders = GetAllFolders();
-        foldersAdapter = new FoldersAdapter(getActivity(), R.layout.frag_tab_folders, folders);
+        foldersAdapter = new FoldersAdapter(getActivity(), R.layout.tab_frag_folders, folders);
         folderListView.setAdapter(foldersAdapter);
 
         folderListView.setOnItemClickListener(this);
@@ -92,7 +92,7 @@ public class FragTabFolders extends Fragment implements AudioChooserFragment.Son
                 //действия с ключом и значением
             }
 
-            songsOfFolderAdapter = new SongsOfFolderAdapter(getActivity(),  R.layout.frag_tab_folders, currentAudioFiles);
+            songsOfFolderAdapter = new SongsOfFolderAdapter(getActivity(),  R.layout.tab_frag_folders, currentAudioFiles);
             folderListView.setAdapter(songsOfFolderAdapter);
             //audioChooserFragment.HideElementsFromTab(0);
             mode = Mode.AudioFiles;
@@ -157,13 +157,13 @@ public class FragTabFolders extends Fragment implements AudioChooserFragment.Son
     {
         if(mode == Mode.Folders)
         {
-            foldersAdapter = new FoldersAdapter(getActivity(), R.layout.frag_tab_folders, filterFolders(query));
+            foldersAdapter = new FoldersAdapter(getActivity(), R.layout.tab_frag_folders, filterFolders(query));
             folderListView.setAdapter(foldersAdapter);
         }
         else if(mode == Mode.AudioFiles)
         {
             songsOfFolderAdapter = new SongsOfFolderAdapter(getActivity(),
-                    R.layout.frag_tab_folders, songsOfFolderAdapter.filterAudio(query, currentAudioFiles));
+                    R.layout.tab_frag_folders, songsOfFolderAdapter.filterAudio(query, currentAudioFiles));
             folderListView.setAdapter(songsOfFolderAdapter);
         }
     }

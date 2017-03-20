@@ -53,7 +53,7 @@ public class LanguageAdapter extends ArrayAdapter<EnamLanguages>
         if(convertView==null)
         {
             LayoutInflater inflator = LayoutInflater.from(context);
-            convertView=inflator.inflate(R.layout.language_item,parent,false);
+            convertView=inflator.inflate(R.layout.item_language,parent,false);
         }
 
         View itemView = convertView.findViewById(R.id.language_layout);

@@ -52,7 +52,7 @@ public class FragTabOpenProject extends Fragment implements View.OnClickListener
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View resView = inflater.inflate(R.layout.frag_tab_open_project, container, false);
+        View resView = inflater.inflate(R.layout.tab_frag_open_project, container, false);
         b_Ok = (Button)resView.findViewById(R.id.bOk);
         b_Ok.setOnClickListener(this);
 

@@ -36,7 +36,7 @@ public class EchoEffectFragment extends BaseEffectFragment implements DetailedSe
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View root = inflater.inflate(R.layout.fragment_echo_effect, container, false);
+        View root = inflater.inflate(R.layout.effect_echo_fragment, container, false);
 
         /////////////////////////////////////start ECHO//////////////////////////////////////
 

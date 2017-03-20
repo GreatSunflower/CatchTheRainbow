@@ -32,7 +32,7 @@ public class FlangerEffectFragment extends BaseEffectFragment implements Detaile
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View root = inflater.inflate(R.layout.fragment_flanger_effect, container, false);
+        View root = inflater.inflate(R.layout.effect_flanger_fragment, container, false);
 
         /////////////////////////////////////start FLANGER//////////////////////////////////////
         sb_flangerfWetDryMix = (DetailedSeekBar) root.findViewById(R.id.flangerfWetDryMixSeekBar);

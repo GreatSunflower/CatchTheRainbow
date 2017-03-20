@@ -54,7 +54,7 @@ public class ExportSongFragment extends DialogFragment implements View.OnClickLi
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View resView = inflater.inflate(R.layout.export_song_fragment, container, false);
+        View resView = inflater.inflate(R.layout.export_audio_fragment, container, false);
         etName = (EditText)resView.findViewById(R.id.edNameSong);
         if(!nameProject.equals("")) etName.setText(nameProject);
         etAlbum = (EditText)resView.findViewById(R.id.edNameAlbum);

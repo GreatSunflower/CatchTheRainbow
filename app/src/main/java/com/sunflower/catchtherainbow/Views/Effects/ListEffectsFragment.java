@@ -39,7 +39,7 @@ public class ListEffectsFragment extends BaseEffectFragment implements AdapterVi
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View root = inflater.inflate(R.layout.list_effects_fragment, container, false);
+        View root = inflater.inflate(R.layout.effects_list_fragment, container, false);
 
         ArrayList<ItemEffect> items = new ArrayList<ItemEffect>();
         items.add(new ItemEffect(getResources().getString(R.string.echo), EchoEffectFragment.class));
@@ -50,7 +50,7 @@ public class ListEffectsFragment extends BaseEffectFragment implements AdapterVi
 
         // --------------------------------ADAPTER----------------------------------
         effectListView = (ListView) root.findViewById(R.id.lv_effects);
-        effectsAdapter = new EffectsAdapter(getActivity(), R.layout.list_effects_fragment, items);
+        effectsAdapter = new EffectsAdapter(getActivity(), R.layout.effects_list_fragment, items);
         effectListView.setAdapter(effectsAdapter);
         effectListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         effectListView.setOnItemClickListener(this);

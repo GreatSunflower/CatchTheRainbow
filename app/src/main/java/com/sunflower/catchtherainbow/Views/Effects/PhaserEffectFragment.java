@@ -36,7 +36,7 @@ public class PhaserEffectFragment extends BaseEffectFragment implements Detailed
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View root = inflater.inflate(R.layout.fragment_phaser_effect, container, false);
+        View root = inflater.inflate(R.layout.effect_phaser_fragment, container, false);
 
         /////////////////////////////////////start PHASER//////////////////////////////////////
 

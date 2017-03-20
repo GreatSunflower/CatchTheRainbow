@@ -32,7 +32,7 @@ public class ReverbEffectFragment extends BaseEffectFragment implements Detailed
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View root = inflater.inflate(R.layout.fragment_reverb_effect, container, false);
+        View root = inflater.inflate(R.layout.effect_reverb_fragment, container, false);
 
         sb_reverbfInGain = (DetailedSeekBar) root.findViewById(R.id.reverbfInGainSeekBar);
         sb_reverbfReverbMix = (DetailedSeekBar) root.findViewById(R.id.reverbfReverbMixSeekBar);

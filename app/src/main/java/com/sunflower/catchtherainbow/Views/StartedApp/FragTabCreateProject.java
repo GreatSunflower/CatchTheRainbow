@@ -51,7 +51,7 @@ public class FragTabCreateProject extends Fragment implements View.OnClickListen
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View resView = inflater.inflate(R.layout.frag_tab_create_project, container, false);
+        View resView = inflater.inflate(R.layout.tab_frag_create_project, container, false);
         tvNavigation = (TextView)resView.findViewById(R.id.tv_navigation_swipe_open);
         iv_strelochka = (ImageView)resView.findViewById(R.id.iv_strelochka);
 
