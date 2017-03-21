@@ -4,11 +4,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar;
-import com.un4seen.bass.BASS;
 import com.un4seen.bass.BASS_FX;
 
 
@@ -40,7 +38,7 @@ public class PhaserEffectFragment extends BaseEffectFragment implements Detailed
 
         /////////////////////////////////////start PHASER//////////////////////////////////////
 
-        sb_phaserfDryMix = (DetailedSeekBar) root.findViewById(R.id.phaserfDryMixSeekBar);
+        /*sb_phaserfDryMix = (DetailedSeekBar) root.findViewById(R.id.phaserfDryMixSeekBar);
         sb_phaserfWetMix = (DetailedSeekBar) root.findViewById(R.id.phaserfWetMixSeekBar);
         sb_phaserfFeedback = (DetailedSeekBar) root.findViewById(R.id.phaserfFeedbackSeekBar);
         sb_phaserfRate = (DetailedSeekBar) root.findViewById(R.id.phaserfRateSeekBar);
@@ -52,32 +50,44 @@ public class PhaserEffectFragment extends BaseEffectFragment implements Detailed
         sb_phaserfFeedback.setListener(this);
         sb_phaserfRate.setListener(this);
         sb_phaserfRange.setListener(this);
-        sb_phaserfFreq.setListener(this);
+        sb_phaserfFreq.setListener(this);*/
 
         return root;
     }
 
     public boolean cancel() //при закрытии окна
     {
-        BASS.BASS_ChannelRemoveFX(chan, phaser);
+        /*BASS.BASS_ChannelRemoveFX(chan, phaser);*/
         return true;
-        // close only this fragment!
-        //getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+    }
+
+    @Override
+    public void setChannel(int chan)
+    {
+        /*if(this.chan == chan) return;
+
+        this.chan = chan;
+
+        if(bass_bfx_phaser == null)
+            setEffect();
+        else
+        {
+            phaser = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_BFX_PHASER, 0);
+            BASS.BASS_FXSetParameters(phaser, bass_bfx_phaser);
+        }*/
     }
 
     public void setEffect()
     {
-        phaser = BASS.BASS_ChannelSetFX(chan, BASS_FX.BASS_FX_BFX_PHASER, 1);
+        /*phaser = BASS.BASS_ChannelSetFX(chan, BASS_FX.BASS_FX_BFX_PHASER, 1);
         bass_bfx_phaser =new BASS_FX.BASS_BFX_PHASER();
-        BASS.BASS_FXSetParameters(phaser, bass_bfx_phaser);
-
-        //BASS.BASS_ChannelRemoveFX(chan, phaser); //при закрытии окна
+        BASS.BASS_FXSetParameters(phaser, bass_bfx_phaser);*/
     }
 
     @Override
     public void onChange(DetailedSeekBar seekBar, float selectedValue)
     {
-        double res = (double)selectedValue;
+        /*double res = (double)selectedValue;
 
         int id = seekBar.getId();
 
@@ -114,6 +124,6 @@ public class PhaserEffectFragment extends BaseEffectFragment implements Detailed
         {
             bass_bfx_phaser.fFreq = (float) res;
             BASS.BASS_FXSetParameters(phaser, bass_bfx_phaser);
-        }
+        }*/
     }
 }

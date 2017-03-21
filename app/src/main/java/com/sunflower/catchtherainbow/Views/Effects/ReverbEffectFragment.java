@@ -47,6 +47,22 @@ public class ReverbEffectFragment extends BaseEffectFragment implements Detailed
         return root;
     }
 
+    @Override
+    public void setChannel(int chan)
+    {
+        if(this.chan == chan) return;
+
+        this.chan = chan;
+
+        if(bass_bfx_reverb == null)
+            setEffect();
+        else
+        {
+            reverb = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_REVERB, 0);
+            BASS.BASS_FXSetParameters(reverb, bass_bfx_reverb);
+        }
+    }
+
     public boolean cancel() //при закрытии окна
     {
         BASS.BASS_ChannelRemoveFX(chan, reverb);
@@ -57,6 +73,10 @@ public class ReverbEffectFragment extends BaseEffectFragment implements Detailed
     {
         reverb = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_REVERB, 0);
         bass_bfx_reverb =new BASS.BASS_DX8_REVERB();
+        bass_bfx_reverb.fInGain = 0;
+        bass_bfx_reverb.fReverbMix = 0;
+        bass_bfx_reverb.fReverbTime = 1000;
+        bass_bfx_reverb.fHighFreqRTRatio = (float) 0.001;
         BASS.BASS_FXSetParameters(reverb, bass_bfx_reverb);
     }
 

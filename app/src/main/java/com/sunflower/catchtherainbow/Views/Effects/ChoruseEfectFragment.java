@@ -16,6 +16,8 @@ import com.un4seen.bass.BASS;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static com.un4seen.bass.BASS.BASS_DX8_PHASE_90;
+
 public class ChoruseEfectFragment extends BaseEffectFragment
         implements DetailedSeekBar.OnSuperSeekBarListener, AdapterView.OnItemSelectedListener
 {
@@ -92,10 +94,33 @@ public class ChoruseEfectFragment extends BaseEffectFragment
     @Override
     public void onNothingSelected(AdapterView<?> adapterView){}
 
+    @Override
+    public void setChannel(int chan)
+    {
+        if(this.chan == chan) return;
+
+        this.chan = chan;
+
+        if(bass_dx8_chorus == null)
+            setEffect();
+        else
+        {
+            choruse = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_CHORUS, 0);
+            BASS.BASS_FXSetParameters(choruse, bass_dx8_chorus);
+        }
+    }
+
     public void setEffect()
     {
-        choruse = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_ECHO, 0);
+        choruse = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_CHORUS, 0);
         bass_dx8_chorus =new BASS.BASS_DX8_CHORUS();
+        bass_dx8_chorus.fWetDryMix = 50;
+        bass_dx8_chorus.fDepth = 10;
+        bass_dx8_chorus.fFeedback = 25;
+        bass_dx8_chorus.fFrequency = (float) 1.1;
+        bass_dx8_chorus.lWaveform = 1;
+        bass_dx8_chorus.fDelay = 16;
+        bass_dx8_chorus.lPhase = BASS_DX8_PHASE_90;
         BASS.BASS_FXSetParameters(choruse, bass_dx8_chorus);
     }
 

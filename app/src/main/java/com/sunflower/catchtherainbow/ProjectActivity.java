@@ -630,7 +630,7 @@ public class ProjectActivity extends AppCompatActivity
         importer.addToQueue(queries);
 
         // notify about process
-        Helper.showCuteToast(ProjectActivity.this, R.string.track_loaded_in_the_notification);
+        Helper.showCuteToast(ProjectActivity.this, R.string.import_notification);
     }
 
     @Override

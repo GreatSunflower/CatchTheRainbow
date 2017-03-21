@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -23,8 +24,6 @@ import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.AudioProgressView;
 
-import java.util.ArrayList;
-
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
@@ -43,6 +42,9 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
     AudioIO player;
     private Project Project;
     private boolean isDragging = false;
+    Runnable updateTimer;
+    // updates status(position and time)
+    private Handler statusHandler = new Handler();
 
     private OnEffectsHostListener mListener;
 
@@ -133,6 +135,33 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
                 isDragging = false;
             }
         });
+
+        // timer to update the display
+        updateTimer = new Runnable()
+        {
+            public void run()
+            {
+                if (!isDragging && player.isPlaying()) progressView.setCurrent((float) player.getProgress());
+
+                /*int bufferSize = 1024;
+                ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize*4);
+                audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
+                BASS.BASS_ChannelGetData(player.getChannelHandle(), audioData, bufferSize*4);
+                float[] pcm = new float[bufferSize]; // allocate an array for the sample data
+                audioData.asFloatBuffer().get(pcm);
+
+                // make object array
+                Float []res = new Float[pcm.length];
+                for(int i = 0; i < pcm.length; i++)
+                    res[i] = pcm[i];
+
+                // pass new data
+                visualizerView.updateVisualizer(res);*/
+
+                statusHandler.postDelayed(this, 50);
+            }
+        };
+        statusHandler.postDelayed(updateTimer, 50);
 
         ///////////////////////////
 

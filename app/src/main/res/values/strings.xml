@@ -11,7 +11,6 @@
 
     <string name="audio_files_saved">Audio file saved in the Music folder</string>
 
-    <string name="track_loaded_in_the_notification">Audio loaded in the notification.</string>
     <string name="select_audio_files">Select the audio files!</string>
 
     <!-- Menu -->
@@ -47,9 +46,6 @@
     <string name="songs_count">Audio Files</string>
     <string name="select_all_musics">All</string>
     <string name="getAudio">Get Audio</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <string name="new_audio_stack">New Audio Track</string>
     <string name="mute">Mute</string>

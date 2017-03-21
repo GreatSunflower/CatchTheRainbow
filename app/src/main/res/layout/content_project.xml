@@ -70,7 +70,7 @@
             android:id="@+id/bRecorderStart"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="@drawable/recorder_button_background"
+            android:background="@drawable/background_recorder_button"
             android:padding="5dp"
             android:scaleType="fitCenter"
             />
@@ -93,7 +93,7 @@
             android:id="@+id/bStop"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="@drawable/ic_stop_recorder"
+            android:background="@drawable/background_stop_button"
             android:scaleType="fitCenter"
             />
 

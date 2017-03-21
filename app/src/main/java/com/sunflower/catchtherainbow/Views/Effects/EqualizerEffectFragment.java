@@ -29,8 +29,8 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
     private String[] spinner_array;
     private ArrayAdapter<String> spinFilterAdapter;
 
-    int equalizer;
-    BASS.BASS_DX8_PARAMEQ bass_dx8_equalizer;
+    BASS.BASS_DX8_PARAMEQ[] bass_dx8_equalizer = new BASS.BASS_DX8_PARAMEQ[9];
+
     int[] fx = new int[9];
 
     public EqualizerEffectFragment()
@@ -85,7 +85,7 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
         //---------------------------------end spinnerFilter-----------------------
 
         fGainEq = (DetailedSeekBar) root.findViewById(R.id.fGain_equalizer);
-
+        fGainEq.setListener(this);
         LinearLayout freqContainer = (LinearLayout)root.findViewById(R.id.container);
 
         for(int i = 0; i < fx.length; i++)
@@ -93,10 +93,12 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
             fx[i] = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_PARAMEQ, 0);
 
             BASS.BASS_DX8_PARAMEQ p = new BASS.BASS_DX8_PARAMEQ();
-            //p.fBandwidth = 18;
             p.fGain = 0;
+            p.fBandwidth=18;
             p.fCenter = freq[i];
             BASS.BASS_FXSetParameters(fx[i], p);
+
+            bass_dx8_equalizer[i] = p;
 
             LinearLayout layout = new LinearLayout(getActivity());
             layout.setOrientation(LinearLayout.HORIZONTAL);
@@ -122,6 +124,7 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
             freqSlider.setMaxValue(15);
             freqSlider.setDefaultValue(0);
             freqSlider.setTag(i);
+            freqSlider.setListener(this);
 
             layoutParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT);
             layoutParams.weight = 0.85f;
@@ -137,16 +140,53 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
         return root;
     }
 
+    @Override
+    public void setChannel(int chan)
+    {
+        if(this.chan == chan) return;
+
+        this.chan = chan;
+
+        if(bass_dx8_equalizer == null)
+            setEffect();
+        else
+        {
+            if(!equalizerIsNull())
+            {
+                for (int i = 0; i < bass_dx8_equalizer.length; i++)
+                {
+                    fx[i] = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_PARAMEQ, 0);
+                    BASS.BASS_FXSetParameters(fx[i], bass_dx8_equalizer[i]);
+                }
+            }
+        }
+    }
+
+    public boolean equalizerIsNull()
+    {
+        for(int i = 0; i < bass_dx8_equalizer.length; i++)
+        {
+            if(bass_dx8_equalizer[i] == null) return true;
+        }
+        return false;
+    }
+
     public void setEffect()
     {
-        equalizer = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_PARAMEQ, 0);
-        bass_dx8_equalizer = new BASS.BASS_DX8_PARAMEQ();
-        BASS.BASS_FXSetParameters(equalizer, bass_dx8_equalizer);
+        for(int i = 0; i < bass_dx8_equalizer.length; i++)
+        {
+            fx[i] = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_PARAMEQ, 0);
+            bass_dx8_equalizer[i] = new BASS.BASS_DX8_PARAMEQ();
+            BASS.BASS_FXSetParameters(fx[i], bass_dx8_equalizer[i]);
+        }
     }
 
     public boolean cancel() //при закрытии окна
     {
-        BASS.BASS_ChannelRemoveFX(chan, equalizer);
+        for(int i = 0; i < bass_dx8_equalizer.length; i++)
+        {
+            BASS.BASS_ChannelRemoveFX(chan, fx[i]);
+        }
         return true;
     }
 
@@ -159,15 +199,18 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
 
         if(id == R.id.fGain_equalizer)
         {
-            bass_dx8_equalizer.fGain = (float) res;
-            BASS.BASS_FXSetParameters(equalizer, bass_dx8_equalizer);
+            for(int i = 0; i < bass_dx8_equalizer.length; i++)
+            {
+                bass_dx8_equalizer[i].fGain = (float) res;
+                BASS.BASS_FXSetParameters(fx[i], bass_dx8_equalizer[i]);
+            }
         }
         else
         {
-            int n = Integer.parseInt((String) seekBar.getTag());
-            BASS.BASS_DX8_PARAMEQ p = new BASS.BASS_DX8_PARAMEQ();
+            int n = (int) seekBar.getTag();
+            BASS.BASS_DX8_PARAMEQ p = bass_dx8_equalizer[n];
             p.fGain = (float) res;
-            BASS.BASS_FXGetParameters(fx[n], p);
+            BASS.BASS_FXSetParameters(fx[n], p);
         }
     }
 }

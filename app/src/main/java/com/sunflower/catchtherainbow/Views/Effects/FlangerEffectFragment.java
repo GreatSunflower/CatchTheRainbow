@@ -9,6 +9,8 @@ import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar;
 import com.un4seen.bass.BASS;
 
+import static com.un4seen.bass.BASS.BASS_DX8_PHASE_ZERO;
+
 public class FlangerEffectFragment extends BaseEffectFragment implements DetailedSeekBar.OnSuperSeekBarListener
 {
     public FlangerEffectFragment()
@@ -59,11 +61,36 @@ public class FlangerEffectFragment extends BaseEffectFragment implements Detaile
         //getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
     }
 
+    @Override
+    public void setChannel(int chan)
+    {
+        if(this.chan == chan) return;
+
+        this.chan = chan;
+
+        if(bass_dx8_flanger == null)
+            setEffect();
+        else
+        {
+            flanger = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_FLANGER, 0);
+            BASS.BASS_FXSetParameters(flanger, bass_dx8_flanger);
+        }
+    }
+
+
     public void setEffect()
     {
         flanger = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_FLANGER, 0);
         bass_dx8_flanger =new BASS.BASS_DX8_FLANGER();
-        //bass_dx8_flanger.fWetDryMix = 0;
+
+        bass_dx8_flanger.fWetDryMix = 50;
+        bass_dx8_flanger.fDepth = 100;
+        bass_dx8_flanger.fFeedback = -50;
+        bass_dx8_flanger.fFrequency = (float) 0.25;
+        bass_dx8_flanger.lWaveform = 1;
+        bass_dx8_flanger.fDelay = 2;
+        bass_dx8_flanger.lPhase =  BASS_DX8_PHASE_ZERO;
+
         BASS.BASS_FXSetParameters(flanger, bass_dx8_flanger);
     }
 

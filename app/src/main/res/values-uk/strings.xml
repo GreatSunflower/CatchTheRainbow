@@ -11,7 +11,7 @@
 
     <string name="audio_files_saved">Аудіо файл збережений в папку Music</string>
 
-    <string name="track_loaded_in_the_notification">Аудіо завантажується в панелі повідомлень.</string>
+    <string name="import_notification">Аудіо імпортує. Ви можете переглянути прогрес в панелі повідомлень.</string>
     <string name="select_audio_files">Оберіть аудіо файли!</string>
 
     <!-- Menu -->
@@ -39,7 +39,7 @@
     <string name="error_fill_all_fields">Помилка! Заповніть всі поля.</string>
     <string name="select_a_project">Оберіть проект</string>
     <string name="new_project">Новий проект</string>
-
+    <string name="remove_track_conformation">Ви дійсно хочете видалити цей трек?</string>
 
     <string name="songs_count">Аудіофайли</string>
     <string name="select_all_musics">Всі</string>

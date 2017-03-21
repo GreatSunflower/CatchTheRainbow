@@ -54,14 +54,31 @@ public class EchoEffectFragment extends BaseEffectFragment implements DetailedSe
         return root;
     }
 
+    @Override
+    public void setChannel(int chan)
+    {
+        if(this.chan == chan) return;
+
+        this.chan = chan;
+
+        if(bass_dx8_echo == null)
+            setEffect();
+        else
+        {
+            echo = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_ECHO, 0);
+            BASS.BASS_FXSetParameters(echo, bass_dx8_echo);
+        }
+    }
+
     public void setEffect()
     {
         echo = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_ECHO, 0);
         bass_dx8_echo =new BASS.BASS_DX8_ECHO();
-        bass_dx8_echo.fWetDryMix = 0;
-        bass_dx8_echo.fFeedback = 0;
+        bass_dx8_echo.fWetDryMix = 50;
+        bass_dx8_echo.fFeedback = 50;
         bass_dx8_echo.fLeftDelay = 500;
         bass_dx8_echo.fRightDelay = 500;
+        bass_dx8_echo.lPanDelay = false;
         BASS.BASS_FXSetParameters(echo, bass_dx8_echo);
     }
 
@@ -96,6 +113,7 @@ public class EchoEffectFragment extends BaseEffectFragment implements DetailedSe
 
         }
     }
+
 
     public boolean cancel() //при закрытии окна
     {
