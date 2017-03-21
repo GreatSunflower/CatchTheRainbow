@@ -24,7 +24,12 @@ public class Clip implements Serializable
         this.sequence = new AudioSequence(fileManager, info);
     }
 
-    int getSamples(ByteBuffer buffer, int start, int len)
+    public boolean setSamples(ByteBuffer buffer, int start, int len, AudioInfo format)
+    {
+        return sequence.set(buffer, start, len, format);
+    }
+
+    public int getSamples(ByteBuffer buffer, int start, int len)
     {
         return sequence.get(buffer, start, len);
     }

@@ -2,38 +2,11 @@ package com.sunflower.catchtherainbow.AudioClasses;
 
 import android.util.Log;
 
-import com.sunflower.catchtherainbow.SuperApplication;
-
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 
-
-class AudioChunkRef implements Serializable
-{
-    private AudioChunk chunk;
-    private int start;
-
-    public AudioChunkRef(AudioChunk chunk, int start)
-    {
-        this.chunk = chunk;
-        this.start = start;
-    }
-
-    public AudioChunk getChunk()
-    {
-        return chunk;
-    }
-
-    public int getStart()
-    {
-        return start;
-    }
-}
 
 // manages audio chunks array
 public class AudioSequence implements Serializable
@@ -54,7 +27,7 @@ public class AudioSequence implements Serializable
 
     private FileManager fileManager;
 
-    private ArrayList<AudioChunkRef> chunks = new ArrayList<>();
+    private ArrayList<AudioChunkPos> chunks = new ArrayList<>();
 
     public AudioSequence(FileManager manager, AudioInfo info)
     {
@@ -65,12 +38,43 @@ public class AudioSequence implements Serializable
         maxSamples = minSamples;
     }
 
+    public boolean copyWrite(ByteBuffer scratch,
+                             ByteBuffer buffer, AudioChunkPos chunk,
+                             int blockRelativeStart, int len)
+    {
+        // We don't ever write to an existing block; to support Undo,
+        // we copy the old block entirely into memory, dereference it,
+        // make the change, and then write the NEW block to disk.
+
+        int length = chunk.getChunk().getSamplesCount();
+        if(length > maxSamples || blockRelativeStart + len > length)
+            return false;
+
+        int sampleSize = getInfo().format.sampleSize;
+
+        read(scratch, chunk, 0, length);
+        AudioHelper.copySamples(scratch, buffer, blockRelativeStart * sampleSize, len * sampleSize, getInfo());
+
+        try
+        {
+           // fileManager.removeRef()
+            chunk.chunk = fileManager.createAudioChunk(scratch, length, getInfo());
+        }
+        catch (IOException e)
+        {
+            Log.e("Sequence", e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
     // adds samples to the end
     public boolean append(ByteBuffer buffer, long len) throws IOException
     {
         int chunksCount = chunks.size();
 
-        AudioChunkRef lastChunk = getLastChunk();
+        AudioChunkPos lastChunk = getLastChunk();
 
         // there is at least one chunk
         if(lastChunk != null)
@@ -128,7 +132,7 @@ public class AudioSequence implements Serializable
 
             //file.writeToDisk(res.array(), (int)chunkLen);
 
-            chunks.add(new AudioChunkRef(file, samplesCount));
+            chunks.add(new AudioChunkPos(file, samplesCount));
 
             samplesCount += chunkLen;
             len -= chunkLen;
@@ -154,7 +158,7 @@ public class AudioSequence implements Serializable
         {
             final double frac = (double) (pos - loSamples) / (double) (hiSamples - loSamples);
             guess = Math.min(hi - 1, lo + (int) (frac * (hi - lo)));
-            final AudioChunkRef chunk = chunks.get(guess);
+            final AudioChunkPos chunk = chunks.get(guess);
 
             //lo <= guess && guess < hi && lo < hi
             if(chunk.getChunk().getSamplesCount() < 0 ||
@@ -182,7 +186,7 @@ public class AudioSequence implements Serializable
         return guess;
     }
 
-    public int read(ByteBuffer buffer, AudioChunkRef chunkRef, int start, int len)
+    public int read(ByteBuffer buffer, AudioChunkPos chunkRef, int start, int len)
     {
         AudioChunk chunk = chunkRef.getChunk();
 
@@ -198,6 +202,66 @@ public class AudioSequence implements Serializable
         }
 
         return res;
+    }
+
+    // pass null buffer to set silence
+    public boolean set(ByteBuffer buffer, int start, int len, AudioInfo info)
+    {
+        if (start < 0 || start >= samplesCount || start+len > samplesCount)
+            return false;
+
+        ByteBuffer scratch = ByteBuffer.allocateDirect (maxSamples * info.format.sampleSize);
+
+        ByteBuffer temp = null;
+        if (buffer != null && info.format.sampleSize != getInfo().format.sampleSize)
+        {
+            int size = AudioHelper.limitSampleBufferSize(maxSamples, len);
+            temp = ByteBuffer.allocateDirect(size * info.format.sampleSize);
+        }
+
+        int pos = findChunk(start);
+
+        while (len > 0)
+        {
+            AudioChunkPos chunkPos = chunks.get(pos);
+            // start is within block
+            int bstart = start - chunkPos.getStart();
+            int fileLength = chunkPos.getChunk().getSamplesCount();
+            int blen = AudioHelper.limitSampleBufferSize(fileLength - bstart, len);
+
+            if (buffer != null)
+            {
+                if (info.format.sampleSize == getInfo().format.sampleSize)
+                    copyWrite(scratch, buffer, chunkPos, bstart, blen);
+                else
+                {
+                    // To do: remove the extra movement.  Can we copy-samples within CopyWrite?
+                    AudioHelper.copySamples(temp, buffer, bstart, blen, info);
+                    copyWrite(scratch, temp, chunkPos, bstart, blen);
+                }
+                // buffer += (blen * info.format.sampleSize);
+            }
+            else // Silence
+            {
+                if (start == chunkPos.start && blen == fileLength)
+                {
+                    chunkPos.chunk = new SilentChunk(blen);
+                }
+                else
+                {
+                    // Odd partial blocks of silence at start or end.
+                    temp = ByteBuffer.allocateDirect(blen * info.format.sampleSize);
+                    AudioHelper.clearSamples(temp, 0, blen, info);
+                    // Otherwise write silence just to the portion of the block
+                    copyWrite(scratch, temp, chunkPos, bstart, blen);
+                }
+            }
+
+            len -= blen;
+            start += blen;
+            pos++;
+        }
+        return true;
     }
 
     // fills buffer with samples
@@ -222,7 +286,7 @@ public class AudioSequence implements Serializable
         int bytesRead = 0;
         while (len > 0)
         {
-            AudioChunkRef chunkRef = chunks.get(pos);
+            AudioChunkPos chunkRef = chunks.get(pos);
             // start is in block
             int bstart = start - chunkRef.getStart();
             // bstart is not more than block length
@@ -243,7 +307,7 @@ public class AudioSequence implements Serializable
         return info;
     }
 
-    public AudioChunkRef getLastChunk()
+    public AudioChunkPos getLastChunk()
     {
         int chunksCount = chunks.size();
 
@@ -253,4 +317,27 @@ public class AudioSequence implements Serializable
 
         return chunks.get(chunksCount-1);
     }
+
+    class AudioChunkPos implements Serializable
+    {
+        protected AudioChunk chunk;
+        protected int start;
+
+        public AudioChunkPos(AudioChunk chunk, int start)
+        {
+            this.chunk = chunk;
+            this.start = start;
+        }
+
+        public AudioChunk getChunk()
+        {
+            return chunk;
+        }
+
+        public int getStart()
+        {
+            return start;
+        }
+    }
+
 }

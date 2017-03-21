@@ -41,6 +41,40 @@ public class WaveTrack implements Serializable
         return this;
     }
 
+    public boolean set(ByteBuffer buffer, int start, int len)
+    {
+        for (Clip clip: clips)
+        {
+            int clipStart = clip.getStartSample();
+            int clipEnd = clip.getEndSample();
+
+            // in range
+            if (clipEnd > start && clipStart < start+len)
+            {
+                int samplesToCopy = Math.min(start+len - clipStart, clip.getNumSamples());
+                int startDelta = clipStart - start;
+                int inClipDelta = 0;
+
+                if (startDelta < 0)
+                {
+                    inClipDelta = -startDelta; // make positive value
+                    samplesToCopy -= inClipDelta;
+                    // samplesToCopy is now either len or  (clipEnd - clipStart) - (start - clipStart)
+                    //    == clipEnd - start > 0 samplesToCopy is not more than len
+
+                    startDelta = 0;
+                    // startDelta is zero
+                }
+
+                if (clip.setSamples(buffer, inClipDelta, samplesToCopy, info))
+                {
+                    return false;
+                }
+            } // if in range
+        }
+        return true;
+    }
+
     public int get(ByteBuffer buffer, int start, int len)
     {
         boolean doClear = true;

@@ -200,3 +200,37 @@ public class AudioChunk implements Serializable
         return audioInfo;
     }
 }
+
+// references an existing chunk
+class AudioChunkRef extends AudioChunk
+{
+    protected String refPath;
+    protected int refStartSample = 0;
+
+    public AudioChunkRef(String filePath, String refPath, int start, int len, AudioInfo audioInfo)
+    {
+        super(filePath, len, audioInfo);
+
+        this.refPath = refPath;
+        this.refStartSample = start;
+    }
+}
+
+// references an existing chunk
+class SilentChunk extends AudioChunk
+{
+    protected String refPath;
+    protected int refStartSample = 0;
+
+    public SilentChunk(int len)
+    {
+        super("", len, null);
+    }
+
+    public int readToBuffer(ByteBuffer buffer, int start, int length)
+    {
+        AudioHelper.clearSamples(buffer, 0, length, null);
+
+        return length;
+    }
+}
