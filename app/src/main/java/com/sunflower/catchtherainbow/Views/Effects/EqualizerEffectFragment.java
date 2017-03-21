@@ -2,11 +2,14 @@ package com.sunflower.catchtherainbow.Views.Effects;
 
 
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar;
@@ -18,6 +21,18 @@ import java.util.Collections;
 
 public class EqualizerEffectFragment extends BaseEffectFragment implements DetailedSeekBar.OnSuperSeekBarListener
 {
+    private DetailedSeekBar fGainEq;// _80hz, _160hz, _320hz, _640hz, _1khz, _2khz, _4khz, _8khz, _16khz;
+
+    private int []freq = new int[]{80, 160, 320, 640, 1000, 2000, 4000, 8000, 16000};
+
+    private NDSpinner spinFilter;
+    private String[] spinner_array;
+    private ArrayAdapter<String> spinFilterAdapter;
+
+    int equalizer;
+    BASS.BASS_DX8_PARAMEQ bass_dx8_equalizer;
+    int[] fx = new int[9];
+
     public EqualizerEffectFragment()
     {
         // Required empty public constructor
@@ -34,16 +49,6 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
     {
         super.onCreate(savedInstanceState);
     }
-
-    private DetailedSeekBar fGainEq, _32db, _64db, _125db, _250db, _500db, _1k, _2k, _4k, _8k;
-
-    private NDSpinner spinFilter;
-    private String[] spinner_array;
-    private ArrayAdapter<String> spinFilterAdapter;
-
-    int equalizer;
-    BASS.BASS_DX8_PARAMEQ bass_dx8_equalizer;
-    int[] fx = new int[9];
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -82,29 +87,29 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
         //---------------------------------end spinnerFilter-----------------------
 
         fGainEq = (DetailedSeekBar) root.findViewById(R.id.fGain_equalizer);
-        _32db = (DetailedSeekBar) root.findViewById(R.id._32db);
-        _64db = (DetailedSeekBar) root.findViewById(R.id._64db);
-        _125db = (DetailedSeekBar) root.findViewById(R.id._125db);
-        _250db = (DetailedSeekBar) root.findViewById(R.id._250db);
-        _500db = (DetailedSeekBar) root.findViewById(R.id._500db);
-        _1k = (DetailedSeekBar) root.findViewById(R.id._1k);
-        _2k = (DetailedSeekBar) root.findViewById(R.id._2k);
-        _4k = (DetailedSeekBar) root.findViewById(R.id._4k);
-        _8k = (DetailedSeekBar) root.findViewById(R.id._8k);
+        /*_80hz = (DetailedSeekBar) root.findViewById(R.id._32db);
+        _160hz = (DetailedSeekBar) root.findViewById(R.id._64db);
+        _320hz = (DetailedSeekBar) root.findViewById(R.id._125db);
+        _640hz = (DetailedSeekBar) root.findViewById(R.id._250db);
+        _1khz = (DetailedSeekBar) root.findViewById(R.id._500db);
+        _1khz = (DetailedSeekBar) root.findViewById(R.id._1k);
+        _2khz = (DetailedSeekBar) root.findViewById(R.id._2k);
+        _4khz = (DetailedSeekBar) root.findViewById(R.id._4k);
+        _8khz = (DetailedSeekBar) root.findViewById(R.id._8k);*/
 
+       /* fGainEq.setListener(this);
+        _80hz.setListener(this);
+        _160hz.setListener(this);
+        _320hz.setListener(this);
+        _640hz.setListener(this);
+        _1khzh.setListener(this);
+        _1khz.setListener(this);
+        _2khz.setListener(this);
+        _4khz.setListener(this);
+        _8khz.setListener(this);*/
 
-        fGainEq.setListener(this);
-        _32db.setListener(this);
-        _64db.setListener(this);
-        _125db.setListener(this);
-        _250db.setListener(this);
-        _500db.setListener(this);
-        _1k.setListener(this);
-        _2k.setListener(this);
-        _4k.setListener(this);
-        _8k.setListener(this);
+        LinearLayout freqContainer = (LinearLayout)root.findViewById(R.id.container);
 
-        int db = 32;
         for(int i = 0; i < fx.length; i++)
         {
             fx[i] = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_PARAMEQ, 0);
@@ -112,10 +117,43 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
             BASS.BASS_DX8_PARAMEQ p = new BASS.BASS_DX8_PARAMEQ();
             //p.fBandwidth = 18;
             p.fGain = 0;
-            p.fCenter = db;
+            p.fCenter = freq[i];
             BASS.BASS_FXSetParameters(fx[i], p);
-            db *= 2;
-            if(db == 128) db -= 3;
+
+            LinearLayout layout = new LinearLayout(getActivity());
+            layout.setOrientation(LinearLayout.HORIZONTAL);
+
+            // band level string. clever progression. LOL! =D
+            String res = freq[i] >= 1000? (freq[i] / 1000)+"Khz": freq[i] + "Hz";
+
+            // band text view
+            TextView freqText = new TextView(getActivity());
+
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT);
+            layoutParams.weight = 0.15f;
+            freqText.setLayoutParams(layoutParams);
+
+            freqText.setTextColor(getResources().getColor(R.color.colorForeground));
+            freqText.setText(res);
+            freqText.setGravity(Gravity.CENTER_VERTICAL|Gravity.LEFT);
+            freqText.setPadding(2,2,2,2);
+
+            // seekbar to tweak value
+            DetailedSeekBar freqSlider = new DetailedSeekBar(getActivity());
+            freqSlider.setMinValue(-15);
+            freqSlider.setMaxValue(15);
+            freqSlider.setDefaultValue(0);
+
+            layoutParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT);
+            layoutParams.weight = 0.85f;
+            freqSlider.setLayoutParams(layoutParams);
+            freqSlider.setGravity(Gravity.CENTER);
+
+            // add view to the container
+            layout.addView(freqText);
+            layout.addView(freqSlider);
+
+            freqContainer.addView(layout);
         }
         return root;
     }

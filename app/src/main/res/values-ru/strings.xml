@@ -124,5 +124,6 @@
     <string name="phaser">Phaser</string>
     <string name="equalizer">Эквалайзер</string>
 
+    <string name="track_not_selected">Выделите трек!</string>
 
 </resources>

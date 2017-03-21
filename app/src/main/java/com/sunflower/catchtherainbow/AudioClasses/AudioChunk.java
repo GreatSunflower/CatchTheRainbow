@@ -123,7 +123,7 @@ public class AudioChunk implements Serializable
 
             FileInputStream fileInputStream = new FileInputStream(path);
 
-            BufferedInputStream buffStream = new BufferedInputStream(fileInputStream, 4096*4096*2);
+            BufferedInputStream buffStream = new BufferedInputStream(fileInputStream, 4096*2);
             ObjectInputStream objectInputStream = new ObjectInputStream(buffStream);
 
             // first read the header
@@ -135,6 +135,7 @@ public class AudioChunk implements Serializable
 
             objectInputStream.skipBytes(start * sampleSize);
            // read = (int) fileChannel.read(new ByteBuffer[]{buffer}, start, length);
+
             while (read < length * sampleSize)
             {
                 if(objectInputStream.available() == 0)
@@ -159,9 +160,9 @@ public class AudioChunk implements Serializable
                 //buffer[i] = b;
                 buffer.putFloat(b);
                 read+=4;
-            }*/
-           /* byte []arr = new byte[length];
-            int read = buffStream.read(arr, start, length);
+            }
+            /* byte []arr = new byte[length*sampleSize];
+            read = objectInputStream.read(arr, start*sampleSize, length*sampleSize);
             buffer.put(arr);*/
 
             //int read = objectInputStream.read(buffer, start/* * sampleSize*/, length/*/sampleSize*/);
@@ -172,7 +173,7 @@ public class AudioChunk implements Serializable
             Date endDate = new Date();
             long difference = endDate.getTime() - startDate.getTime();
 
-            Log.e("TIME", difference+"" + ", Read: " + (read/sampleSize) + ", Needed: " + length);
+            //Log.e("TIME", difference+"" + ", Read: " + (read/sampleSize) + ", Needed: " + length);
 
             return read;
         }
@@ -180,7 +181,6 @@ public class AudioChunk implements Serializable
         {
             e.printStackTrace();
         }
-
 
         return -1;
     }
@@ -199,5 +199,4 @@ public class AudioChunk implements Serializable
     {
         return audioInfo;
     }
-
 }

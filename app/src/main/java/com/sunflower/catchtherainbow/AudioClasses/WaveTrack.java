@@ -153,6 +153,11 @@ public class WaveTrack implements Serializable
         return pos / info.sampleRate / info.channels;
     }
 
+    public int getEndSample()
+    {
+        return timeToSamples(getEndTime());
+    }
+
     public void addClip(Clip clip)
     {
         clips.add(clip);

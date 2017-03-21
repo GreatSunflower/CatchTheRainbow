@@ -20,7 +20,7 @@ public class AudioIO extends BasePlayer
 
     private Project project;
 
-    private Handler handler = new Handler();
+//    private Handler handler = new Handler();
 
     private PlayerState state = PlayerState.NotInitialized;
 
@@ -31,15 +31,16 @@ public class AudioIO extends BasePlayer
     }
 
 
-    public synchronized void play()
+    public void play()
     {
-        if (state == PlayerState.NotInitialized)
-            initialize();
+        if (state == PlayerState.NotInitialized || state == PlayerState.Stopped)
+            initialize(false);
 
         updateTrackAttributes(true);
         state = PlayerState.Playing;
 
-        handler.post(new Runnable()
+       // handler.post(new Runnable()
+        context.runOnUiThread(new Runnable()
         {
             @Override
             public void run()
@@ -52,7 +53,7 @@ public class AudioIO extends BasePlayer
         });
     }
 
-    public synchronized void pause()
+    public void pause()
     {
         if(state != PlayerState.Playing) return;
 
@@ -66,7 +67,8 @@ public class AudioIO extends BasePlayer
 
         state = PlayerState.Paused;
 
-        handler.post(new Runnable()
+       // handler.post(new Runnable()
+        context.runOnUiThread(new Runnable()
         {
             @Override
             public void run()
@@ -92,35 +94,35 @@ public class AudioIO extends BasePlayer
 
             state = PlayerState.Stopped;
 
-            handler.post(new Runnable()
+         //   handler.post(new Runnable()
+            context.runOnUiThread(new Runnable()
             {
                 @Override
                 public void run()
                 {
                     for (AudioPlayerListener listener : audioPlayerListeners)
                     {
-                        listener.onCompleted();
+                        listener.onStop();
                     }
                 }
             });
-        }
+        } // is init
     }
 
+    // releases all of the tracks!!! Careful!
     @Override
-    public synchronized void eject()
+    public void eject()
     {
-        if(state == PlayerState.NotInitialized) return;
-
         for(int i = 0; i < tracks.size(); i++)
         {
-            TrackInfo trackInfo = tracks.get(i);
+            final TrackInfo trackInfo = tracks.get(i);
+            BASS.BASS_ChannelPause(trackInfo.getChannel());
             BASS.BASS_ChannelStop(trackInfo.getChannel());
             //BASS.BASS_StreamFree(trackInfo.getChannel()); // crashes
+
             trackInfo.track.removeListener(trackListener);
         }
         tracks.clear();
-
-        state = PlayerState.NotInitialized;
     }
 
     // refreshes attributes in real time such as pan, gain and so on
@@ -172,21 +174,42 @@ public class AudioIO extends BasePlayer
     }
 
     @Override
-    public synchronized void setPosition(double position)
+    public void setPosition(double position)
     {
         if(state == PlayerState.NotInitialized || state == PlayerState.Stopped) return;
 
         PlayerState cachedState = state;
 
-        initialize(position, false);
+        boolean autoPlay = cachedState == PlayerState.Playing;
 
-        state = PlayerState.Paused;
-
-        if(cachedState == PlayerState.Playing) play();
-        else pause();
+        initialize(position, autoPlay, false);
     }
 
     ArrayList<TrackInfo> tracks = new ArrayList<>();
+
+    public void setTracks(ArrayList<WaveTrack> waveTracks)
+    {
+        eject();
+
+        // update thread count(equals to the number of tracks)
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATETHREADS, waveTracks.size());
+
+        for (int i = 0; i < waveTracks.size(); i++)
+        {
+            WaveTrack track = waveTracks.get(i);
+
+            TrackInfo trackInfo = new TrackInfo(0, track, 0);
+            int channel = BASS.BASS_StreamCreate(track.getInfo().sampleRate, track.getInfo().channels,
+                    BASS.BASS_SAMPLE_FLOAT | BASS.BASS_STREAM_AUTOFREE, new StreamProc(), trackInfo);
+
+            trackInfo.setChannel(channel);
+
+            tracks.add(trackInfo);
+            trackInfo.track.addListener(trackListener);
+        }
+
+        initialize(false);
+    }
 
     // used to determine track samples during playback
     private class TrackInfo
@@ -230,6 +253,9 @@ public class AudioIO extends BasePlayer
         @Override
         public int STREAMPROC(int handle, ByteBuffer buffer, int length, Object user)
         {
+            // get out if a wrong parameter passed
+            if(!(user instanceof TrackInfo)) return BASS.BASS_STREAMPROC_END;
+
             TrackInfo track = (TrackInfo)user;
             int samplesRead = 0;
 
@@ -240,14 +266,14 @@ public class AudioIO extends BasePlayer
 
                 track.currentSample+=samplesRead;
 
-                if (samplesRead == -1 || samplesRead < length / sampleSize)
+                if (samplesRead == -1 || samplesRead < length / sampleSize || track.track.getEndSample() < track.currentSample)
                 {
                     Log.e(LOG_TAG, "Normal end! " + track.track.name);
 
-                    //samplesRead |= BASS.BASS_STREAMPROC_END;
+                    samplesRead |= BASS.BASS_STREAMPROC_END;
 
                     checkFinish(track);
-                    return BASS.BASS_STREAMPROC_END;
+                    return samplesRead;
                 }
 
                 //Log.d(LOG_TAG, String.format("FileProcUserRead: requested {i}, read {i} ", length, bytesRead));
@@ -259,9 +285,9 @@ public class AudioIO extends BasePlayer
                 //track.currentSample = 0;
                 checkFinish(track);
             }
-            //samplesRead |= BASS.BASS_STREAMPROC_END;
+            samplesRead |= BASS.BASS_STREAMPROC_END;
 
-            return BASS.BASS_STREAMPROC_END;
+            return samplesRead;
         }
 
         void checkFinish(TrackInfo trackInfo)
@@ -270,9 +296,10 @@ public class AudioIO extends BasePlayer
 
             if(trackInfo == longestTrack)
             {
-                eject();
+                stop();
                 // notify about the end
-                handler.post(new Runnable()
+                //handler.post(new Runnable()
+                context.runOnUiThread(new Runnable()
                 {
                     @Override
                     public void run()
@@ -292,21 +319,22 @@ public class AudioIO extends BasePlayer
         public void SYNCPROC(int handle, int channel, int data, Object user)
         {
 
-            for(AudioPlayerListener listener: audioPlayerListeners)
+          //  TrackInfo track = (TrackInfo)user;
+            Log.e("TIME", "END!"/* + track.track.name*/);
+           /* for(AudioPlayerListener listener: audioPlayerListeners)
             {
                 listener.onCompleted();
-            }
+            }*/
         }
     };
 
-
     @Override
-    public void initialize()
+    public void initialize(boolean autoPlay)
     {
-        initialize(0, true);
+        initialize(0, autoPlay, true);
     }
 
-    public void reinitialize()
+    public void reinitialize(boolean autoPlay)
     {
         PlayerState cachedState = state;
         int lastSample = 0;
@@ -314,67 +342,60 @@ public class AudioIO extends BasePlayer
         //final TrackInfo longestTrack = findLongestTrack();
         //if(longestTrack != null) lastSample = longestTrack.currentSample;
 
-        initialize(0, true);
+        initialize(0, autoPlay, true);
 
         if(cachedState == PlayerState.Playing)
             play();
       }
 
+   // private int mixer = 0;
     // start - time to start from
-    public synchronized void initialize(double start, boolean notify)
+    public void initialize(final double start, final boolean autoPlay, final boolean notify)
     {
-        eject();
+        stop();
 
         AudioInfo info = project.getProjectAudioInfo();
 
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATETHREADS, project.getTracks().size()+1);
+        //ArrayList<WaveTrack> waveTracks = project.getTracks();
 
-        //mixer = BASSmix.BASS_Mixer_StreamCreate(info.sampleRate, info.channels, BASS.BASS_SAMPLE_FLOAT/*|BASSmix.BASS_MIXER_END /*|BASS.BASS_STREAM_AUTOFREE|BASSmix.BASS_MIXER_BUFFER*/);
-
-        ArrayList<WaveTrack> waveTracks = project.getTracks();
-        for(int i = 0; i < waveTracks.size(); i++)
+        for (int i = 0; i < tracks.size(); i++)
         {
-            WaveTrack track = waveTracks.get(i);
+            //WaveTrack track = waveTracks.get(i);
 
-            TrackInfo trackInfo = new TrackInfo(0, track, track.timeToSamples(start));
-            int channel = BASS.BASS_StreamCreate(track.getInfo().sampleRate, track.getInfo().channels,
-                    BASS.BASS_SAMPLE_FLOAT/*|BASS.BASS_STREAM_AUTOFREE*/, new StreamProc(), trackInfo);
+            TrackInfo trackInfo = tracks.get(i); // new TrackInfo(0, track, track.timeToSamples(start));
+            AudioInfo audioInfo = trackInfo.track.getInfo();
+
+            int channel = BASS.BASS_StreamCreate(audioInfo.sampleRate, audioInfo.channels,
+                    BASS.BASS_SAMPLE_FLOAT | BASS.BASS_STREAM_AUTOFREE, new StreamProc(), trackInfo);
 
             trackInfo.setChannel(channel);
-
-            tracks.add(trackInfo);
-            trackInfo.track.addListener(trackListener);
-
-            //BASS.BASS_ChannelPlay(channel, true);
-
-            //  int channel = BASS.BASS_StreamCreate(track.getInfo().sampleRate, track.getInfo().channels,
-            //          BASS.BASS_STREAM_DECODE|BASS.BASS_SAMPLE_FLOAT|BASSmix.BASS_MIXER_BUFFER, streamProc, new TrackInfo(0, track, 0));
-            /*boolean isOk = BASSmix.BASS_Mixer_StreamAddChannel(mixer, channel, 0);
-            if(!isOk)
-            {
-                Log.e("Player", "Fuck!");
-            }*/
+            trackInfo.setCurrentSample(trackInfo.track.timeToSamples(start));
         }
+        //  BASS.BASS_ChannelPlay(mixer, true);
 
         final TrackInfo longestTrack = findLongestTrack();
         if (notify && longestTrack != null)
-            handler.post(new Runnable()
+        {
+            //handler.post(new Runnable()
+            /*context.runOnUiThread(new Runnable()
             {
                 @Override
                 public void run()
-                {
-                    for (AudioPlayerListener listener : audioPlayerListeners)
-                    {
-                        listener.onInitialized((float) longestTrack.track.getEndTime());
-                    }
-                }
-            });
+                {*/
+            for (AudioPlayerListener listener : audioPlayerListeners)
+            {
+                listener.onInitialized((float) longestTrack.track.getEndTime());
+            }
+                /*}
+            });*/
+        }
 
         //Set callback
         //BASS.BASS_ChannelSetSync(mixer, BASS.BASS_STREAMPROC_END | BASS.BASS_SYNC_MIXTIME, 0, EndSync, 0);
 
         state = PlayerState.Paused;
-
+        if(autoPlay)
+            play();
     }
 
     private WaveTrack.WaveTrackListener trackListener = new WaveTrack.WaveTrackListener()

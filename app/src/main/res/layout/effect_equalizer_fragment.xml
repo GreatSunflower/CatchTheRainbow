@@ -1,21 +1,22 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                 xmlns:app="http://schemas.android.com/apk/res-auto"
-                 xmlns:tools="http://schemas.android.com/tools"
-                 android:layout_width="match_parent"
-                 android:layout_height="match_parent"
-                 tools:context="com.sunflower.catchtherainbow.Views.Effects.EqualizerEffectFragment"
-                 android:background="@color/backgroundButton">
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:background="@color/backgroundButton"
+             android:paddingLeft="10dp"
+             tools:context="com.sunflower.catchtherainbow.Views.Effects.EqualizerEffectFragment">
 
 
     <!-- TODO: Update blank fragment layout -->
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="10">
+        android:layout_height="wrap_content">
 
 
         <LinearLayout
+            android:id="@+id/container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -32,12 +33,12 @@
                 android:textSize="18sp"/>
 
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.09"
                 android:background="@drawable/background_textview"
-                android:paddingTop="1dp"
-                android:layout_weight="0.09">
+                android:orientation="horizontal"
+                android:paddingTop="1dp">
 
                 <com.sunflower.catchtherainbow.Views.Helpful.NDSpinner
                     android:id="@+id/spinnerEqualizer"
@@ -52,8 +53,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginTop="5dp"
-                android:gravity="center"
-                android:hapticFeedbackEnabled="true">
+                android:gravity="center">
                 >
 
                 <TextView
@@ -75,248 +75,6 @@
                     app:current="0"
                     app:max="15"
                     app:min="-15"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="5dp"
-                    android:text="32"
-                    android:textColor="@color/colorForeground"
-                    android:textSize="18sp"/>
-
-                <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                    android:id="@+id/_32db"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:tag="0"
-                    app:current="0"
-                    app:max="12"
-                    app:min="-12"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="5dp"
-                    android:text="64"
-                    android:textColor="@color/colorForeground"
-                    android:textSize="18sp"/>
-
-                <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                    android:id="@+id/_64db"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:tag="1"
-                    app:current="0"
-                    app:max="12"
-                    app:min="-12"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="5dp"
-                    android:text="125"
-                    android:textColor="@color/colorForeground"
-                    android:textSize="18sp"/>
-
-                <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                    android:id="@+id/_125db"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:tag="2"
-                    app:current="0"
-                    app:max="12"
-                    app:min="-12"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="5dp"
-                    android:text="250"
-                    android:textColor="@color/colorForeground"
-                    android:textSize="18sp"/>
-
-                <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                    android:id="@+id/_250db"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:tag="3"
-                    app:current="0"
-                    app:max="12"
-                    app:min="-12"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="5dp"
-                    android:text="500"
-                    android:textColor="@color/colorForeground"
-                    android:textSize="18sp"/>
-
-                <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                    android:id="@+id/_500db"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:tag="4"
-                    app:current="0"
-                    app:max="12"
-                    app:min="-12"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="11dp"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="5dp"
-                    android:text="1k"
-                    android:textColor="@color/colorForeground"
-                    android:textSize="18sp"/>
-
-                <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                    android:id="@+id/_1k"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:tag="5"
-                    app:current="0"
-                    app:max="12"
-                    app:min="-12"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="11dp"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="5dp"
-                    android:text="2k"
-                    android:textColor="@color/colorForeground"
-                    android:textSize="18sp"/>
-
-                <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                    android:id="@+id/_2k"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:tag="6"
-                    app:current="0"
-                    app:max="12"
-                    app:min="-12"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="11dp"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="5dp"
-                    android:text="4k"
-                    android:textColor="@color/colorForeground"
-                    android:textSize="18sp"/>
-
-                <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                    android:id="@+id/_4k"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:tag="7"
-                    app:current="0"
-                    app:max="12"
-                    app:min="-12"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="11dp"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="5dp"
-                    android:text="8k"
-                    android:textColor="@color/colorForeground"
-                    android:textSize="18sp"/>
-
-                <com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar
-                    android:id="@+id/_8k"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:tag="8"
-                    app:current="0"
-                    app:max="12"
-                    app:min="-12">
-
-                </com.sunflower.catchtherainbow.Views.Helpful.DetailedSeekBar>
-
             </LinearLayout>
 
 

@@ -1,5 +1,6 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
+import android.app.Activity;
 import android.content.Context;
 
 import com.un4seen.bass.BASS;
@@ -13,8 +14,8 @@ import java.util.ArrayList;
 
 public abstract class BasePlayer
 {
-    Context context;
-    public BasePlayer(Context context)
+    Activity context;
+    public BasePlayer(Activity context)
     {
         this.context = context;
     }
@@ -40,7 +41,7 @@ public abstract class BasePlayer
 
     public double getDuration(){ return 0.0; }
 
-    public void initialize(){}
+    public void initialize(boolean autoPlay){}
 
     public void play(){}
 
@@ -74,6 +75,7 @@ public abstract class BasePlayer
         void onInitialized(float totalTime);
         void onPlay();
         void onPause();
+        void onStop();
         void onCompleted();
     }
 

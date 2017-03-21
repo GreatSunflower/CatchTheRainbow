@@ -59,6 +59,8 @@ public class MainAreaFragment extends Fragment
     // a list of track holders
     private ArrayList<TrackHolder> tracks = new ArrayList<>();
 
+    protected WaveTrack selectedTrack = null;
+
     public MainAreaFragment()
     {
         //TableRow
@@ -140,6 +142,20 @@ public class MainAreaFragment extends Fragment
         Thumb th = new Thumb(getActivity(), head, Thumb.ThumbKind.Vertical);
 
         thumbRow.addView(th, 0);
+
+        trow.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus)
+            {
+                if(hasFocus)
+                {
+                    selectedTrack = track;
+                    //Toast.makeText(getActivity(), track.getName(), Toast.LENGTH_SHORT).show();
+                }
+                else selectedTrack = null;
+            }
+        });
 
         // add thumb row
         tracksLayout.addView(thumbRow);
@@ -223,6 +239,10 @@ public class MainAreaFragment extends Fragment
         }
     };
 
+    public WaveTrack getSelectedTrack()
+    {
+        return selectedTrack;
+    }
 
     public AudioIO getGlobalPlayer()
     {

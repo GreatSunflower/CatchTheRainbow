@@ -1,6 +1,5 @@
 package com.sunflower.catchtherainbow;
 
-
 import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -28,6 +27,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -58,6 +58,7 @@ import com.sunflower.catchtherainbow.Views.Helpful.LanguageFragment;
 import com.sunflower.catchtherainbow.Views.StartedApp.ProjectStartActivity;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Queue;
@@ -247,16 +248,24 @@ public class ProjectActivity extends AppCompatActivity
         getSupportFragmentManager().executePendingTransactions();
 
         // --------------------------------------AUDIO STUFF-------------------------------------------------
-        player = new AudioIO(this, project);
-        player.addPlayerListener(playerListener);
+     /*   new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {*/
+                player = new AudioIO(ProjectActivity.this, project);
+                player.addPlayerListener(playerListener);
+                player.setTracks(project.getTracks());
         // player
+            /*}
+        }).start();*/
 
         // timer to update the display
         updateTimer = new Runnable()
         {
             public void run()
             {
-                if (!isDragging && player.isInitialized()) progressView.setCurrent((float) player.getProgress());
+                if (!isDragging && player.isPlaying()) progressView.setCurrent((float) player.getProgress());
 
                 /*int bufferSize = 1024;
                 ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize*4);
@@ -387,6 +396,15 @@ public class ProjectActivity extends AppCompatActivity
         }
         if (id == R.id.action_effects)
         {
+            WaveTrack selectedTrack = tracksFragment.getSelectedTrack();
+
+            if(selectedTrack == null)
+            {
+                // notify about error
+                Helper.showCuteToast(ProjectActivity.this, R.string.track_not_selected);
+                return super.onOptionsItemSelected(item);
+            }
+
             //EffectsHostFragment fragment = (EffectsHostFragment) createNewDialog(R.id.effectsFragment, EffectsHostFragment.class, true);
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             Fragment prev = getSupportFragmentManager().findFragmentById(R.id.effectsFragment);
@@ -398,7 +416,8 @@ public class ProjectActivity extends AppCompatActivity
             //effectsFragment.setEffects(delayEffect, rateTransposer, flangerEffect);
 
             EffectsHostFragment hostFragment = EffectsHostFragment.newInstance();
-           // hostFragment.setChannel(tracksFragment.getSelectedTrack());
+            //hostFragment.setTrack(selectedTrack);
+            //Helper.showCuteToast(ProjectActivity.this, selectedTrack.getName());
             hostFragment.show(ft, "Effects dialog");
 
             return true;
@@ -531,6 +550,12 @@ public class ProjectActivity extends AppCompatActivity
         }
 
         @Override
+        public void onStop()
+        {
+            playStopButt.setImageResource(R.drawable.ic_play);
+        }
+
+        @Override
         public void onCompleted()
         {
             progressView.setCurrent(0);
@@ -553,13 +578,15 @@ public class ProjectActivity extends AppCompatActivity
         @Override
         public void onTrackRemoved(Project project, WaveTrack track)
         {
-            player.reinitialize();
+            player.setTracks(project.getTracks());
+            player.reinitialize(false);
         }
 
         @Override
         public void onTrackAdded(Project project, WaveTrack track)
         {
-            player.reinitialize();
+            player.setTracks(project.getTracks());
+            player.reinitialize(false);
         }
 
         @Override
@@ -593,12 +620,8 @@ public class ProjectActivity extends AppCompatActivity
         // start loading
         importer.addToQueue(queries);
 
-        Toast toast = Toast.makeText(ProjectActivity.this, R.string.track_loaded_in_the_notification, Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0);
-        toast.getView().setBackgroundResource(R.drawable.background_fragment);
-        TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
-        if( v != null) v.setGravity(Gravity.CENTER);
-        toast.show();
+        // notify about process
+        Helper.showCuteToast(ProjectActivity.this, R.string.track_loaded_in_the_notification);
     }
 
     @Override
@@ -694,7 +717,7 @@ public class ProjectActivity extends AppCompatActivity
             // remove listener
             AudioImporter.getInstance().setListener(null);
 
-            player.initialize();
+            player.initialize(false);
         }
     };
 

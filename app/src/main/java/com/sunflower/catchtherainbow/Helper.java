@@ -16,6 +16,9 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Gravity;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 
@@ -305,7 +308,7 @@ public class Helper
     }
 
     // Universal method for creating dialog fragments
-    private DialogFragment createNewDialog(AppCompatActivity context, int fragmentId, Class<? extends DialogFragment> fragmentClass, boolean showImmediately)
+    public static DialogFragment createNewDialog(AppCompatActivity context, int fragmentId, Class<? extends DialogFragment> fragmentClass, boolean showImmediately)
     {
         FragmentTransaction ft = context.getSupportFragmentManager().beginTransaction();
         Fragment prev = context.getSupportFragmentManager().findFragmentById(fragmentId);
@@ -327,5 +330,25 @@ public class Helper
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static void showCuteToast(Context context, int resId)
+    {
+        Toast toast = Toast.makeText(context, resId, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.getView().setBackgroundResource(R.drawable.background_fragment);
+        TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
+        if( v != null) v.setGravity(Gravity.CENTER);
+        toast.show();
+    }
+
+    public static void showCuteToast(Context context, String text)
+    {
+        Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.getView().setBackgroundResource(R.drawable.background_fragment);
+        TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
+        if (v != null) v.setGravity(Gravity.CENTER);
+        toast.show();
     }
 }

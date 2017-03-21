@@ -126,4 +126,5 @@
     <string name="phaser">Фазообертач</string>
     <string name="equalizer">Еквалайзер</string>
 
+    <string name="track_not_selected">Оберіть трек!</string>
 </resources>
