@@ -69,7 +69,7 @@ public class ProjectActivity extends AppCompatActivity
     private int notificationId = 0;
 
     private ActionMenuView amvMenu;
-    private ImageButton playStopButt, bNext, bPrev, bRecorderStartStop;
+    private ImageButton playPauseButt, bNext, bPrev, bRecorderStart, bStop;
     private AudioProgressView progressView;
     private View viewContentProject;
     private AudioVisualizerView visualizerView;
@@ -172,14 +172,16 @@ public class ProjectActivity extends AppCompatActivity
         waveFormViewContainer = (RelativeLayout) findViewById(R.id.mainAreaContainer);
 
         // play/stop/next/prev
-        playStopButt = (ImageButton) findViewById(R.id.Sacha);
+        playPauseButt = (ImageButton) findViewById(R.id.Sacha);
         bNext = (ImageButton) findViewById(R.id.playNext);
         bPrev = (ImageButton) findViewById(R.id.playPrev);
-        bRecorderStartStop = (ImageButton) findViewById(R.id.bRecorderStartStop);
+        bRecorderStart = (ImageButton) findViewById(R.id.bRecorderStart);
+        bStop = (ImageButton) findViewById(R.id.bStop);
 
         bPrev.setOnClickListener(this);
         bNext.setOnClickListener(this);
-        bRecorderStartStop.setOnClickListener(this);
+        bRecorderStart.setOnClickListener(this);
+        bStop.setOnClickListener(this);
 
         progressView = (AudioProgressView) findViewById(R.id.audioProgressView);
         progressView.setMax(1.f);
@@ -210,7 +212,7 @@ public class ProjectActivity extends AppCompatActivity
         });
 
         // play stop handler
-        playStopButt.setOnClickListener(this);
+        playPauseButt.setOnClickListener(this);
         // -----------------------------------------------
 
         Intent intent = getIntent();
@@ -308,18 +310,14 @@ public class ProjectActivity extends AppCompatActivity
                 else player.play();
                 break;
             }
-            case R.id.bRecorderStartStop:
+            case R.id.bRecorderStart:
             {
-                if(playStopButt.getVisibility() != View.GONE)
-                {
-                    bRecorderStartStop.setImageResource(R.drawable.ic_stop_recorder);
-                    playStopButt.setVisibility(View.GONE);
-                }
-                else
-                {
-                    bRecorderStartStop.setImageResource(R.drawable.ic_start_recorder);
-                    playStopButt.setVisibility(View.VISIBLE);
-                }
+                bRecorderStart.setEnabled(false);
+                break;
+            }
+            case R.id.bStop:
+            {
+                bRecorderStart.setEnabled(true);
                 break;
             }
             case R.id.playNext:
@@ -551,26 +549,26 @@ public class ProjectActivity extends AppCompatActivity
         @Override
         public void onPlay()
         {
-            playStopButt.setImageResource(R.drawable.ic_pause);
+            playPauseButt.setImageResource(R.drawable.ic_pause);
         }
 
         @Override
         public void onPause()
         {
-            playStopButt.setImageResource(R.drawable.ic_play);
+            playPauseButt.setImageResource(R.drawable.ic_play);
         }
 
         @Override
         public void onStop()
         {
-            playStopButt.setImageResource(R.drawable.ic_play);
+            playPauseButt.setImageResource(R.drawable.ic_play);
         }
 
         @Override
         public void onCompleted()
         {
             progressView.setCurrent(0);
-            playStopButt.setImageResource(R.drawable.ic_play);
+            playPauseButt.setImageResource(R.drawable.ic_play);
         }
     };
 

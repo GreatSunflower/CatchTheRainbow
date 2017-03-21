@@ -67,6 +67,15 @@
             app:srcCompat="@drawable/ic_skip_previous"/>
 
         <ImageButton
+            android:id="@+id/bRecorderStart"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/recorder_button_background"
+            android:padding="5dp"
+            android:scaleType="fitCenter"
+            />
+
+        <ImageButton
             android:id="@+id/Sacha"
             android:layout_width="55dp"
             android:layout_height="55dp"
@@ -81,6 +90,14 @@
         android:layout_width="75dp"/>
 
         <ImageButton
+            android:id="@+id/bStop"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/ic_stop_recorder"
+            android:scaleType="fitCenter"
+            />
+
+        <ImageButton
             android:id="@+id/playNext"
             android:layout_width="30dp"
             android:layout_height="32dp"
@@ -91,14 +108,6 @@
             android:textColor="@color/colorForeground"
             android:visibility="gone"
             app:srcCompat="@drawable/ic_skip_next"/>
-
-        <ImageButton
-            android:id="@+id/bRecorderStartStop"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:background="@null"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/ic_start_recorder"/>
 
         />
     </LinearLayout>
