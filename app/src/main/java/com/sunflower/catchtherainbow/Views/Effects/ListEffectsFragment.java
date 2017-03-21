@@ -78,6 +78,16 @@ public class ListEffectsFragment extends BaseEffectFragment implements AdapterVi
     }
 
     @Override
+    public void setChannel(int channel)
+    {
+        this.chan = channel;
+        if(newFragment != null)
+        {
+            newFragment.setChannel(this.chan);
+        }
+    }
+
+    @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long id)
     {
         ItemEffect itemEffect = effectsAdapter.getItem(position);
@@ -89,7 +99,7 @@ public class ListEffectsFragment extends BaseEffectFragment implements AdapterVi
         {
             newFragment = itemEffect.getFragment().newInstance();
             newFragment.setChannel(chan);
-            newFragment.setEffect();
+            newFragment.setPlayer(player);
 
             fragmentTransaction.add(R.id.effectsFragment, newFragment);
             fragmentTransaction.commit();

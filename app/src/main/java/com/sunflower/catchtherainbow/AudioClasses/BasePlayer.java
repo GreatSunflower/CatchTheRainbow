@@ -25,6 +25,16 @@ public abstract class BasePlayer
         return false;
     }
 
+    public boolean isPaused()
+    {
+        return false;
+    }
+
+    public boolean isStopped()
+    {
+        return false;
+    }
+
     public boolean isInitialized()
     {
         return false;

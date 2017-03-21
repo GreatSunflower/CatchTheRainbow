@@ -66,6 +66,22 @@ public class DistortionEffectFragment extends BaseEffectFragment
         return root;
     }
 
+    @Override
+    public void setChannel(int chan)
+    {
+        if(this.chan == chan) return;
+
+        this.chan = chan;
+
+        if(bass_dx8_distortion == null)
+            setEffect();
+        else
+        {
+            distortion = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_DISTORTION, 0);
+            BASS.BASS_FXSetParameters(distortion, bass_dx8_distortion);
+        }
+    }
+
     public void setEffect()
     {
         distortion = BASS.BASS_ChannelSetFX(chan, BASS.BASS_FX_DX8_DISTORTION, 0);

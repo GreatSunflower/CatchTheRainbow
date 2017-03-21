@@ -19,8 +19,11 @@ import android.widget.SeekBar;
 import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
 import com.sunflower.catchtherainbow.AudioClasses.BasePlayer;
 import com.sunflower.catchtherainbow.AudioClasses.Project;
+import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.AudioProgressView;
+
+import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -34,6 +37,12 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
 {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
+
+    AudioProgressView progressView;
+    ImageButton playStopButt;
+    AudioIO player;
+    private Project Project;
+    private boolean isDragging = false;
 
     private OnEffectsHostListener mListener;
 
@@ -77,12 +86,6 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         return R.style.MyAnimation_Window;
     }
 
-    AudioProgressView progressView;
-    ImageButton playStopButt;
-    AudioIO player;
-    private Project Project;
-    private boolean isDragging = false;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
@@ -97,11 +100,6 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
 
         okButt.setOnClickListener(this);
         cancelButt.setOnClickListener(this);
-
-        //////////////////////////
-        /*player = new AudioIO(EffectsHostFragment.this.getActivity(), Project);
-        player.addPlayerListener(playerListener);
-        player.setTracks(Project.getTracks());*/
 
         playStopButt = (ImageButton) root.findViewById(R.id.bPlayEffect);
         // play stop handler
@@ -141,6 +139,14 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         return root;
     }
 
+    public void setTrack(WaveTrack track)
+    {
+        player = new AudioIO(EffectsHostFragment.this.getActivity(), Project);
+        player.addPlayerListener(playerListener);
+        player.setTrack(track);
+        player.initialize(false);
+    }
+
     BasePlayer.AudioPlayerListener playerListener = new BasePlayer.AudioPlayerListener()
     {
         @Override
@@ -148,12 +154,17 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         {
             progressView.setMax(totalTime);
             progressView.setCurrent(0);
+
+            effectsFragment.setPlayer(player);
+            effectsFragment.setChannel(player.getTracks().get(0).getChannel());
         }
 
         @Override
         public void onPlay()
         {
             playStopButt.setImageResource(R.drawable.ic_pause);
+            effectsFragment.setPlayer(player);
+            effectsFragment.setChannel(player.getTracks().get(0).getChannel());
         }
 
         @Override
@@ -186,7 +197,6 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         fragmentTransaction.replace(R.id.effectsFragment, effectsFragment);
-        effectsFragment.setChannel(chan);
         fragmentTransaction.commit();
 
     }
@@ -215,7 +225,7 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
     {
         if(view.getId() == R.id.bOk)
         {
-
+            player.eject();
         }
         else if(view.getId() == R.id.bCancel)
         {
@@ -233,8 +243,9 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
             mListener.onEffectsConfirmed();
         }
 
+        player.eject();
         // close it!
-        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+        dismiss();
     }
 
     /**

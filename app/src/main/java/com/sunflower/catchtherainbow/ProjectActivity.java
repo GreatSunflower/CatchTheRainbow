@@ -424,13 +424,12 @@ public class ProjectActivity extends AppCompatActivity
             ft.addToBackStack(null);
             // Create and show the dialog.
 
-            //ListEffectsFragment effectsFragment = ListEffectsFragment.newInstance(player.getChannelHandle());
-            //effectsFragment.setEffects(delayEffect, rateTransposer, flangerEffect);
-
             EffectsHostFragment hostFragment = EffectsHostFragment.newInstance();
-            //hostFragment.setTrack(selectedTrack);
             //Helper.showCuteToast(ProjectActivity.this, selectedTrack.getName());
             hostFragment.show(ft, "Effects dialog");
+            // force to create views
+            getSupportFragmentManager().executePendingTransactions();
+            hostFragment.setTrack(selectedTrack);
 
             return true;
         }

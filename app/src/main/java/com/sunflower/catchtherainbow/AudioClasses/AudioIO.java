@@ -158,6 +158,17 @@ public class AudioIO extends BasePlayer
     }
 
     @Override
+    public boolean isStopped()
+    {
+        return state == PlayerState.Stopped;
+    }
+
+    public boolean isPaused()
+    {
+        return state == PlayerState.Paused;
+    }
+
+    @Override
     public boolean isInitialized()
     {
         return state != PlayerState.NotInitialized;
@@ -211,8 +222,33 @@ public class AudioIO extends BasePlayer
         initialize(false);
     }
 
+    public void setTrack(WaveTrack waveTrack)
+    {
+        eject();
+
+        // update thread count(equals to the number of tracks)
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATETHREADS, 1);
+
+        TrackInfo trackInfo = new TrackInfo(0, waveTrack, 0);
+        int channel = BASS.BASS_StreamCreate(waveTrack.getInfo().sampleRate, waveTrack.getInfo().channels,
+                BASS.BASS_SAMPLE_FLOAT | BASS.BASS_STREAM_AUTOFREE, new StreamProc(), trackInfo);
+
+        trackInfo.setChannel(channel);
+
+        tracks.add(trackInfo);
+        trackInfo.track.addListener(trackListener);
+
+
+        initialize(false);
+    }
+
+    public ArrayList<TrackInfo> getTracks()
+    {
+        return tracks;
+    }
+
     // used to determine track samples during playback
-    private class TrackInfo
+    public class TrackInfo
     {
         protected WaveTrack track;
 
@@ -354,7 +390,9 @@ public class AudioIO extends BasePlayer
     {
         stop();
 
-        AudioInfo info = project.getProjectAudioInfo();
+        if(tracks.isEmpty()) return;
+
+       // AudioInfo info = project.getProjectAudioInfo();
 
         //ArrayList<WaveTrack> waveTracks = project.getTracks();
 
