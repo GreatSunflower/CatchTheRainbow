@@ -58,20 +58,18 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
         View root = inflater.inflate(R.layout.effect_equalizer_fragment, container, false);
 
         spinner_array = getResources().getStringArray(R.array.spinner_array);
+
         //------------------------------spinner Filter-----------------
 
         ArrayList<String> items = new ArrayList<String>();
         Collections.addAll(items, spinner_array);
 
         spinFilter = (NDSpinner) root.findViewById(R.id.spinnerEqualizer);
-        // 2 - шаблон дл показа выбранного пункта в выпадающем списке
         spinFilterAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, items);
-        // задание шаблона для выпадающих пунктов списка
         spinFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         spinFilter.setAdapter(spinFilterAdapter);
         // ѕрограммный выбор пункта выпадающего списка
-        //spinner.setSelection(2);
         spinFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id)
@@ -87,26 +85,6 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
         //---------------------------------end spinnerFilter-----------------------
 
         fGainEq = (DetailedSeekBar) root.findViewById(R.id.fGain_equalizer);
-        /*_80hz = (DetailedSeekBar) root.findViewById(R.id._32db);
-        _160hz = (DetailedSeekBar) root.findViewById(R.id._64db);
-        _320hz = (DetailedSeekBar) root.findViewById(R.id._125db);
-        _640hz = (DetailedSeekBar) root.findViewById(R.id._250db);
-        _1khz = (DetailedSeekBar) root.findViewById(R.id._500db);
-        _1khz = (DetailedSeekBar) root.findViewById(R.id._1k);
-        _2khz = (DetailedSeekBar) root.findViewById(R.id._2k);
-        _4khz = (DetailedSeekBar) root.findViewById(R.id._4k);
-        _8khz = (DetailedSeekBar) root.findViewById(R.id._8k);*/
-
-       /* fGainEq.setListener(this);
-        _80hz.setListener(this);
-        _160hz.setListener(this);
-        _320hz.setListener(this);
-        _640hz.setListener(this);
-        _1khzh.setListener(this);
-        _1khz.setListener(this);
-        _2khz.setListener(this);
-        _4khz.setListener(this);
-        _8khz.setListener(this);*/
 
         LinearLayout freqContainer = (LinearLayout)root.findViewById(R.id.container);
 
@@ -143,6 +121,7 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
             freqSlider.setMinValue(-15);
             freqSlider.setMaxValue(15);
             freqSlider.setDefaultValue(0);
+            freqSlider.setTag(i);
 
             layoutParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT);
             layoutParams.weight = 0.85f;

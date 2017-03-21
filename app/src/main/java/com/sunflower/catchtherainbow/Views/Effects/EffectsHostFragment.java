@@ -13,8 +13,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.SeekBar;
 
+import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
+import com.sunflower.catchtherainbow.AudioClasses.BasePlayer;
+import com.sunflower.catchtherainbow.AudioClasses.Project;
 import com.sunflower.catchtherainbow.R;
+import com.sunflower.catchtherainbow.Views.AudioProgressView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -71,6 +77,12 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         return R.style.MyAnimation_Window;
     }
 
+    AudioProgressView progressView;
+    ImageButton playStopButt;
+    AudioIO player;
+    private Project Project;
+    private boolean isDragging = false;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
@@ -86,8 +98,83 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         okButt.setOnClickListener(this);
         cancelButt.setOnClickListener(this);
 
+        //////////////////////////
+        /*player = new AudioIO(EffectsHostFragment.this.getActivity(), Project);
+        player.addPlayerListener(playerListener);
+        player.setTracks(Project.getTracks());*/
+
+        playStopButt = (ImageButton) root.findViewById(R.id.bPlayEffect);
+        // play stop handler
+        playStopButt.setOnClickListener(this);
+
+        ///////////////////////
+        progressView = (AudioProgressView) root.findViewById(R.id.audioProgressEffect);
+        progressView.setMax(1.f);
+        progressView.setCurrent(0);
+        progressView.setOnSeekBar(new SeekBar.OnSeekBarChangeListener()
+        {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean b)
+            {
+                if (player != null)
+                    progressView.setCurrent(progress);
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar)
+            {
+                isDragging = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar)
+            {
+                if (player != null)
+                {
+                    player.setPosition(seekBar.getProgress());
+                }
+                isDragging = false;
+            }
+        });
+
+        ///////////////////////////
+
         return root;
     }
+
+    BasePlayer.AudioPlayerListener playerListener = new BasePlayer.AudioPlayerListener()
+    {
+        @Override
+        public void onInitialized(float totalTime/*final File file*/)
+        {
+            progressView.setMax(totalTime);
+            progressView.setCurrent(0);
+        }
+
+        @Override
+        public void onPlay()
+        {
+            playStopButt.setImageResource(R.drawable.ic_pause);
+        }
+
+        @Override
+        public void onPause()
+        {
+            playStopButt.setImageResource(R.drawable.ic_play);
+        }
+
+        @Override
+        public void onStop()
+        {
+            playStopButt.setImageResource(R.drawable.ic_play);
+        }
+
+        @Override
+        public void onCompleted()
+        {
+            progressView.setCurrent(0);
+            playStopButt.setImageResource(R.drawable.ic_play);
+        }
+    };
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState)
@@ -135,7 +222,12 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
             boolean res = effectsFragment.cancel();
             if(res) return;
         }
-
+        else if(view.getId() == R.id.bPlayEffect)
+        {
+            if(player.isPlaying()) player.pause();
+            else player.play();
+            return;
+        }
         if (mListener != null)
         {
             mListener.onEffectsConfirmed();

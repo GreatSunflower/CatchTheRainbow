@@ -17,7 +17,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NotificationCompat;
@@ -27,7 +26,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,7 +34,6 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.RemoteViews;
 import android.widget.SeekBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.Adapters.SupportedLanguages;
@@ -58,7 +55,6 @@ import com.sunflower.catchtherainbow.Views.Helpful.LanguageFragment;
 import com.sunflower.catchtherainbow.Views.StartedApp.ProjectStartActivity;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Queue;
@@ -73,7 +69,7 @@ public class ProjectActivity extends AppCompatActivity
     private int notificationId = 0;
 
     private ActionMenuView amvMenu;
-    private ImageButton playStopButt, bNext, bPrev;
+    private ImageButton playStopButt, bNext, bPrev, bRecorderStartStop;
     private AudioProgressView progressView;
     private View viewContentProject;
     private AudioVisualizerView visualizerView;
@@ -179,9 +175,11 @@ public class ProjectActivity extends AppCompatActivity
         playStopButt = (ImageButton) findViewById(R.id.Sacha);
         bNext = (ImageButton) findViewById(R.id.playNext);
         bPrev = (ImageButton) findViewById(R.id.playPrev);
+        bRecorderStartStop = (ImageButton) findViewById(R.id.bRecorderStartStop);
 
         bPrev.setOnClickListener(this);
         bNext.setOnClickListener(this);
+        bRecorderStartStop.setOnClickListener(this);
 
         progressView = (AudioProgressView) findViewById(R.id.audioProgressView);
         progressView.setMax(1.f);
@@ -308,6 +306,20 @@ public class ProjectActivity extends AppCompatActivity
             {
                 if(player.isPlaying()) player.pause();
                 else player.play();
+                break;
+            }
+            case R.id.bRecorderStartStop:
+            {
+                if(playStopButt.getVisibility() != View.GONE)
+                {
+                    bRecorderStartStop.setImageResource(R.drawable.ic_stop_recorder);
+                    playStopButt.setVisibility(View.GONE);
+                }
+                else
+                {
+                    bRecorderStartStop.setImageResource(R.drawable.ic_start_recorder);
+                    playStopButt.setVisibility(View.VISIBLE);
+                }
                 break;
             }
             case R.id.playNext:

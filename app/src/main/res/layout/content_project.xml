@@ -47,46 +47,59 @@
         android:layout_height="30dp"/>
 
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center">
+        android:layout_marginBottom="5dp"
+        android:gravity="center"
+        android:orientation="horizontal">
         android:layout_width="75dp">
 
         <ImageButton
-            android:text="Prev"
             android:id="@+id/playPrev"
-            android:textColor="@color/colorForeground"
-            app:srcCompat="@drawable/ic_skip_previous"
-            android:background="@null"
+            android:layout_width="30dp"
+            android:layout_height="32dp"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
-            android:layout_width="30dp"
-            android:layout_height="32dp"/>
+            android:background="@null"
+            android:text="Prev"
+            android:textColor="@color/colorForeground"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_skip_previous"/>
 
         <ImageButton
-            android:text="Play"
             android:id="@+id/Sacha"
-            android:background="@null"
-            android:layout_marginLeft="15dp"
-            android:textColor="@color/colorForeground"
-            app:srcCompat="@drawable/ic_play"
-            android:layout_marginRight="15dp"
             android:layout_width="55dp"
-            android:layout_height="55dp"/>
-            android:id="@+id/Sacha"
-            android:layout_width="75dp"/>
+            android:layout_height="55dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            android:text="Play"
+            android:textColor="@color/colorForeground"
+            app:srcCompat="@drawable/ic_play"/>
+        android:id="@+id/Sacha"
+        android:layout_width="75dp"/>
 
         <ImageButton
-            android:text="Next"
             android:id="@+id/playNext"
-            android:background="@null"
-            android:layout_marginLeft="10dp"
-            android:textColor="@color/colorForeground"
-            app:srcCompat="@drawable/ic_skip_next"
-            android:layout_marginRight="10dp"
             android:layout_width="30dp"
-            android:layout_height="32dp"/>
-            android:layout_width="75dp"/>
+            android:layout_height="32dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@null"
+            android:text="Next"
+            android:textColor="@color/colorForeground"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_skip_next"/>
+
+        <ImageButton
+            android:id="@+id/bRecorderStartStop"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_start_recorder"/>
+
+        />
     </LinearLayout>
 </LinearLayout>
