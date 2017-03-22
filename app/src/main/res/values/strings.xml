@@ -130,4 +130,6 @@
     <string name="equalizer">Equalizer</string>
 
     <string name="track_not_selected">A track must be selected!</string>
+
+    <string name="effect_apply_message">Applying effect</string>
 </resources>

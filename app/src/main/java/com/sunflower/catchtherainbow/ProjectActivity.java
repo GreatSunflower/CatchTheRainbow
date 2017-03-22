@@ -361,6 +361,7 @@ public class ProjectActivity extends AppCompatActivity
         statusHandler.removeCallbacks(updateTimer);
 
         project.removeListener(projectListener);
+        project.updateProjectFile();
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         // remove the notification in case it's there
@@ -736,7 +737,7 @@ public class ProjectActivity extends AppCompatActivity
     @Override
     public void onEffectsConfirmed()
     {
-
+        project.updateProjectFile();
     }
 
     @Override

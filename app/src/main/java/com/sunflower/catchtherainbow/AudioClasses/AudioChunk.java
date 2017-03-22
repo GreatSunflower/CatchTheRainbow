@@ -1,49 +1,18 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
-import android.util.Log;
-
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channel;
-import java.nio.channels.FileChannel;
 import java.util.Date;
 
 /**
  * Created by SuperComputer on 3/6/2017.
  */
-
-enum SampleFormat implements Serializable
-{
-    int_8Bit(1),
-    int_16Bit(2),
-    float_32Bit(4);
-
-    int sampleSize;
-
-    SampleFormat(int sampleSize) { this.sampleSize = sampleSize; }
-}
-
-// passed from track
-class AudioInfo implements Serializable
-{
-    public AudioInfo(int sampleRate, int channels)
-    {
-        this.sampleRate = sampleRate;
-        this.channels = channels;
-    }
-
-    int sampleRate = 44100;
-    int channels = 2;
-    SampleFormat format = SampleFormat.float_32Bit;
-}
 
 //header of the file
 class ChunkHeader implements Serializable
@@ -93,7 +62,7 @@ public class AudioChunk implements Serializable
             outputStream.writeFloat(shortBuffer[i]);*/
        // fileChannel.write(buffer);
 
-        byte[]res = new byte[samplesLen*audioInfo.format.sampleSize];
+        byte[]res = new byte[samplesLen*audioInfo.format.getSampleSize()];
         buffer.get(res);
 
         // write sample data
@@ -115,7 +84,9 @@ public class AudioChunk implements Serializable
     // @return number of samples read or -1 if the was an error
     public int readToBuffer(ByteBuffer buffer, int start, int length)
     {
-        int sampleSize = audioInfo.format.sampleSize;
+        int sampleSize = audioInfo.format.getSampleSize();
+
+        int read = 0;
 
         try
         {
@@ -131,7 +102,6 @@ public class AudioChunk implements Serializable
 
             //objectInputStream.skipBytes(start * 4/* Size of one sample */);
 
-            int read = 0;
 
             objectInputStream.skipBytes(start * sampleSize);
            // read = (int) fileChannel.read(new ByteBuffer[]{buffer}, start, length);
@@ -182,7 +152,7 @@ public class AudioChunk implements Serializable
             e.printStackTrace();
         }
 
-        return -1;
+        return read;
     }
 
     public String getPath()

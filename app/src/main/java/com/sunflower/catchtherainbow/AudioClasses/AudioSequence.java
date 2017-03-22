@@ -34,7 +34,7 @@ public class AudioSequence implements Serializable
         this.fileManager = manager;
         this.info = info;
 
-        minSamples = maxChunkSize / info.format.sampleSize;
+        minSamples = maxChunkSize / info.format.getSampleSize();
         maxSamples = minSamples;
     }
 
@@ -50,10 +50,11 @@ public class AudioSequence implements Serializable
         if(length > maxSamples || blockRelativeStart + len > length)
             return false;
 
-        int sampleSize = getInfo().format.sampleSize;
+        int sampleSize = getInfo().format.getSampleSize();
 
-        read(scratch, chunk, 0, length);
-        AudioHelper.copySamples(scratch, buffer, blockRelativeStart * sampleSize, len * sampleSize, getInfo());
+        //read(scratch, chunk, 0, length);
+        scratch.rewind();
+        AudioHelper.copySamples(scratch, buffer, blockRelativeStart, len, getInfo());
 
         try
         {
@@ -117,7 +118,7 @@ public class AudioSequence implements Serializable
         {
             final long chunkLen = Math.min(maxSamples, len);
 
-            ByteBuffer res = ByteBuffer.allocateDirect((int) chunkLen * info.format.sampleSize);
+            ByteBuffer res = ByteBuffer.allocateDirect((int) chunkLen * info.format.getSampleSize());
             AudioHelper.copySamples(res, buffer, 0, (int) chunkLen, info);
 
             AudioChunk file = fileManager.createAudioChunk(res, (int)chunkLen, info);
@@ -196,9 +197,9 @@ public class AudioSequence implements Serializable
         //ByteBuffer fff= ByteBuffer.allocateDirect(66);
         //buffer.put(b);
 
-        if (res/info.format.sampleSize != len)
+        if (res/info.format.getSampleSize() != len)
         {
-            Log.e(LOG_TAG, "Expected to read " + len + " bytes. Read: " + (res/info.format.sampleSize));
+            Log.e(LOG_TAG, "Expected to read " + len + " bytes. Read: " + (res/info.format.getSampleSize()));
         }
 
         return res;
@@ -210,13 +211,13 @@ public class AudioSequence implements Serializable
         if (start < 0 || start >= samplesCount || start+len > samplesCount)
             return false;
 
-        ByteBuffer scratch = ByteBuffer.allocateDirect (maxSamples * info.format.sampleSize);
+        ByteBuffer scratch = ByteBuffer.allocateDirect (maxSamples * info.format.getSampleSize());
 
         ByteBuffer temp = null;
-        if (buffer != null && info.format.sampleSize != getInfo().format.sampleSize)
+        if (buffer != null && info.format.getSampleSize() != getInfo().format.getSampleSize())
         {
             int size = AudioHelper.limitSampleBufferSize(maxSamples, len);
-            temp = ByteBuffer.allocateDirect(size * info.format.sampleSize);
+            temp = ByteBuffer.allocateDirect(size * info.format.getSampleSize());
         }
 
         int pos = findChunk(start);
@@ -231,11 +232,11 @@ public class AudioSequence implements Serializable
 
             if (buffer != null)
             {
-                if (info.format.sampleSize == getInfo().format.sampleSize)
+                if (info.format.getSampleSize() == getInfo().format.getSampleSize())
                     copyWrite(scratch, buffer, chunkPos, bstart, blen);
                 else
                 {
-                    // To do: remove the extra movement.  Can we copy-samples within CopyWrite?
+
                     AudioHelper.copySamples(temp, buffer, bstart, blen, info);
                     copyWrite(scratch, temp, chunkPos, bstart, blen);
                 }
@@ -250,7 +251,7 @@ public class AudioSequence implements Serializable
                 else
                 {
                     // Odd partial blocks of silence at start or end.
-                    temp = ByteBuffer.allocateDirect(blen * info.format.sampleSize);
+                    temp = ByteBuffer.allocateDirect(blen * info.format.getSampleSize());
                     AudioHelper.clearSamples(temp, 0, blen, info);
                     // Otherwise write silence just to the portion of the block
                     copyWrite(scratch, temp, chunkPos, bstart, blen);
@@ -300,6 +301,17 @@ public class AudioSequence implements Serializable
         }
 
         return bytesRead;
+    }
+
+
+    public int getMinSamples()
+    {
+        return minSamples;
+    }
+
+    public int getMaxSamples()
+    {
+        return maxSamples;
     }
 
     public AudioInfo getInfo()

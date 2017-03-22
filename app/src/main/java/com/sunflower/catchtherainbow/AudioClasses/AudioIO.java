@@ -1,12 +1,10 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
 import android.app.Activity;
-import android.os.Handler;
 import android.util.Log;
 
 import com.un4seen.bass.BASS;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
@@ -248,7 +246,7 @@ public class AudioIO extends BasePlayer
     }
 
     // used to determine track samples during playback
-    public class TrackInfo
+    public static class TrackInfo
     {
         protected WaveTrack track;
 
@@ -282,6 +280,11 @@ public class AudioIO extends BasePlayer
         {
             return currentSample;
         }
+
+        public WaveTrack getTrack()
+        {
+            return track;
+        }
     }
 
     class StreamProc implements BASS.STREAMPROC
@@ -297,7 +300,7 @@ public class AudioIO extends BasePlayer
 
             try
             {
-                int sampleSize = track.track.getInfo().format.sampleSize;
+                int sampleSize = track.track.getInfo().format.getSampleSize();
                 samplesRead = track.track.get(buffer, track.currentSample, length / sampleSize) / sampleSize;
 
                 track.currentSample+=samplesRead;

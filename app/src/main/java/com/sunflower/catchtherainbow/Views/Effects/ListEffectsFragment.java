@@ -77,6 +77,21 @@ public class ListEffectsFragment extends BaseEffectFragment implements AdapterVi
         return false;
     }
 
+    public boolean onOk()
+    {
+        if(newFragment!=null)
+        {
+            boolean res = newFragment.onOk();
+            if(res)
+            {
+                getFragmentManager().beginTransaction().remove(newFragment).commit();
+                newFragment = null;
+            }
+            return res;
+        }
+        return false;
+    }
+
     @Override
     public void setChannel(int channel)
     {

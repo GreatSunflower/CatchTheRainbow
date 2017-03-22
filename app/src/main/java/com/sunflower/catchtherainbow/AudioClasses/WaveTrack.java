@@ -1,7 +1,5 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
-import com.sunflower.catchtherainbow.Helper;
-
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

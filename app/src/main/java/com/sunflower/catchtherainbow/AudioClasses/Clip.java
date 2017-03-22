@@ -56,6 +56,16 @@ public class Clip implements Serializable
         return maxLen;
     }
 
+    public  int getMinSamples()
+    {
+        return sequence.getMinSamples();
+    }
+
+    public int getMaxSamples()
+    {
+        return sequence.getMaxSamples();
+    }
+
     public int getStartSample()
     {
         return (int)Math.floor(offset * info.sampleRate * info.channels + 0.5);

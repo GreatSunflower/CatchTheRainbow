@@ -25,6 +25,11 @@ public abstract class BaseEffectFragment extends Fragment
 
     }
 
+    public boolean onOk()
+    {
+        return false;
+    }
+
     public boolean cancel()
     {
         return false;

@@ -1,8 +1,5 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
-import android.content.Intent;
-import android.util.Log;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -55,6 +52,8 @@ public class FileManager implements Serializable
 
         audioChunks.put(refChunk.getPath(), refChunk);
         chunkReferences.add(refPath);
+
+        currentFileCount++;
 
         return refChunk;
     }

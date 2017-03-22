@@ -254,6 +254,9 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
     {
         if(view.getId() == R.id.bOk)
         {
+            boolean res = effectsFragment.onOk();
+            if(res) return;
+
             player.eject();
         }
         else if(view.getId() == R.id.bCancel)

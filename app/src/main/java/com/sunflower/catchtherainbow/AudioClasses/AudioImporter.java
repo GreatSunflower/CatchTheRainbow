@@ -127,7 +127,7 @@ public class AudioImporter implements Runnable
             // number of files
             int fileCount = 0;
 
-            ArrayList<AudioChunk>audioChunks = new ArrayList<>();
+            //ArrayList<AudioChunk>audioChunks = new ArrayList<>();
 
             //WaveTrack track = new WaveTrack("", project.getFileManager());
             //final AudioSequence sequence = new AudioSequence(project.getFileManager(), new AudioInfo(info.freq, info.chans));
@@ -176,7 +176,7 @@ public class AudioImporter implements Runnable
                 });
 
             } // while file is not decoded
-            Log.i(LOG_TAG, "Audio chunks created: " + audioChunks.size());
+            //Log.i(LOG_TAG, "Audio chunks created: " + audioChunks.size());
 
             // add the query to the finished list
             finishedQueries.add(query);
