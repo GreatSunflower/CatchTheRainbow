@@ -6,6 +6,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.un4seen.bass.BASS;
+import com.un4seen.bass.BASSmix;
 
 import java.io.File;
 
@@ -33,7 +34,7 @@ public class SuperApplication extends Application
             Log.e("App", "Can't initialize device");
             return;
         }
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_FLOATDSP, 32);
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_FLOATDSP, 1);
 
         // !!!-----Load plugins-----!!!
         ApplicationInfo info = this.getApplicationInfo();
@@ -47,12 +48,12 @@ public class SuperApplication extends Application
             }
         }
         // plugins end
-        BASS.BASS_SetConfig(BASS.BASS_CONFIG_BUFFER, 1000);
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_BUFFER, 5000);
 
         //BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATETHREADS, project.getTracks().size());
-        //BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATEPERIOD, 20);
+        //BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATEPERIOD, 30);
         //BASS.BASS_SetConfig(BASS.BASS_CONFIG_ASYNCFILE_BUFFER, 4096*2);/* */
-        //BASS.BASS_SetConfig(BASSmix.BASS_CONFIG_MIXER_BUFFER, 5);*/
+        BASS.BASS_SetConfig(BASSmix.BASS_CONFIG_MIXER_BUFFER, 5);
         //BASS.BASS_SetConfig(BASSmix.BASS_CONFIG_MIXER_POSEX, 5000);
     }
 }

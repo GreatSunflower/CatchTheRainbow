@@ -9,6 +9,9 @@ import com.un4seen.bass.BASS;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -124,14 +127,8 @@ public class AudioImporter implements Runnable
             int bufferSize = AudioSequence.maxChunkSize; /*1048576*4*/;
             long totalBytesRead = 0;
 
-            // number of files
-            int fileCount = 0;
-
-            //ArrayList<AudioChunk>audioChunks = new ArrayList<>();
-
             //WaveTrack track = new WaveTrack("", project.getFileManager());
             //final AudioSequence sequence = new AudioSequence(project.getFileManager(), new AudioInfo(info.freq, info.chans));
-
             final Clip clip = new Clip(project.getFileManager(), new AudioInfo(info.freq, info.chans));
 
             // read data piece by piece
@@ -139,11 +136,19 @@ public class AudioImporter implements Runnable
             {
                 ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize);
                 //audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
-                int bytesRead = BASS.BASS_ChannelGetData(handle, audioData, bufferSize);
+                int bytesRead = BASS.BASS_ChannelGetData(handle, audioData, bufferSize|BASS.BASS_DATA_FLOAT);
+
+                //audioData.order(ByteOrder.LITTLE_ENDIAN);
+                FloatBuffer ibuffer=audioData.asFloatBuffer();
+                float[] floatBuff=new float[bufferSize/4]; // allocate a "float" array for the sample data
+                ibuffer.get(floatBuff); // get the data from the buffer into the array
+
+              //  float []f = new float[bufferSize/4];
+             //   audioData.asFloatBuffer().get(f);
 
                 totalBytesRead += bytesRead;
 
-               /* byte buffer[] = new byte[bufferSize/4];
+                /*byte buffer[] = new byte[bufferSize/4];
                 audioData.get(buffer);
 
                 ByteBuffer resBuff = ByteBuffer.allocate(bufferSize/2);//.wrap(buffer);
@@ -156,9 +161,6 @@ public class AudioImporter implements Runnable
                 {
                     e.printStackTrace();
                 }
-
-                // increment files count
-                fileCount++;
 
                 // final variables for handler
                 final ImporterQuery processedQuery = query;
@@ -176,7 +178,6 @@ public class AudioImporter implements Runnable
                 });
 
             } // while file is not decoded
-            //Log.i(LOG_TAG, "Audio chunks created: " + audioChunks.size());
 
             // add the query to the finished list
             finishedQueries.add(query);

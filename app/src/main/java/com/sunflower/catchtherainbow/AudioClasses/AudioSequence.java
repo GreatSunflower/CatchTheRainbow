@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
@@ -301,6 +302,87 @@ public class AudioSequence implements Serializable
         }
 
         return bytesRead;
+    }
+
+    // wave data
+    boolean getMinMax(int start, int len, Float outMin, Float outMax)
+    {
+        if (len == 0 || chunks.size() == 0)
+        {
+            outMin = 0.0f;
+            outMax = 0.0f;
+            return true;
+        }
+
+        float min = Float.MAX_VALUE;
+        float max = Float.MIN_VALUE;
+
+        int block0 = findChunk(start);
+        int block1 = findChunk(start + len - 1);
+
+        // First calculate the min/max of the blocks in the middle of this region;
+        // this is very fast because we have the min/max of every entire block
+        // already in memory.
+
+        for (int b = block0 + 1; b < block1; ++b)
+        {
+            Float blockMin = 0.f, blockMax = 0.f, blockRMS = 0.f;
+            chunks.get(b).chunk.getMinMax(blockMin, blockMax, blockRMS);
+
+            if (blockMin < min)
+                min = blockMin;
+            if (blockMax > max)
+                max = blockMax;
+        }
+
+        {
+            Float block0Min = 0f, block0Max = 0f, block0RMS = 0f;
+            AudioChunkPos theBlock = chunks.get(block0);
+            AudioChunk theFile = theBlock.getChunk();
+            theFile.getMinMax(block0Min, block0Max, block0RMS);
+
+            if (block0Min < min || block0Max > max)
+            {
+                // start lies within theBlock:
+                int s0 = start - theBlock.start;
+                int maxl0 = theBlock.start + theFile.getSamplesCount() - start;
+
+                int l0 = AudioHelper.limitSampleBufferSize(maxl0, len);
+
+                Float partialMin = 0f, partialMax = 0f, partialRMS = 0f;
+                theFile.getMinMax(s0, l0, partialMin, partialMax, partialRMS);
+                if (partialMin < min)
+                    min = partialMin;
+                if (partialMax > max)
+                    max = partialMax;
+            }
+        }
+
+        if (block1 > block0)
+        {
+            Float block1Min = 0f, block1Max = 0f, block1RMS = 0f;
+            AudioChunkPos theBlock = chunks.get(block1);
+            AudioChunk theFile = theBlock.getChunk();
+            theFile.getMinMax(block1Min, block1Max, block1RMS);
+
+            if (block1Min < min || block1Max > max)
+            {
+                // start + len - 1 lies in theBlock:
+                int l0 = start + len - theBlock.start;
+
+                Float partialMin = 0f, partialMax = 0f, partialRMS = 0f;
+                theFile.getMinMax(0, l0, partialMin, partialMax, partialRMS);
+                if (partialMin < min)
+                min = partialMin;
+                if (partialMax > max)
+                max = partialMax;
+            }
+        }
+
+        outMin = min;
+        outMax = max;
+
+        return true;
     }
 
 

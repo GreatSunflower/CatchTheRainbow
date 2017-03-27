@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Date;
 
 /**
@@ -19,6 +20,8 @@ class ChunkHeader implements Serializable
 {
     AudioInfo info;
     int samplesCount;
+    float []summary64K;
+    float []summary256;
 
     public ChunkHeader(AudioInfo info, int samplesCount)
     {
@@ -34,12 +37,30 @@ public class AudioChunk implements Serializable
     private int samplesCount;
     private AudioInfo audioInfo;
 
+    // summary
+    private float min = 0, max = 0, rms = 0;
+
+    private int bytesPerFrame;
+
+    private int frames64K;
+    private int frames256;
+    int totalSummaryBytes;
+
     // constr
     public AudioChunk(String path, int samplesCount, AudioInfo audioInfo)
     {
         this.path = path;
         this.samplesCount = samplesCount;
         this.audioInfo = audioInfo;
+
+        bytesPerFrame = 4;/*size of float 3/*firlds*/;
+
+        frames64K = (samplesCount + 65535) / 65536;
+        frames256 = frames64K * 256;
+
+        //int offset64K = headerTagLen;
+        //int offset256 = offset64K + (frames64K * bytesPerFrame);
+        totalSummaryBytes = (frames64K * bytesPerFrame) + (frames256 * bytesPerFrame);
     }
 
     public boolean writeToDisk(ByteBuffer buffer, int samplesLen) throws IOException
@@ -51,6 +72,12 @@ public class AudioChunk implements Serializable
         ObjectOutputStream outputStream = new ObjectOutputStream(fileOutputStream);
 
         ChunkHeader header = new ChunkHeader(audioInfo, samplesLen);
+        header.summary64K = new float[frames64K * bytesPerFrame];
+
+        header.summary256 = new float[(frames64K * bytesPerFrame) + (frames256 * bytesPerFrame)];
+
+        calcSummary(buffer, samplesLen, audioInfo, header.summary64K, header.summary256);
+
         // write header
         outputStream.writeObject(header);
 
@@ -153,6 +180,154 @@ public class AudioChunk implements Serializable
         }
 
         return read;
+    }
+
+    void getMinMax(int start, int len, Float outMin, Float outMax, Float outRMS)
+    {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(len * 4);
+        this.readToBuffer(buffer, start, len);
+        float []floatBuffer = new float[len];
+        buffer.asFloatBuffer().get(floatBuffer);
+
+        float min = Float.MAX_VALUE;
+        float max = Float.MIN_VALUE;
+        float sumsq = 0;
+
+        for(int i = 0; i < len; i++ )
+        {
+            float sample = floatBuffer[i];
+
+            if( sample > max )
+                max = sample;
+            if( sample < min )
+                min = sample;
+            sumsq += (sample*sample);
+        }
+
+        outMin = min;
+        outMax = max;
+        outRMS = (float)Math.sqrt(sumsq/len);
+    }
+
+    void getMinMax(Float outMin, Float outMax, Float outRMS)
+    {
+        outMin = this.min;
+        outMax = this.max;
+        outRMS = this.rms;
+    }
+
+    void calcSummary(ByteBuffer buffer, int len, AudioInfo format, float[]summary64K, float[]summary256)
+    {
+      // float []summary64K = (float [])(fullSummary.get() + mSummaryInfo.offset64K);
+      // float []summary256 = (float [])(fullSummary.get() + mSummaryInfo.offset256);
+
+        float []fbuffer = new float[len];
+        buffer.rewind();
+        buffer.asFloatBuffer().get(fbuffer);
+
+        calcSummaryFromBuffer(fbuffer, len, summary256, summary64K);
+    }
+
+    void calcSummaryFromBuffer(float []fbuffer, int len, float []summary256, float []summary64K)
+    {
+        int sumLen;
+
+        float min, max;
+        float sumsq;
+        double totalSquares = 0.0;
+        double fraction = 0.0;
+
+        // Recalc 256 summaries
+        sumLen = (len + 255) / 256;
+        int summaries = 256;
+
+        for (int i = 0; i < sumLen; i++)
+        {
+            min = fbuffer[i * 256];
+            max = fbuffer[i * 256];
+            sumsq = ((float)min) * ((float)min);
+            int jcount = 256;
+            if (jcount > len - i * 256)
+            {
+                jcount = len - i * 256;
+                fraction = 1.0 - (jcount / 256.0);
+            }
+            for (int j = 1; j < jcount; j++)
+            {
+                float f1 = fbuffer[i * 256 + j];
+                sumsq += f1 * f1;
+                if (f1 < min)
+                    min = f1;
+                else if (f1 > max)
+                    max = f1;
+            }
+
+            totalSquares += sumsq;
+            float rms = (float)Math.sqrt(sumsq / jcount);
+
+            summary256[i * 3] = min;
+            summary256[i * 3 + 1] = max;
+            summary256[i * 3 + 2] = rms;  // The rms is correct, but this may be for less than 256 samples in last loop.
+        }
+        for (int i = sumLen; i < frames256; i++)
+        {
+            // filling in the remaining bits with non-harming/contributing values
+            // rms values are not "non-harming", so keep  count of them:
+            summaries--;
+            summary256[i * 3] = Float.MAX_VALUE;  // min
+            summary256[i * 3 + 1] = Float.MIN_VALUE;   // max
+            summary256[i * 3 + 2] = 0.0f; // rms
+        }
+
+        // Calculate now while we can do it accurately
+        this.rms = (float)Math.sqrt(totalSquares/len);
+
+        // Recalc 64K summaries
+        sumLen = (len + 65535) / 65536;
+
+        for (int i = 0; i < sumLen; i++)
+        {
+            min = summary256[3 * i * 256];
+            max = summary256[3 * i * 256 + 1];
+            sumsq = (float)summary256[3 * i * 256 + 2];
+            sumsq *= sumsq;
+            for (int j = 1; j < 256; j++) {   // we can overflow the useful summary256 values here, but have put non-harmful values in them
+                if (summary256[3 * (i * 256 + j)] < min)
+                    min = summary256[3 * (i * 256 + j)];
+                if (summary256[3 * (i * 256 + j) + 1] > max)
+                    max = summary256[3 * (i * 256 + j) + 1];
+                float r1 = summary256[3 * (i * 256 + j) + 2];
+                sumsq += r1*r1;
+            }
+
+            double denom = (i < sumLen - 1) ? 256.0 : summaries - fraction;
+            float rms = (float)Math.sqrt(sumsq / denom);
+
+            summary64K[i * 3] = min;
+            summary64K[i * 3 + 1] = max;
+            summary64K[i * 3 + 2] = rms;
+        }
+        for (int i = sumLen; i < frames64K; i++)
+        {
+            summary64K[i * 3] = 0.0f;  // probably should be FLT_MAX, need a test case
+            summary64K[i * 3 + 1] = 0.0f; // probably should be -FLT_MAX, need a test case
+            summary64K[i * 3 + 2] = 0.0f; // just padding
+        }
+
+        // Recalc block-level summary (mRMS already calculated)
+        min = summary64K[0];
+        max = summary64K[1];
+
+        for (int i = 1; i < sumLen; i++)
+        {
+            if (summary64K[3*i] < min)
+                min = summary64K[3*i];
+            if (summary64K[3*i+1] > max)
+                max = summary64K[3*i+1];
+        }
+
+        this.min = min;
+        this.max = max;
     }
 
     public String getPath()

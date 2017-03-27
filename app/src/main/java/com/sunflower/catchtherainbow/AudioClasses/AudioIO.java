@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.util.Log;
 
 import com.un4seen.bass.BASS;
+import com.un4seen.bass.BASSmix;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 
 /**
@@ -34,6 +36,7 @@ public class AudioIO extends BasePlayer
         if (state == PlayerState.NotInitialized || state == PlayerState.Stopped)
             initialize(false);
 
+       // BASS.BASS_ChannelPlay(mixer, false);
         updateTrackAttributes(true);
         state = PlayerState.Playing;
 
@@ -55,13 +58,15 @@ public class AudioIO extends BasePlayer
     {
         if(state != PlayerState.Playing) return;
 
+       // BASS.BASS_ChannelPause(mixer);
         for (int i = 0; i < tracks.size(); i++)
         {
             TrackInfo trackInfo = tracks.get(i);
 
-            BASS.BASS_ChannelPause(trackInfo.getChannel());
+            BASS.BASS_ChannelSetLink(tracks.get(0).getChannel(), trackInfo.getChannel());
             int error = BASS.BASS_ErrorGetCode();
         }
+        if(!tracks.isEmpty()) BASS.BASS_ChannelPause(tracks.get(0).getChannel());
 
         state = PlayerState.Paused;
 
@@ -141,12 +146,18 @@ public class AudioIO extends BasePlayer
             // soon will be there
             // BASS.BASS_ChannelSetAttribute(trackInfo.getChannel(), BASS.BASS_ATTRIB_PAN, trackInfo.track.getPan());
 
+          //  BASS.BASS_ChannelSetLink(tracks.get(0).getChannel(), trackInfo.getChannel());
             if(state == PlayerState.Paused && playIfStopped)
             {
                 BASS.BASS_ChannelPlay(trackInfo.getChannel(), false);
                 int error = BASS.BASS_ErrorGetCode();
             }
         }
+     /*   if(state == PlayerState.Paused && playIfStopped && !tracks.isEmpty())
+        {
+            BASS.BASS_ChannelPlay(tracks.get(0).getChannel(), false);
+            int error = BASS.BASS_ErrorGetCode();
+        }*/
     }
 
     @Override
@@ -191,6 +202,7 @@ public class AudioIO extends BasePlayer
 
         boolean autoPlay = cachedState == PlayerState.Playing;
 
+        //BASS.BASS_ChannelSetPosition(mixer, BASS.BASS_ChannelSeconds2Bytes(mixer, position), BASS.BASS_POS_BYTE|BASS.BASS_POS_DECODE);
         initialize(position, autoPlay, false);
     }
 
@@ -202,6 +214,18 @@ public class AudioIO extends BasePlayer
 
         // update thread count(equals to the number of tracks)
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATETHREADS, waveTracks.size());
+
+        /*BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATEPERIOD, 70);
+
+        int len=BASS.BASS_GetConfig(BASS.BASS_CONFIG_UPDATEPERIOD); // get update period
+        BASS.BASS_INFO info = new BASS.BASS_INFO();
+        BASS.BASS_GetInfo(info); // retrieve device info
+        len+=info.minbuf*10; // add the 'minbuf' plus 1ms margin
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_BUFFER, len); // set the buffer length
+        Log.e(LOG_TAG, "Buffer is now  " + len + " bytes long");
+
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_SRC, 0);
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_REC_BUFFER, 2000);*/
 
         for (int i = 0; i < waveTracks.size(); i++)
         {
@@ -311,7 +335,7 @@ public class AudioIO extends BasePlayer
 
                     samplesRead |= BASS.BASS_STREAMPROC_END;
 
-                    checkFinish(track);
+                   // checkFinish(track);
                     return samplesRead;
                 }
 
@@ -322,11 +346,11 @@ public class AudioIO extends BasePlayer
             {
                 Log.e(LOG_TAG, "File Read Exception! " + ex.getMessage());
                 //track.currentSample = 0;
-                checkFinish(track);
+                //checkFinish(track);
             }
             samplesRead |= BASS.BASS_STREAMPROC_END;
 
-            return samplesRead;
+            return BASS.BASS_STREAMPROC_END;
         }
 
         void checkFinish(TrackInfo trackInfo)
@@ -353,17 +377,33 @@ public class AudioIO extends BasePlayer
         }
     };
 
-    protected final BASS.SYNCPROC EndSync = new BASS.SYNCPROC()
+    protected class EndSync implements BASS.SYNCPROC
     {
         public void SYNCPROC(int handle, int channel, int data, Object user)
         {
-
           //  TrackInfo track = (TrackInfo)user;
             Log.e("TIME", "END!"/* + track.track.name*/);
-           /* for(AudioPlayerListener listener: audioPlayerListeners)
+            final TrackInfo longestTrack = findLongestTrack();
+
+            TrackInfo trackInfo = (TrackInfo)user;
+
+            if(trackInfo == longestTrack)
             {
-                listener.onCompleted();
-            }*/
+                stop();
+                // notify about the end
+                //handler.post(new Runnable()
+                context.runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        for (AudioPlayerListener listener : audioPlayerListeners)
+                        {
+                            listener.onCompleted();
+                        }
+                    }
+                });
+            } // if
         }
     };
 
@@ -387,7 +427,7 @@ public class AudioIO extends BasePlayer
             play();
       }
 
-   // private int mixer = 0;
+    private int mixer = 0;
     // start - time to start from
     public void initialize(final double start, final boolean autoPlay, final boolean notify)
     {
@@ -395,10 +435,31 @@ public class AudioIO extends BasePlayer
 
         if(tracks.isEmpty()) return;
 
-       // AudioInfo info = project.getProjectAudioInfo();
+        AudioInfo info = project.getProjectAudioInfo();
 
         //ArrayList<WaveTrack> waveTracks = project.getTracks();
 
+        /*mixer = BASSmix.BASS_Mixer_StreamCreate(info.sampleRate, info.channels, BASSmix.BASS_MIXER_NONSTOP | BASSmix.BASS_MIXER_POSEX | BASS.BASS_SAMPLE_FLOAT);
+        for (int i = 0; i < tracks.size(); i++)
+        {
+            //WaveTrack track = waveTracks.get(i);
+
+            TrackInfo trackInfo = tracks.get(i); // new TrackInfo(0, track, track.timeToSamples(start));
+            AudioInfo audioInfo = trackInfo.track.getInfo();
+
+            int channel = BASS.BASS_StreamCreate(audioInfo.sampleRate, audioInfo.channels,
+                    BASS.BASS_SAMPLE_FLOAT|BASS.BASS_STREAM_DECODE|BASSmix.BASS_MIXER_BUFFER, new StreamProc(), trackInfo);
+
+            trackInfo.setChannel(channel);
+            trackInfo.setCurrentSample(trackInfo.track.timeToSamples(start));
+
+            BASSmix.BASS_Mixer_StreamAddChannel(mixer, channel, BASSmix.BASS_MIXER_MATRIX|BASSmix.BASS_MIXER_DOWNMIX|BASSmix.BASS_MIXER_NORAMPIN|BASS.BASS_STREAM_AUTOFREE);
+            BASSmix.BASS_Mixer_ChannelSetSync(channel, BASS.BASS_SYNC_END|BASS.BASS_SYNC_MIXTIME, 0, EndSync, 0);
+        }
+
+        BASS.BASS_ChannelPlay(mixer, true);
+
+        BASS.BASS_ChannelSetSync(mixer, BASS.BASS_SYNC_END|BASS.BASS_SYNC_MIXTIME, 0, EndSync, 0);*/
         for (int i = 0; i < tracks.size(); i++)
         {
             //WaveTrack track = waveTracks.get(i);
@@ -411,6 +472,8 @@ public class AudioIO extends BasePlayer
 
             trackInfo.setChannel(channel);
             trackInfo.setCurrentSample(trackInfo.track.timeToSamples(start));
+
+            BASS.BASS_ChannelSetSync(channel, BASS.BASS_SYNC_END|BASS.BASS_SYNC_MIXTIME, 0, new EndSync(), trackInfo);
         }
         //  BASS.BASS_ChannelPlay(mixer, true);
 

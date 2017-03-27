@@ -61,6 +61,11 @@ public class MainAreaFragment extends Fragment
 
     protected WaveTrack selectedTrack = null;
 
+    // wave track drawing managment
+    protected float offset = 0;
+    protected float touchStart = 0;
+    protected float touchInitialOffset = 0;
+
     public MainAreaFragment()
     {
         //TableRow
@@ -133,6 +138,13 @@ public class MainAreaFragment extends Fragment
         TrackHeaderView head = new TrackHeaderView(getActivity());
         trow.addView(head, 0);
 
+        // waveform view
+        WaveTrackView trackView = new WaveTrackView(getActivity(), track, 1);
+        lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT);
+        trackView.setLayoutParams(lp);
+        trackView.setListener(waveTrackViewListener);
+        trow.addView(trackView, 1);
+
         // add header row
         tracksLayout.addView(trow);
 
@@ -160,7 +172,7 @@ public class MainAreaFragment extends Fragment
         // add thumb row
         tracksLayout.addView(thumbRow);
 
-        TrackHolder holder = new TrackHolder(track, trow, head, null, thumbRow);
+        TrackHolder holder = new TrackHolder(track, trow, head, trackView, thumbRow);
         tracks.add(holder);
     }
 
@@ -197,6 +209,60 @@ public class MainAreaFragment extends Fragment
         tracks.clear();
         tracksLayout.removeAllViews();
     }
+
+
+    private WaveTrackView.WaveTrackViewListener waveTrackViewListener = new WaveTrackView.WaveTrackViewListener()
+    {
+        @Override
+        public void touchStart(float x)
+        {
+            touchStart = x;
+            touchInitialOffset = offset;
+        }
+
+        @Override
+        public void touchMove(float x)
+        {
+            offset = touchInitialOffset + (touchStart - x);
+
+            if(offset < 0) offset = 0;
+
+            for(TrackHolder holder: tracks)
+            {
+                holder.waveformView.setOffset(offset);
+            }
+        }
+
+        @Override
+        public void touchEnd()
+        {
+
+        }
+
+        @Override
+        public void fling(float x)
+        {
+
+        }
+
+        @Override
+        public void draw()
+        {
+
+        }
+
+        @Override
+        public void zoomIn()
+        {
+
+        }
+
+        @Override
+        public void zoomOut()
+        {
+
+        }
+    };
 
     private Project.ProjectListener projectListener = new Project.ProjectListener()
     {
@@ -266,9 +332,9 @@ public class MainAreaFragment extends Fragment
         protected TableRow row;
         protected TableRow thumb;
         protected TrackHeaderView header;
-        protected View waveformView;
+        protected WaveTrackView waveformView;
 
-        public TrackHolder(WaveTrack track, TableRow row, TrackHeaderView header, View waveformView, TableRow thumb)
+        public TrackHolder(WaveTrack track, TableRow row, TrackHeaderView header, WaveTrackView waveformView, TableRow thumb)
         {
             this.track = track;
             this.row = row;
@@ -277,6 +343,5 @@ public class MainAreaFragment extends Fragment
             this.thumb = thumb;
             header.setTrack(track, project);
         }
-
     }
 }

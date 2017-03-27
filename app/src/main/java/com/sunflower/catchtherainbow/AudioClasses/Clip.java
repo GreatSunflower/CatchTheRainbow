@@ -39,6 +39,36 @@ public class Clip implements Serializable
         return sequence.append(buffer, len);
     }
 
+    // wave data
+    boolean getMinMax(double startTime, double endTime, Float outMin, Float outMax)
+    {
+        outMin = 0.0f;
+        outMax = 0.0f;
+
+        if (startTime > endTime)
+            return false;
+
+        if (startTime == endTime)
+            return true;
+
+        Integer s0 = 0, s1 = 0;
+
+        timeToSamplesClip(startTime, s0);
+        timeToSamplesClip(endTime, s1);
+
+        return sequence.getMinMax(s0, s1-s0, outMin, outMax);
+    }
+
+    void timeToSamplesClip(double t0, Integer s0)
+    {
+        if (t0 < offset)
+            s0 = 0;
+        else if (t0 > offset + sequence.samplesCount/info.sampleRate)
+            s0 = sequence.samplesCount;
+        else
+            s0 = (int) Math.floor(((t0 - offset) * info.sampleRate) + 0.5);
+    }
+
     double getStartTime()
     {
         // offset is the minimum value and it is returned; no clipping to 0

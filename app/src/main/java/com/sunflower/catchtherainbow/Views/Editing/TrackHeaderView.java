@@ -46,6 +46,10 @@ public class TrackHeaderView extends RelativeLayout
     EditText trackNameEdit;
     Switch muteSwitch;
 
+    SuperSeekBar pan;
+    //pan	The pan position... -1 (full left) to +1 (full right), 0 = centre.
+
+
     public TrackHeaderView(Context context)
     {
         super(context);
@@ -67,7 +71,7 @@ public class TrackHeaderView extends RelativeLayout
         ImageButton horizontalThumb = (ImageButton)findViewById(R.id.horizontal_thumb);
 
         //verticalThumb.setOnTouchListener(thumbTouchListener);
-        horizontalThumb.setOnTouchListener(thumbTouchListener);
+        //horizontalThumb.setOnTouchListener(thumbTouchListener);
     }
 
     boolean isGainDragging = false;
@@ -160,6 +164,11 @@ public class TrackHeaderView extends RelativeLayout
             public void afterTextChanged(Editable s){}
         });
 
+    }
+
+    void hideView(View v)
+    {
+        // play anim
     }
 
     // used for resizing cell(both vertically and horizontally)
