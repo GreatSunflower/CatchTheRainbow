@@ -1,57 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:app="http://schemas.android.com/apk/res-auto"
-                android:orientation="horizontal"
+                android:id="@+id/rootContent"
                 android:layout_width="match_parent"
-                android:gravity="center"
                 android:layout_height="match_parent"
-                android:descendantFocusability="beforeDescendants"
-                android:paddingLeft="4dp"
-                android:paddingStart="4dp"
-                android:layout_marginStart="1dp"
+                android:layout_marginBottom="-1dp"
+                android:layout_marginEnd="2dp"
                 android:layout_marginLeft="1dp"
+                android:layout_marginRight="2dp"
+                android:layout_marginStart="1dp"
+                android:layout_marginTop="1dp"
                 android:background="@drawable/track_cell_background"
                 android:columnCount="2"
-                android:rowCount="2"
+                android:descendantFocusability="beforeDescendants"
+                android:gravity="center"
+                android:orientation="horizontal"
                 android:paddingBottom="0dp"
                 android:paddingEnd="0dp"
+                android:paddingLeft="4dp"
+                android:paddingStart="4dp"
                 android:paddingTop="3dp"
-                android:layout_marginBottom="-1dp"
-                android:layout_marginTop="1dp"
-                android:layout_marginEnd="2dp"
-                android:layout_marginRight="2dp">
+                android:rowCount="2">
+
     <LinearLayout
-        android:orientation="horizontal"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
         android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_toStartOf="@+id/horizontal_thumb"
-        android:layout_above="@+id/vertical_thumb">
+        android:animateLayoutChanges="false"
+        android:orientation="horizontal">
 
-        <Switch
-            android:id="@+id/mute_track"
+        <LinearLayout
+            android:id="@+id/solo_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:orientation="vertical">
+
+            <ToggleButton
+                android:id="@+id/solo_toggle"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/toggle_button_selector"
+                android:text="@string/solo"
+                android:textColor="@drawable/toggle_button_color_selector"
+                android:textOff="@string/solo"
+                android:textOn="@string/solo"
+                android:textSize="@dimen/text_small"/>
+
+            <Switch
+                android:id="@+id/mute_track"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:thumb="@drawable/track_sound_enabled"/>
+
             <!--app:ball_release_color="@color/colorPrimary"
-            app:base_press_color="@color/colorForegroundSecond"
-            app:base_release_color="@color/colorPrimaryDark"
-            app:icon_press="@drawable/track_sound_enabled"
-            app:icon_release="@drawable/track_sound_disabled">-->
+                app:base_press_color="@color/colorForegroundSecond"
+                app:base_release_color="@color/colorPrimaryDark"
+                app:icon_press="@drawable/track_sound_enabled"
+                app:icon_release="@drawable/track_sound_disabled">-->
+        </LinearLayout>
 
         <ImageButton
-            app:srcCompat="@android:drawable/ic_delete"
             android:id="@+id/removeButton"
-            android:background="@null"
-            android:foregroundGravity="center"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_gravity="center"
             android:layout_margin="2dp"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:scaleType="fitXY"/>
+            android:background="@drawable/background_remove_button"
+            android:foregroundGravity="center"
+            android:scaleType="fitXY"
+            />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -59,85 +84,99 @@
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
             android:orientation="vertical">
+
             <EditText
+                android:id="@+id/track_name_edit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPersonName"
-                android:text="@string/new_audio_stack"
-                android:id="@+id/track_name_edit"
-                android:textColor="@color/colorForeground"
                 android:layout_gravity="center_vertical"
                 android:imeOptions="actionDone|flagNoFullscreen"
+                android:inputType="textPersonName"
+                android:text="@string/new_audio_stack"
+                android:textColor="@color/colorForeground"
                 android:textSize="@dimen/text_normal"/>
 
-            <com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar
-                android:id="@+id/gain_bar"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100"
-                android:padding="0dp"
-                android:paddingEnd="9dp"
-                android:paddingStart="9dp"
-                android:progress="50"
-                android:theme="@style/SuperSeekBarStyle"/>
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:paddingEnd="12dp"
+                android:paddingStart="12dp">
+
+                <TextView
+                    android:id="@+id/textView8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:text="L"
+                    android:textColor="@color/colorForeground"
+                    android:textSize="@dimen/text_normal"/>
+
+                <com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar
+                    android:id="@+id/pan_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="2"
+                    android:padding="0dp"
+                    android:paddingEnd="12dp"
+                    android:paddingStart="12dp"
+                    android:progress="1"
+                    android:theme="@style/SuperSeekBarStyle"/>
+
+                <TextView
+                    android:id="@+id/textView7"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="R"
+                    android:textColor="@color/colorForeground"
+                    android:textSize="@dimen/text_normal"/>
+            </LinearLayout>
 
         </LinearLayout>
 
         <LinearLayout
-            android:orientation="vertical"
+            android:layout_width="45dp"
             android:layout_height="match_parent"
-            android:gravity="center"
             android:layout_gravity="center"
-            android:layout_width="45dp">
+            android:gravity="center"
+            android:orientation="vertical">
 
-            <ToggleButton
-                android:id="@+id/solo_toggle"
-                android:text="@string/solo"
-                android:background="@drawable/toggle_button_selector"
-                android:textOff="@string/solo"
-                android:textOn="@string/solo"
-                android:textColor="@drawable/toggle_button_color_selector"
-                android:textSize="@dimen/text_small"
-                android:layout_width="35dp"
-                android:layout_height="35dp"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="100dp"
+                android:layout_marginTop="5dp"
+                android:gravity="center"
+                android:orientation="horizontal">
 
-            <Switch
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/switch1"
-                android:checked="true"
-                android:layout_marginTop="3dp"/>
+                <com.sunflower.catchtherainbow.Views.Helpful.VerticalSeekBarWrapper
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <com.sunflower.catchtherainbow.Views.Helpful.VerticalSeekBar
+                        android:id="@+id/gain_bar"
+                        android:layout_width="40dp"
+                        android:layout_height="100dp"
+                        android:max="100"
+                        android:paddingEnd="5dp"
+                        android:paddingStart="5dp"
+                        android:progress="50"
+                        android:radius="0dp"
+                        android:splitTrack="false"
+                        app:seekBarRotation="CW270"/>
+
+                </com.sunflower.catchtherainbow.Views.Helpful.VerticalSeekBarWrapper>
+
+                <ImageView
+                    android:id="@+id/imageView3"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_weight="1"
+                    app:srcCompat="@drawable/ic_volume_up"/>
+            </LinearLayout>
 
         </LinearLayout>
     </LinearLayout>
-
-    <ImageButton
-        android:id="@+id/horizontal_thumb"
-        android:layout_height="match_parent"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="false"
-        android:layout_margin="1dp"
-        android:layout_width="8dp"
-        android:focusableInTouchMode="true"
-        app:srcCompat="@drawable/track_thumb_selector"/>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:id="@+id/vertical_thumb"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_toStartOf="@+id/horizontal_thumb"
-        android:layout_margin="1dp"
-        android:layout_marginBottom="0dp"
-        android:paddingTop="12dp"
-        android:layout_marginTop="-12dp"
-        android:focusableInTouchMode="true"
-        app:srcCompat="@drawable/track_thumb_selector"
-        android:scaleType="centerInside"
-        android:background="@null"
-        android:layout_height="0dp"/>
 
 </RelativeLayout>

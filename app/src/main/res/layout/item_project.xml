@@ -82,7 +82,7 @@
                 android:id="@+id/bRemoveProject"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:background="@drawable/ic_remove_circle"
+                android:background="@drawable/background_remove_button"
                 android:clickable="false"
                 android:focusable="false"/>
 

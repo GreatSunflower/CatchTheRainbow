@@ -1,5 +1,7 @@
 package com.sunflower.catchtherainbow;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -11,12 +13,12 @@ import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,6 +40,32 @@ import java.util.concurrent.TimeUnit;
 //
 public class Helper
 {
+    public static void animateViewVisibility(final View view, final int visibility)
+    {
+        // cancel runnning animations and remove and listeners
+        view.animate().cancel();
+        view.animate().setListener(null);
+
+        // animate making view visible
+        if (visibility == View.VISIBLE)
+        {
+            view.animate().alpha(1f).start();
+            view.setVisibility(View.VISIBLE);
+        }
+        // animate making view hidden (HIDDEN or INVISIBLE)
+        else
+        {
+            view.animate().setListener(new AnimatorListenerAdapter()
+            {
+                @Override
+                public void onAnimationEnd(Animator animation)
+                {
+                    view.setVisibility(visibility);
+                }
+            }).alpha(0f).start();
+        }
+    }
+
     public static void deleteDirectoryRecursive(File fileOrDirectory) {
         if (fileOrDirectory.isDirectory())
             for (File child : fileOrDirectory.listFiles())

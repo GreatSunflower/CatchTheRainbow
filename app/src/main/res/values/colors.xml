@@ -24,6 +24,7 @@
     <color name="trackBorder">#74737e</color>
     <color name="trackThumbPressed">@color/colorAccent</color>
     <color name="trackThumbReleased">#dcdcdc</color>
+    <color name="superRed">#c23737</color>
 
     <color name="waveform_selected">#00BFA5</color>
     <color name="waveform_unselected">@color/colorAccent</color>

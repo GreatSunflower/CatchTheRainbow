@@ -4,20 +4,20 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Point;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.DragEvent;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
+import android.view.animation.Transformation;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TableRow;
@@ -27,26 +27,26 @@ import com.sunflower.catchtherainbow.AudioClasses.Project;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.R;
+import com.sunflower.catchtherainbow.Views.Helpful.ResizeAnimation;
 import com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar;
-import com.sunflower.viewlibrary.main.AnimatedSwitch.MaterialAnimatedSwitch;
-import com.sunflower.viewlibrary.main.ToggleImageButton;
+import com.sunflower.catchtherainbow.Views.Helpful.VerticalSeekBar;
 
-/**
- * Created by SuperComputer on 2/17/2017.
- */
+import static com.sunflower.catchtherainbow.R.id.mute_track;
 
 public class TrackHeaderView extends RelativeLayout
 {
     private Project project;
     private WaveTrack track;
 
-    SuperSeekBar gainBar;
+    RelativeLayout rootContent;
+    LinearLayout content;
+    VerticalSeekBar gainBar;
     ToggleButton soloToggle;
     ImageButton removeButton;
     EditText trackNameEdit;
     Switch muteSwitch;
-
     SuperSeekBar pan;
+
     //pan	The pan position... -1 (full left) to +1 (full right), 0 = centre.
 
 
@@ -66,43 +66,68 @@ public class TrackHeaderView extends RelativeLayout
     {
         inflate(getContext(), R.layout.audio_track_head, this);
         setLayoutParams(new TableRow.LayoutParams(375, 200));
-
+        // inside onCreate of Activity or Fragment
+        gestureDetector = new GestureDetector(getContext(),new GestureListener());
         //final ImageButton verticalThumb = (ImageButton)findViewById(R.id.vertical_thumb);
-        ImageButton horizontalThumb = (ImageButton)findViewById(R.id.horizontal_thumb);
+        //ImageButton horizontalThumb = (ImageButton)findViewById(R.id.horizontal_thumb);
 
         //verticalThumb.setOnTouchListener(thumbTouchListener);
         //horizontalThumb.setOnTouchListener(thumbTouchListener);
     }
 
     boolean isGainDragging = false;
+    GestureDetector gestureDetector;
     void setTrack(final WaveTrack track, final Project project)
     {
         this.track = track;
         this.project = project;
 
-        gainBar = (SuperSeekBar)findViewById(R.id.gain_bar);
+        gainBar = (VerticalSeekBar)findViewById(R.id.gain_bar);
         soloToggle = (ToggleButton)findViewById(R.id.solo_toggle);
-        muteSwitch = (Switch)findViewById(R.id.mute_track);
+        muteSwitch = (Switch)findViewById(mute_track);
         removeButton = (ImageButton)findViewById(R.id.removeButton);
         trackNameEdit = (EditText)findViewById(R.id.track_name_edit);
+        pan = (SuperSeekBar)findViewById(R.id.pan_bar);
+        content = (LinearLayout)findViewById(R.id.content);
+        rootContent = (RelativeLayout)findViewById(R.id.rootContent);
 
-        gainBar.setMinValue(0.f);
-        gainBar.setMaxValue(1.f);
-        gainBar.setCurrentValue(track.getGain());
+        content.setOnTouchListener(new OnTouchListener() {
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                // TODO Auto-generated method stub
+                return gestureDetector.onTouchEvent(event);
+            }
+
+        });
+
+        gainBar.setMax(100);
+        gainBar.setProgress((int)Math.floor((float)track.getGain() * 100));
 
         soloToggle.setChecked(track.isSolo());
         muteSwitch.setChecked(!track.isMuted());
         trackNameEdit.setText(track.getName());
 
-        gainBar.setOnSuperSeekBarChangeListener(new SuperSeekBar.OnSuperSeekBarChangeListener()
+        //.setOnSuperSeekBarChangeListener(new SuperSeekBar.OnSuperSeekBarChangeListener()
+        gainBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
         {
             @Override
-            public void onProgressChanged(SuperSeekBar seekBar, float progress, boolean fromUser)
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
             {
-                track.setGain(progress);
+                track.setGain((float)progress/100);
             }
-            public void onStartTrackingTouch(SuperSeekBar seekBar){ isGainDragging = true; }
-            public void onStopTrackingTouch(SuperSeekBar seekBar){ isGainDragging = false; }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar)
+            {
+                isGainDragging = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar)
+            {
+                isGainDragging = false;
+            }
         });
 
         removeButton.setOnClickListener(new OnClickListener()
@@ -144,10 +169,18 @@ public class TrackHeaderView extends RelativeLayout
 
         muteSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
         {
+            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
             {
                 track.setMuted(!isChecked);
+
+                if (isChecked) {
+                    muteSwitch.setThumbResource(R.drawable.track_sound_enabled);
+                } else {
+                    muteSwitch.setThumbResource(R.drawable.track_sound_disabled);
+                }
+
             }
         });
 
@@ -166,9 +199,60 @@ public class TrackHeaderView extends RelativeLayout
 
     }
 
-    void hideView(View v)
+    boolean hidden = false;
+    public class GestureListener extends
+            GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+
+            return true;
+        }
+
+        // event when double tap occurs
+        @Override
+        public boolean onDoubleTap(MotionEvent e)
+        {
+            GoneOrVisibleLayout(content);
+            hidden = !hidden;
+            if (hidden != false)
+            {
+                //new ResizeAnimation(content, rootContent.getWidth(), 10, rootContent.getHeight()).applyTransformation(2000, new Transformation());
+                new ResizeAnimation(rootContent, rootContent.getWidth(), 10).applyTransformation(2000, new Transformation());
+            }
+            else
+            {
+                //new ResizeAnimation(content, rootContent.getWidth(), 350, rootContent.getHeight()).applyTransformation(2000, new Transformation());
+                new ResizeAnimation(rootContent, rootContent.getWidth(), 350).applyTransformation(2000, new Transformation());
+            }
+            return true;
+        }
+    }
+
+    public void GoneOrVisibleLayout(LinearLayout rootView)
     {
-        // play anim
+        final int childcount = rootView.getChildCount();
+        for (int i = 0; i < childcount; i++)
+        {
+            View v = rootView.getChildAt(i);
+            if(v instanceof LinearLayout)
+            {
+                GoneOrVisibleLayout((LinearLayout)v);
+                if (R.id.solo_layout != v.getId())
+                {
+                    if (hidden == false) Helper.animateViewVisibility(v, View.GONE);
+                    else Helper.animateViewVisibility(v, View.VISIBLE);
+                }
+            }
+            else
+            {
+                if (R.id.mute_track != v.getId())
+                {
+                    if (hidden == false) Helper.animateViewVisibility(v, View.GONE);
+                    else Helper.animateViewVisibility(v, View.VISIBLE);
+                }
+            }
+        }
     }
 
     // used for resizing cell(both vertically and horizontally)
@@ -198,9 +282,9 @@ public class TrackHeaderView extends RelativeLayout
                 case MotionEvent.ACTION_MOVE:
                     //Log.d(">>","width:"+width+" height:"+height+" x:"+x+" y:"+y);
 
-                    if(v.getId() == R.id.vertical_thumb)
+                    /*if(v.getId() == R.id.vertical_thumb)
                     {
-                        //
+
                         float newHeight = height + (y - lastPoint.y);
                         float normalizedHeight = Helper.clamp(newHeight, getResources().getDimension(R.dimen.audio_track_min_height),
                                 getResources().getDimension(R.dimen.audio_track_max_height));
@@ -214,7 +298,7 @@ public class TrackHeaderView extends RelativeLayout
                                 getResources().getDimension(R.dimen.audio_track_max_width));
 
                         getLayoutParams().width = (int) normalizedWidth;
-                    }
+                    }*/
 
                     // update layout
                     requestLayout();
@@ -255,6 +339,4 @@ public class TrackHeaderView extends RelativeLayout
             return true;
         }*/
     };
-
-
 }

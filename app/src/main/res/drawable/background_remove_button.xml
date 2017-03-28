@@ -3,5 +3,5 @@
     <item android:state_pressed="true" android:drawable="@drawable/selected_button_oval"/>
     <item android:state_focused="true" android:drawable="@drawable/selected_button_oval"/>
 
-    <item android:drawable="@drawable/ic_stop_button"/>
+    <item android:drawable="@drawable/ic_remove_circle"/>
 </selector>
