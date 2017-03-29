@@ -195,6 +195,20 @@ public class WaveTrack implements Serializable
         clips.add(clip);
     }
 
+    public Clip getClipAtSample(int sample)
+    {
+        for (Clip clip: clips)
+        {
+            int start = clip.getStartSample();
+            int len   = clip.getNumSamples();
+
+            if (sample >= start && sample < start + len)
+                return clip;
+        }
+
+        return null;
+    }
+
     // ------- Getters setters -------------
     public ArrayList<Clip> getClips()
     {

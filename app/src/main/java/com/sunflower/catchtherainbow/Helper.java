@@ -42,7 +42,7 @@ public class Helper
 {
     public static void animateViewVisibility(final View view, final int visibility)
     {
-        // cancel runnning animations and remove and listeners
+        // cancel running animations and remove and listeners
         view.animate().cancel();
         view.animate().setListener(null);
 

@@ -1,16 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
         android:id="@+id/action_effects"
-        android:orderInCategory="100"
+        android:icon="@drawable/ic_effects"
+        android:orderInCategory="103"
         android:title="@string/action_effects"
-        app:showAsAction="always|withText"
-        android:icon="@drawable/ic_effects"/>
+        app:showAsAction="always|withText|always|withText"/>
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_import"
-        app:showAsAction="always|withText"
-        android:icon="@drawable/ic_music_note"/>
+        android:id="@+id/action_move"
+        android:icon="@drawable/editing_move"
+        android:orderInCategory="103"
+        android:title="@string/action_move"
+        app:showAsAction="always|withText|always|withText"
+        />
+    <item
+        android:id="@+id/action_select"
+        android:icon="@drawable/editing_select"
+        android:orderInCategory="103"
+        android:title="@string/action_select"
+        app:showAsAction="always|withText|always|withText"
+        >
+    </item>
+    <item
+        android:id="@+id/action_editing"
+        android:icon="@drawable/editing_menu"
+        android:orderInCategory="103"
+        android:title="@string/menu_editing"
+        app:showAsAction="always|withText|always|withText"
+        >
+        <menu
+            android:orderInCategory="102"
+            app:showAsAction="always">
+            <item
+                android:id="@+id/action_copy"
+                android:icon="@drawable/editing_copy"
+                android:orderInCategory="103"
+                android:title="@string/action_copy"
+                app:showAsAction="ifRoom|withText"
+                >
+            </item>
+            <item
+                android:id="@+id/action_paste"
+                android:icon="@drawable/editing_paste"
+                android:orderInCategory="103"
+                android:title="@string/action_paste"
+                app:showAsAction="ifRoom|withText"
+                >
+            </item>
+            <item
+                android:id="@+id/action_remove"
+                android:icon="@drawable/editing_remove"
+                android:orderInCategory="103"
+                android:title="@string/action_remove"
+                app:showAsAction="ifRoom|withText"
+                >
+            </item>
+            <item
+                android:id="@+id/action_cut"
+                android:icon="@drawable/editing_cut"
+                android:orderInCategory="103"
+                android:title="@string/action_cut"
+                app:showAsAction="ifRoom|withText"
+                >
+            </item>
+        </menu>
+    </item>
 </menu>

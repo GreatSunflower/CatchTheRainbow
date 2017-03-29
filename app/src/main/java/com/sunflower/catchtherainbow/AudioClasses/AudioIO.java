@@ -63,10 +63,11 @@ public class AudioIO extends BasePlayer
         {
             TrackInfo trackInfo = tracks.get(i);
 
-            BASS.BASS_ChannelSetLink(tracks.get(0).getChannel(), trackInfo.getChannel());
+           // BASS.BASS_ChannelSetLink(tracks.get(0).getChannel(), trackInfo.getChannel());
+            BASS.BASS_ChannelPause(trackInfo.getChannel());
             int error = BASS.BASS_ErrorGetCode();
         }
-        if(!tracks.isEmpty()) BASS.BASS_ChannelPause(tracks.get(0).getChannel());
+       // if(!tracks.isEmpty()) BASS.BASS_ChannelPause(tracks.get(0).getChannel());
 
         state = PlayerState.Paused;
 
@@ -144,7 +145,7 @@ public class AudioIO extends BasePlayer
             else BASS.BASS_ChannelSetAttribute(trackInfo.getChannel(), BASS.BASS_ATTRIB_VOL, trackInfo.track.getGain());
 
             // soon will be there
-            // BASS.BASS_ChannelSetAttribute(trackInfo.getChannel(), BASS.BASS_ATTRIB_PAN, trackInfo.track.getPan());
+            BASS.BASS_ChannelSetAttribute(trackInfo.getChannel(), BASS.BASS_ATTRIB_PAN, trackInfo.track.getPan());
 
           //  BASS.BASS_ChannelSetLink(tracks.get(0).getChannel(), trackInfo.getChannel());
             if(state == PlayerState.Paused && playIfStopped)

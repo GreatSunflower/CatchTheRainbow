@@ -11,11 +11,17 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.BounceInterpolator;
+import android.view.animation.CycleInterpolator;
+import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ScrollView;
@@ -32,6 +38,7 @@ import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
 import com.sunflower.catchtherainbow.Views.Editing.Waveform.view.WaveformView;
+import com.sunflower.catchtherainbow.Views.Helpful.ResizeAnimation;
 import com.sunflower.catchtherainbow.Views.Helpful.Thumb;
 
 import java.io.IOException;
@@ -61,10 +68,14 @@ public class MainAreaFragment extends Fragment
 
     protected WaveTrack selectedTrack = null;
 
-    // wave track drawing managment
+    // wave track drawing management
     protected float offset = 0;
     protected float touchStart = 0;
     protected float touchInitialOffset = 0;
+
+    protected int samplesPerPixel = 1;
+
+    protected boolean headerCollapsed = false;
 
     public MainAreaFragment()
     {
@@ -136,6 +147,7 @@ public class MainAreaFragment extends Fragment
 
         // header view
         TrackHeaderView head = new TrackHeaderView(getActivity());
+        head.setTag(trow);
         trow.addView(head, 0);
 
         // waveform view
@@ -210,6 +222,24 @@ public class MainAreaFragment extends Fragment
         tracksLayout.removeAllViews();
     }
 
+    public void setSamplesPerPixel(int samplesPerPixel)
+    {
+        if(samplesPerPixel < 1 || samplesPerPixel > WaveTrackView.MAX_SAMPLES_PER_PIXEL)
+            return;
+
+        for(TrackHolder holder: tracks)
+        {
+            holder.waveformView.setSamplesPerPixel(samplesPerPixel);
+        }
+
+        this.samplesPerPixel = samplesPerPixel;
+    }
+
+    public int getSamplesPerPixel()
+    {
+        return samplesPerPixel;
+    }
+
 
     private WaveTrackView.WaveTrackViewListener waveTrackViewListener = new WaveTrackView.WaveTrackViewListener()
     {
@@ -254,13 +284,19 @@ public class MainAreaFragment extends Fragment
         @Override
         public void zoomIn()
         {
-
+            for(TrackHolder holder: tracks)
+            {
+                holder.waveformView.zoomIn();
+            }
         }
 
         @Override
         public void zoomOut()
         {
-
+            for(TrackHolder holder: tracks)
+            {
+                holder.waveformView.zoomOut();
+            }
         }
     };
 
@@ -325,6 +361,59 @@ public class MainAreaFragment extends Fragment
         void onFragmentInteraction(Uri uri);
     }
 
+    // changes header sizes
+    TrackHeaderView.HeaderListener headerListener = new TrackHeaderView.HeaderListener()
+    {
+        @Override
+        public void onToggleVisibilityRequest()
+        {
+            final boolean cachedCollapsed = headerCollapsed;
+            for(final TrackHolder trackHolder: tracks)
+            {
+                trackHolder.header.setCollapsed(!headerCollapsed);
+                int newWidth;
+                if (headerCollapsed) newWidth = 375;
+                else newWidth = 10;
+
+                // Set the layer type to hardware
+                //trackHolder.row.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                //trackHolder.waveformView.setWillNotDraw(true);
+
+                ResizeAnimation animation = new ResizeAnimation(trackHolder.header, trackHolder.header.getWidth(), newWidth); /*.applyTransformation(2000, new Transformation())*/;
+                animation.setDuration(600);
+                animation.setInterpolator(new FastOutSlowInInterpolator());
+                animation.setAnimationListener(new Animation.AnimationListener()
+                {
+                    @Override
+                    public void onAnimationStart(Animation animation){}
+                    @Override
+                    public void onAnimationEnd(Animation animation)
+                    {
+                        // Set the layer type to hardware
+                        trackHolder.waveformView.demandUpdate();
+                    }
+                    @Override
+                    public void onAnimationRepeat(Animation animation){}
+                });
+
+                trackHolder.header.startAnimation(animation);
+            }
+
+            // resize timeline view
+            /*int newWidth;
+            if (headerCollapsed) newWidth = 375;
+            else newWidth = 10;
+
+            ResizeAnimation animation = new ResizeAnimation(trackHolder.header, trackHolder.header.getWidth(), newWidth);
+            animation.setDuration(600);
+            animation.setInterpolator(new FastOutSlowInInterpolator());
+
+            trackHolder.header.startAnimation(animation);*/
+
+            headerCollapsed = !headerCollapsed;
+        }
+    };
+
     // holds views and main track
     class TrackHolder
     {
@@ -341,7 +430,7 @@ public class MainAreaFragment extends Fragment
             this.header = header;
             this.waveformView = waveformView;
             this.thumb = thumb;
-            header.setTrack(track, project);
+            header.setTrack(track, project, headerListener);
         }
     }
 }

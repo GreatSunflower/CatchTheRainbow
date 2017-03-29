@@ -9,6 +9,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.VectorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -25,17 +28,23 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ActionMenuView;
+import android.support.v7.widget.ListPopupWindow;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ListAdapter;
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.RemoteViews;
 import android.widget.SeekBar;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
+import com.sunflower.catchtherainbow.Adapters.PopupSeekbarAdapter;
 import com.sunflower.catchtherainbow.Adapters.SupportedLanguages;
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
@@ -49,6 +58,7 @@ import com.sunflower.catchtherainbow.Views.AudioChooserFragment.OnFragmentIntera
 import com.sunflower.catchtherainbow.Views.AudioProgressView;
 import com.sunflower.catchtherainbow.Views.AudioVisualizerView;
 import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
+import com.sunflower.catchtherainbow.Views.Editing.WaveTrackView;
 import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.ExportSongFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.LanguageFragment;
@@ -56,6 +66,8 @@ import com.sunflower.catchtherainbow.Views.StartedApp.ProjectStartActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
 
@@ -69,7 +81,7 @@ public class ProjectActivity extends AppCompatActivity
     private int notificationId = 0;
 
     private ActionMenuView amvMenu;
-    private ImageButton playPauseButt, bNext, bPrev, bRecorderStart, bStop;
+    private ImageButton playPauseButt, bNext, bPrev, bRecorderStart, bStop, bSettings;
     private AudioProgressView progressView;
     private View viewContentProject;
     private AudioVisualizerView visualizerView;
@@ -80,40 +92,28 @@ public class ProjectActivity extends AppCompatActivity
 
     // updates status(position and time)
     private Handler statusHandler = new Handler();
+    // handles visual updates
+    Runnable updateTimer;
 
-    // temp
     private boolean isDragging = false;
     private AudioIO player;
 
+    // opened project (mustn't be null)
     private Project project;
-
-    Project currentProject;
-    public void setCurrentProject(Project currentProject)
-    {
-        this.currentProject = currentProject;
-    }
-
-  /*  @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_project);
-    }*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
 
-        SharedPreferences shared = getSharedPreferences("info",MODE_PRIVATE);
-        //Using getXXX- with XX is type date you wrote to file "name_file"
+        // ----------Language-----------
+        SharedPreferences shared = getSharedPreferences("info", MODE_PRIVATE);
         String language = "English";
         if(shared != null) language = shared.getString("language", "English");
         currentLanguage = SupportedLanguages.valueOf(language);
+        // ----------Language end-----------
 
         setContentView(R.layout.activity_project);
-
-        //currentLanguage = SupportedLanguages.English;
 
         // TEMP. Clears project directory on loading------------------------------------------------
         //Helper.createOrRecreateDir(SuperApplication.getAppDirectory());
@@ -143,22 +143,11 @@ public class ProjectActivity extends AppCompatActivity
         getSupportActionBar().setTitle(null);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         // Init drawer
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         // Init nav view
@@ -177,11 +166,16 @@ public class ProjectActivity extends AppCompatActivity
         bPrev = (ImageButton) findViewById(R.id.playPrev);
         bRecorderStart = (ImageButton) findViewById(R.id.bRecorderStart);
         bStop = (ImageButton) findViewById(R.id.bStop);
+        bSettings = (ImageButton) findViewById(R.id.settings);
+
+        // play stop handler
+        playPauseButt.setOnClickListener(this);
 
         bPrev.setOnClickListener(this);
         bNext.setOnClickListener(this);
         bRecorderStart.setOnClickListener(this);
         bStop.setOnClickListener(this);
+        bSettings.setOnClickListener(this);
 
         progressView = (AudioProgressView) findViewById(R.id.audioProgressView);
         progressView.setMax(1.f);
@@ -211,10 +205,7 @@ public class ProjectActivity extends AppCompatActivity
             }
         });
 
-        // play stop handler
-        playPauseButt.setOnClickListener(this);
         // -----------------------------------------------
-
         Intent intent = getIntent();
         String nameProject = intent.getStringExtra("nameProject");
         String openProjectWithName = intent.getStringExtra("openProjectWithName");
@@ -266,7 +257,6 @@ public class ProjectActivity extends AppCompatActivity
             public void run()
             {
                 if (!isDragging && player.isPlaying()) progressView.setCurrent((float) player.getProgress());
-
                 /*int bufferSize = 1024;
                 ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize*4);
                 audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
@@ -281,14 +271,11 @@ public class ProjectActivity extends AppCompatActivity
 
                 // pass new data
                 visualizerView.updateVisualizer(res);*/
-
                 statusHandler.postDelayed(this, 50);
             }
         };
         statusHandler.postDelayed(updateTimer, 50);
     }
-
-    Runnable updateTimer;
 
     @Override
     protected void onStop()
@@ -318,6 +305,62 @@ public class ProjectActivity extends AppCompatActivity
             case R.id.bStop:
             {
                 bRecorderStart.setEnabled(true);
+                break;
+            }
+            case R.id.settings:
+            {
+                final ListPopupWindow popupWindow = new ListPopupWindow(this);
+
+                PopupSeekbarAdapter adapter = new PopupSeekbarAdapter();
+                ArrayList<String> list = new ArrayList<String>();
+                list.add("Zoom");
+                list.add("Super Option");
+
+                ArrayList<Integer> progressions = new ArrayList<Integer>();
+                progressions.add((int)((float)tracksFragment.getSamplesPerPixel()/WaveTrackView.MAX_SAMPLES_PER_PIXEL * 10000f));
+                progressions.add(0);
+
+                adapter.setSeekBarListener(new PopupSeekbarAdapter.SeekBarListener()
+                {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser, int positionInList)
+                    {
+                        if(positionInList == 0) // zoom
+                        {
+                            int samples = (int) (progress/10000f * WaveTrackView.MAX_SAMPLES_PER_PIXEL + 1);
+                            tracksFragment.setSamplesPerPixel(samples);
+                            Log.e("Zoom", samples+"");
+                        }
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar, int positionInList)
+                    {
+
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar, int positionInList)
+                    {
+                        //popupWindow.dismiss();
+                    }
+                });
+
+                popupWindow.setAdapter(adapter.getAdapter(this, list, progressions, "Hell yeah!"));
+
+                popupWindow.setModal(true);
+                popupWindow.setAnchorView(v);
+
+                Drawable background = new ColorDrawable(getResources().getColor(android.R.color.transparent));
+                popupWindow.setBackgroundDrawable(background);
+
+                popupWindow.setWidth((int) getResources().getDimension(R.dimen.popup_width));
+                popupWindow.setAnimationStyle(android.R.style.Animation_InputMethod);
+                popupWindow.setVerticalOffset(5);
+                popupWindow.setHorizontalOffset(-5);
+
+                popupWindow.show();
+
                 break;
             }
             case R.id.playNext:
@@ -401,9 +444,9 @@ public class ProjectActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings)
+        if (id == R.id.action_copy)
         {
-
+            //...
         }
         if (id == R.id.action_effects)
         {
@@ -423,12 +466,12 @@ public class ProjectActivity extends AppCompatActivity
             ft.addToBackStack(null);
             // Create and show the dialog.
 
-            EffectsHostFragment hostFragment = EffectsHostFragment.newInstance();
+            EffectsHostFragment hostFragment = EffectsHostFragment.newInstance(selectedTrack, project);
             //Helper.showCuteToast(ProjectActivity.this, selectedTrack.getName());
             hostFragment.show(ft, "Effects dialog");
             // force to create views
             getSupportFragmentManager().executePendingTransactions();
-            hostFragment.setTrack(selectedTrack);
+            //hostFragment.setTrack(selectedTrack);
 
             return true;
         }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
                 android:id="@+id/rootContent"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -10,8 +11,8 @@
                 android:layout_marginRight="2dp"
                 android:layout_marginStart="1dp"
                 android:layout_marginTop="1dp"
+                android:animateLayoutChanges="true"
                 android:background="@drawable/track_cell_background"
-                android:columnCount="2"
                 android:descendantFocusability="beforeDescendants"
                 android:gravity="center"
                 android:orientation="horizontal"
@@ -20,23 +21,25 @@
                 android:paddingLeft="4dp"
                 android:paddingStart="4dp"
                 android:paddingTop="3dp"
-                android:rowCount="2">
+    >
 
     <LinearLayout
         android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
+        android:animateLayoutChanges="true"
+        android:orientation="horizontal"
         android:layout_alignParentTop="true"
-        android:animateLayoutChanges="false"
-        android:orientation="horizontal">
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
 
         <LinearLayout
             android:id="@+id/solo_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:animateLayoutChanges="true"
+            android:gravity="center"
             android:orientation="vertical">
 
             <ToggleButton
@@ -44,7 +47,6 @@
                 android:layout_width="35dp"
                 android:layout_height="35dp"
                 android:layout_marginBottom="10dp"
-                android:layout_marginStart="5dp"
                 android:layout_marginTop="10dp"
                 android:background="@drawable/toggle_button_selector"
                 android:text="@string/solo"
@@ -58,7 +60,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:thumb="@drawable/track_sound_enabled"/>
+                android:paddingLeft="5dp"
+                android:paddingStart="5dp"
+                android:thumb="@drawable/switch_thumb_selector"
+                android:track="@drawable/switch_track_selector"/>
 
             <!--app:ball_release_color="@color/colorPrimary"
                 app:base_press_color="@color/colorForegroundSecond"
@@ -83,6 +88,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
+            android:animateLayoutChanges="true"
             android:orientation="vertical">
 
             <EditText
@@ -98,15 +104,18 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:animateLayoutChanges="true"
+                android:gravity="fill"
                 android:orientation="horizontal"
-                android:paddingEnd="12dp"
-                android:paddingStart="12dp">
+                android:paddingEnd="5dp"
+                android:paddingStart="5dp">
 
                 <TextView
                     android:id="@+id/textView8"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:gravity="start"
                     android:text="L"
                     android:textColor="@color/colorForeground"
@@ -116,18 +125,19 @@
                     android:id="@+id/pan_bar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:layout_weight="1"
-                    android:max="2"
+                    android:max="100"
                     android:padding="0dp"
                     android:paddingEnd="12dp"
                     android:paddingStart="12dp"
-                    android:progress="1"
                     android:theme="@style/SuperSeekBarStyle"/>
 
                 <TextView
                     android:id="@+id/textView7"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:gravity="end"
                     android:text="R"
                     android:textColor="@color/colorForeground"
@@ -138,20 +148,26 @@
 
         <LinearLayout
             android:layout_width="45dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
+            android:animateLayoutChanges="true"
             android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp">
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="100dp"
                 android:layout_marginTop="5dp"
+                android:animateLayoutChanges="true"
                 android:gravity="center"
                 android:orientation="horizontal">
 
                 <com.sunflower.catchtherainbow.Views.Helpful.VerticalSeekBarWrapper
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent">
 
                     <com.sunflower.catchtherainbow.Views.Helpful.VerticalSeekBar
@@ -169,10 +185,11 @@
                 </com.sunflower.catchtherainbow.Views.Helpful.VerticalSeekBarWrapper>
 
                 <ImageView
-                    android:id="@+id/imageView3"
+                    android:id="@+id/bGain"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_weight="1"
+                    android:translationX="-5dp"
                     app:srcCompat="@drawable/ic_volume_up"/>
             </LinearLayout>
 

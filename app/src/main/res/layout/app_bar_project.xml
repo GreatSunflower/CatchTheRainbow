@@ -17,10 +17,10 @@
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
+            android:layout_height="35dp"
             android:background="@color/colorPrimaryDark"
             android:gravity="top|start"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            android:layout_height="35dp">
+            app:popupTheme="@style/PopupMenuStyle">
 
             <android.support.v7.widget.ActionMenuView
                 android:id="@+id/amvMenu"

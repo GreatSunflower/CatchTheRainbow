@@ -1,5 +1,9 @@
 package com.sunflower.catchtherainbow.Views.Editing;
 
+import android.animation.Animator;
+import android.animation.LayoutTransition;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,7 +15,9 @@ import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
+import android.view.animation.OvershootInterpolator;
 import android.view.animation.Transformation;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -37,6 +43,7 @@ public class TrackHeaderView extends RelativeLayout
 {
     private Project project;
     private WaveTrack track;
+    private boolean hidden = false;
 
     RelativeLayout rootContent;
     LinearLayout content;
@@ -46,9 +53,12 @@ public class TrackHeaderView extends RelativeLayout
     EditText trackNameEdit;
     Switch muteSwitch;
     SuperSeekBar pan;
-
     //pan	The pan position... -1 (full left) to +1 (full right), 0 = centre.
 
+    boolean isGainDragging = false;
+    GestureDetector gestureDetector;
+
+    private HeaderListener listener;
 
     public TrackHeaderView(Context context)
     {
@@ -67,7 +77,7 @@ public class TrackHeaderView extends RelativeLayout
         inflate(getContext(), R.layout.audio_track_head, this);
         setLayoutParams(new TableRow.LayoutParams(375, 200));
         // inside onCreate of Activity or Fragment
-        gestureDetector = new GestureDetector(getContext(),new GestureListener());
+        gestureDetector = new GestureDetector(getContext(), new GestureListener());
         //final ImageButton verticalThumb = (ImageButton)findViewById(R.id.vertical_thumb);
         //ImageButton horizontalThumb = (ImageButton)findViewById(R.id.horizontal_thumb);
 
@@ -75,12 +85,11 @@ public class TrackHeaderView extends RelativeLayout
         //horizontalThumb.setOnTouchListener(thumbTouchListener);
     }
 
-    boolean isGainDragging = false;
-    GestureDetector gestureDetector;
-    void setTrack(final WaveTrack track, final Project project)
+    void setTrack(final WaveTrack track, final Project project, HeaderListener listener)
     {
         this.track = track;
         this.project = project;
+        this.listener = listener;
 
         gainBar = (VerticalSeekBar)findViewById(R.id.gain_bar);
         soloToggle = (ToggleButton)findViewById(R.id.solo_toggle);
@@ -91,18 +100,40 @@ public class TrackHeaderView extends RelativeLayout
         content = (LinearLayout)findViewById(R.id.content);
         rootContent = (RelativeLayout)findViewById(R.id.rootContent);
 
-        content.setOnTouchListener(new OnTouchListener() {
+        // Animation
+        Animator scaleDown = ObjectAnimator.ofPropertyValuesHolder((Object)null, PropertyValuesHolder.ofFloat("scaleX", 1, 0), PropertyValuesHolder.ofFloat("scaleY", 1, 0));
+        scaleDown.setDuration(300);
+        //scaleDown.setStartDelay(1000);
+        scaleDown.setInterpolator(new OvershootInterpolator());
 
+        Animator scaleUp = ObjectAnimator.ofPropertyValuesHolder((Object)null, PropertyValuesHolder.ofFloat("scaleX", 0, 1), PropertyValuesHolder.ofFloat("scaleY", 0, 1));
+        scaleUp.setDuration(600);
+        //scaleUp.setStartDelay(1000);
+        scaleUp.setInterpolator(new OvershootInterpolator());
+
+        LayoutTransition itemLayoutTransition = new LayoutTransition();
+        itemLayoutTransition.setAnimator(LayoutTransition.APPEARING, scaleUp);
+        itemLayoutTransition.setAnimator(LayoutTransition.DISAPPEARING, scaleDown);
+
+        content.setLayoutTransition(itemLayoutTransition);
+        // Animation End
+
+        // for gesture
+        content.setOnTouchListener(new OnTouchListener()
+        {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                // TODO Auto-generated method stub
+            public boolean onTouch(View v, MotionEvent event)
+            {
                 return gestureDetector.onTouchEvent(event);
             }
-
         });
 
         gainBar.setMax(100);
         gainBar.setProgress((int)Math.floor((float)track.getGain() * 100));
+
+        pan.setMinValue(-1);
+        pan.setMaxValue(1);
+        pan.setCurrentValue(track.getPan());
 
         soloToggle.setChecked(track.isSolo());
         muteSwitch.setChecked(!track.isMuted());
@@ -175,11 +206,11 @@ public class TrackHeaderView extends RelativeLayout
             {
                 track.setMuted(!isChecked);
 
-                if (isChecked) {
+               /* if (isChecked) {
                     muteSwitch.setThumbResource(R.drawable.track_sound_enabled);
                 } else {
                     muteSwitch.setThumbResource(R.drawable.track_sound_disabled);
-                }
+                }*/
 
             }
         });
@@ -197,61 +228,103 @@ public class TrackHeaderView extends RelativeLayout
             public void afterTextChanged(Editable s){}
         });
 
-    }
-
-    boolean hidden = false;
-    public class GestureListener extends
-            GestureDetector.SimpleOnGestureListener {
-
-        @Override
-        public boolean onDown(MotionEvent e) {
-
-            return true;
-        }
-
-        // event when double tap occurs
-        @Override
-        public boolean onDoubleTap(MotionEvent e)
+        pan.setOnSuperSeekBarChangeListener(new SuperSeekBar.OnSuperSeekBarChangeListener()
         {
-            GoneOrVisibleLayout(content);
-            hidden = !hidden;
-            if (hidden != false)
+            @Override
+            public void onProgressChanged(SuperSeekBar seekBar, float progress, boolean fromUser)
             {
-                //new ResizeAnimation(content, rootContent.getWidth(), 10, rootContent.getHeight()).applyTransformation(2000, new Transformation());
-                new ResizeAnimation(rootContent, rootContent.getWidth(), 10).applyTransformation(2000, new Transformation());
+                track.setPan(progress);
             }
-            else
-            {
-                //new ResizeAnimation(content, rootContent.getWidth(), 350, rootContent.getHeight()).applyTransformation(2000, new Transformation());
-                new ResizeAnimation(rootContent, rootContent.getWidth(), 350).applyTransformation(2000, new Transformation());
-            }
-            return true;
-        }
+
+            @Override
+            public void onStartTrackingTouch(SuperSeekBar seekBar){}
+
+            @Override
+            public void onStopTrackingTouch(SuperSeekBar seekBar){}
+        });
+
     }
 
-    public void GoneOrVisibleLayout(LinearLayout rootView)
+    public void show()
     {
-        final int childcount = rootView.getChildCount();
-        for (int i = 0; i < childcount; i++)
+        setCollapsed(false);
+    }
+
+    public void collapse()
+    {
+        setCollapsed(true);
+    }
+
+    public void setCollapsed(boolean collapsed)
+    {
+        if(hidden == collapsed) return;
+
+        setViewVisibility(content, collapsed? View.GONE: View.VISIBLE);
+
+        hidden = collapsed;
+    }
+
+    // animates visibility changes. Applied to child views as well
+    public void setViewVisibility(LinearLayout rootView, int visibility)
+    {
+        final int childCount = rootView.getChildCount();
+        for (int i = 0; i < childCount; i++)
         {
             View v = rootView.getChildAt(i);
             if(v instanceof LinearLayout)
             {
-                GoneOrVisibleLayout((LinearLayout)v);
+                setViewVisibility((LinearLayout)v, visibility);
                 if (R.id.solo_layout != v.getId())
                 {
-                    if (hidden == false) Helper.animateViewVisibility(v, View.GONE);
-                    else Helper.animateViewVisibility(v, View.VISIBLE);
+                    //Helper.animateViewVisibility(v, visibility);
+                    v.setVisibility(visibility);
                 }
             }
             else
             {
                 if (R.id.mute_track != v.getId())
                 {
-                    if (hidden == false) Helper.animateViewVisibility(v, View.GONE);
-                    else Helper.animateViewVisibility(v, View.VISIBLE);
+                    v.setVisibility(visibility);
+                    //Helper.animateViewVisibility(v, visibility);
                 }
             }
+        } // for
+    }
+
+    public HeaderListener getListener()
+    {
+        return listener;
+    }
+
+    public void setListener(HeaderListener listener)
+    {
+        this.listener = listener;
+    }
+
+    // gesture
+    public class GestureListener extends
+            GestureDetector.SimpleOnGestureListener
+    {
+        @Override
+        public boolean onDown(MotionEvent event)
+        {
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent event)
+        {
+            View row = (View)getTag();
+            return row.requestFocus();
+        }
+        // event when double tap occurs
+        @Override
+        public boolean onDoubleTap(MotionEvent e)
+        {
+            if(listener != null)
+                listener.onToggleVisibilityRequest();
+
+            return true;
         }
     }
 
@@ -339,4 +412,9 @@ public class TrackHeaderView extends RelativeLayout
             return true;
         }*/
     };
+
+    public interface HeaderListener
+    {
+        void onToggleVisibilityRequest();
+    }
 }

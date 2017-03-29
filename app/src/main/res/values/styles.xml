@@ -50,4 +50,12 @@
         <item name="android:textSize">@dimen/text_normal</item>
     </style>
 
+
+    <style name="PopupMenuStyle" parent="Theme.AppCompat.Light">
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="android:textColor">@color/colorForeground</item>
+        <item name="android:windowEnterAnimation">@anim/anim_in</item>
+        <item name="android:windowExitAnimation">@anim/anim_out</item>
+    </style>
+
 </resources>

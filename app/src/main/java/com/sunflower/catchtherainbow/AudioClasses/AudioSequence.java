@@ -1,11 +1,15 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
+import android.support.v7.widget.ThemedSpinnerAdapter;
 import android.util.Log;
+
+import com.sunflower.catchtherainbow.Helper;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 
 
@@ -145,7 +149,7 @@ public class AudioSequence implements Serializable
     // returns position of the block
     // @param pos - number of samples
     // returns -1 if failed
-    public int findChunk(int pos)
+    public int findChunk(long pos)
     {
         if(pos < 0 || pos >= samplesCount)
             return -1;
@@ -305,6 +309,140 @@ public class AudioSequence implements Serializable
     }
 
     // wave data
+    boolean getWaveData(long startSample, long frameCount, long samplesPerFrame, WaveData waveData)
+    {
+        if(waveData == null || samplesPerFrame < 1) return false;
+
+        int divider = 1;
+
+        if(samplesPerFrame >= 256 && samplesPerFrame < 65536)
+            divider = 256;
+        else if(samplesPerFrame >= 65536)
+            divider = 65536;
+        else divider = 1;
+
+        int index = findChunk(startSample);
+        int frame = 0;
+
+        long len = samplesPerFrame * frameCount;
+
+        Log.e("Sequence","Total Len: " + len);
+
+        while (len > 0 && index < chunks.size() && index >= 0)
+        {
+            AudioChunkPos chunkPos = chunks.get(index);
+
+            // start is in block
+            long bStart = startSample - chunkPos.getStart();
+            // bstart is not more than block length
+            long bLen = Math.min(len, chunkPos.getChunk().getSamplesCount() - bStart);
+
+            // decrement while we can
+            len -= bLen;
+            startSample += bLen;
+
+            /*bStart = Math.max(0, bStart / divider);
+            int inclusiveEndPosition = Math.min( (bLen / divider) - 1, (startSample) / divider);
+            bLen = Helper.clamp( 1 + inclusiveEndPosition - bStart, 0, maxSamples);*/
+            //bStart = frames64K * bytesPerFrame;
+
+            ByteBuffer buffer = null;
+
+            // read data depending on zoom level
+            switch (divider)
+            {
+                case 1:
+                    bLen *= 2;
+                    buffer = ByteBuffer.allocateDirect((int) (bLen * 4));
+                    chunkPos.getChunk().readToBuffer(buffer, bStart, bLen);
+                    break;
+                case 256:
+                    bStart = bStart / divider;
+                    bLen = bLen / divider * 6;
+                    //bLen *= 24;
+                    buffer = ByteBuffer.allocateDirect((int) (bLen * 4));
+                    chunkPos.getChunk().read256(buffer, bStart, bLen);
+                    break;
+                case 65536:
+                    bStart = bStart / divider;
+                    bLen = bLen / divider * 6;
+                    //bStart = bStart / chunkPos.chunk.frames64K;
+                    //bLen = chunkPos.chunk.frames64K - bStart;
+                    //bLen *= 24;
+                    buffer = ByteBuffer.allocateDirect((int) (bLen * 4));
+                    chunkPos.getChunk().read64(buffer, bStart, bLen);
+                    break;
+            }
+
+            // get float buffer
+            float []floatBuffer = new float[(int) bLen];
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            buffer.rewind();
+            buffer.asFloatBuffer().get(floatBuffer);
+
+            int curPos = 0;
+
+            // round samples to fit the frame
+            for(; curPos < bLen; )
+            {
+                if(frame >= waveData.max.length) break;
+
+                int div = (int) (samplesPerFrame / divider);
+                // find average values
+                float avgMin = 0, avgMax = 0;
+
+                if(curPos < 0 || curPos >= floatBuffer.length)
+                {
+                    Log.e("SEQUENCE", curPos+"");
+                    break;
+                }
+
+                // read pcm data
+                if(divider == 1)
+                {
+                    for (int i = 0; i < div; i++)
+                    {
+                        if (curPos < floatBuffer.length)  avgMin += floatBuffer[curPos];
+                        if (curPos + 2 < floatBuffer.length) avgMax += floatBuffer[curPos + 2];
+
+                        curPos += 2;
+                    }
+
+                    // modify wave data
+                    waveData.max[frame] = avgMax / div;
+                    waveData.min[frame] = avgMin / div;
+
+                }
+                else // read summary data
+                {
+                    for (int i = 0; i < div; i++)
+                    {
+                        if (curPos >= floatBuffer.length) break;
+
+                        avgMin += floatBuffer[curPos];
+                        if (curPos + 1 < floatBuffer.length) avgMax += floatBuffer[curPos + 1];
+
+                        curPos+=6;
+                    }
+
+                    // modify wave data
+                    waveData.max[frame] = avgMax / div;
+                    waveData.min[frame] = avgMin / div;
+
+                    //curPos += div + 3*6/*+3+1*/;
+                }
+                frame++;
+            } // for
+
+            index++;
+        }
+
+        Log.e("Sequence", "Frames written: " + frame + ", Divider: " + divider);
+
+
+        return true;
+    }
+
     boolean getMinMax(int start, int len, Float outMin, Float outMax)
     {
         if (len == 0 || chunks.size() == 0)
@@ -435,3 +573,4 @@ public class AudioSequence implements Serializable
     }
 
 }
+

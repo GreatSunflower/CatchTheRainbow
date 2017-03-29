@@ -101,7 +101,7 @@ public class AudioImporter implements Runnable
             String file = query.audioFileInfo.getPath();
 
             // decoder handle
-            int handle = BASS.BASS_StreamCreateFile(file, 0, 0, BASS.BASS_STREAM_DECODE|BASS.BASS_SAMPLE_FLOAT);
+            int handle = BASS.BASS_StreamCreateFile(file, 0, 0, BASS.BASS_STREAM_DECODE|BASS.BASS_SAMPLE_FLOAT/*|BASS.BASS_SAMPLE_MONO*/);
 
             final long len = BASS.BASS_ChannelGetLength(handle, BASS.BASS_POS_BYTE);
 

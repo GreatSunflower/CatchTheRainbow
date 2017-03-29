@@ -40,6 +40,11 @@ public class Clip implements Serializable
     }
 
     // wave data
+    public boolean getWaveData(long startSample, long len, long samplesPerFrame, WaveData waveData)
+    {
+        return sequence.getWaveData(startSample, len, samplesPerFrame, waveData);
+    }
+
     boolean getMinMax(double startTime, double endTime, Float outMin, Float outMax)
     {
         outMin = 0.0f;

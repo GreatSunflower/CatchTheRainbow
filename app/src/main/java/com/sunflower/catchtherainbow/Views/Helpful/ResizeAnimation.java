@@ -17,13 +17,21 @@ public class ResizeAnimation extends Animation
         mFromWidth = fromWidth;
         mToWidth = toWidth;
         mView = v;
+       // setStartTime(1050);
+        //setStartOffset(1500);
         setDuration(300);
+    }
+
+    @Override
+    public boolean willChangeBounds()
+    {
+        return true;
     }
 
     @Override
     public void applyTransformation(float interpolatedTime, Transformation t)
     {
-        float width = (mToWidth - mFromWidth) * interpolatedTime + mFromWidth;
+        float width = mFromWidth + ((mToWidth - mFromWidth) * interpolatedTime); ;/*(mToWidth - mFromWidth) * interpolatedTime + mFromWidth*/;
         ViewGroup.LayoutParams p = mView.getLayoutParams();
         p.width = (int) width;
         mView.requestLayout();

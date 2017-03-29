@@ -11,12 +11,12 @@
 
     <string name="audio_files_saved">Аудіо файл збережений в папку Music</string>
 
-    <string name="import_notification">Аудіо імпортує. Ви можете переглянути прогрес в панелі повідомлень.</string>
+    <string name="import_notification">Аудіо імпортується. Ви можете переглянути прогрес в панелі повідомлень.</string>
     <string name="select_audio_files">Оберіть аудіо файли!</string>
 
     <!-- Menu -->
-    <string name="menu_import">Імпорт пісень</string>
-    <string name="menu_export">Експорт пісні</string>
+    <string name="menu_import">Імпорт</string>
+    <string name="menu_export">Експорт</string>
     <string name="menu_language">Мова</string>
     <string name="menu_close">Закрити проект</string>
     <!-- end Menu -->
@@ -127,4 +127,12 @@
     <string name="equalizer">Еквалайзер</string>
 
     <string name="track_not_selected">Оберіть трек!</string>
+    <string name="action_copy">Копіювати</string>
+    <string name="action_cut">Обрізати</string>
+    <string name="action_paste">Вставити</string>
+    <string name="action_remove">Видалити</string>
+    <string name="effect_apply_message">Ефект застосовується</string>
+    <string name="menu_editing">Редагувати</string>
+    <string name="action_move">Рука</string>
+    <string name="action_select">Виділення</string>
 </resources>

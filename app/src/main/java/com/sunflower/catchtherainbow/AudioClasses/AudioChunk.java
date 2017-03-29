@@ -32,19 +32,19 @@ class ChunkHeader implements Serializable
 public class AudioChunk implements Serializable
 {
     // location of the file
-    private String path;
+    protected String path;
     // number of samples it contains
-    private int samplesCount;
-    private AudioInfo audioInfo;
+    protected int samplesCount;
+    protected AudioInfo audioInfo;
 
     // summary
-    private float min = 0, max = 0, rms = 0;
+    protected float min = 0, max = 0, rms = 0;
 
-    private int bytesPerFrame;
+    protected int bytesPerFrame;
 
-    private int frames64K;
-    private int frames256;
-    int totalSummaryBytes;
+    protected int frames64K;
+    protected int frames256;
+    protected int totalSummaryBytes;
 
     // constr
     public AudioChunk(String path, int samplesCount, AudioInfo audioInfo)
@@ -109,7 +109,7 @@ public class AudioChunk implements Serializable
     // @param start - first sample to get
     // @param length - number of samples after start
     // @return number of samples read or -1 if the was an error
-    public int readToBuffer(ByteBuffer buffer, int start, int length)
+    public int readToBuffer(ByteBuffer buffer, long start, long length)
     {
         int sampleSize = audioInfo.format.getSampleSize();
 
@@ -130,7 +130,7 @@ public class AudioChunk implements Serializable
             //objectInputStream.skipBytes(start * 4/* Size of one sample */);
 
 
-            objectInputStream.skipBytes(start * sampleSize);
+            objectInputStream.skipBytes((int) (start * sampleSize));
            // read = (int) fileChannel.read(new ByteBuffer[]{buffer}, start, length);
 
             while (read < length * sampleSize)
@@ -180,6 +180,67 @@ public class AudioChunk implements Serializable
         }
 
         return read;
+    }
+
+    ChunkHeader readHeader()
+    {
+        try
+        {
+            FileInputStream fileInputStream = new FileInputStream(path);
+
+            BufferedInputStream buffStream = new BufferedInputStream(fileInputStream, 4096*2);
+            ObjectInputStream objectInputStream = new ObjectInputStream(buffStream);
+
+            // first read the header
+            ChunkHeader header = (ChunkHeader)objectInputStream.readObject();
+
+            objectInputStream.close();
+
+            return header;
+        }
+        catch (IOException | ClassNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    boolean read256(ByteBuffer buffer, long start, long len)
+    {
+        if(start < 0) return false;
+
+        ChunkHeader header = readHeader();
+
+        if(header == null) return false;
+
+        start = Math.min(start, frames256);
+        len = Math.min(len, frames256 - start);
+
+        for(int i = (int) start; i < len; i++)
+        {
+            buffer.putFloat(header.summary256[i]);
+        }
+
+        return true;
+    }
+
+    boolean read64(ByteBuffer buffer, long start, long len)
+    {
+        if(start < 0) return false;
+
+        ChunkHeader header = readHeader();
+
+        if(header == null) return false;
+
+        start = Math.min(start, frames64K);
+        len = Math.min(len, frames64K - start);
+
+        for(int i = (int)start; i < len; i++)
+        {
+            buffer.putFloat(header.summary64K[i]);
+        }
+
+        return true;
     }
 
     void getMinMax(int start, int len, Float outMin, Float outMax, Float outRMS)

@@ -40,6 +40,7 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
     AudioProgressView progressView;
     ImageButton playStopButt;
     AudioIO player;
+    private WaveTrack track;
     private Project Project;
     private boolean isDragging = false;
     Runnable updateTimer;
@@ -57,13 +58,14 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
      * Use this factory method to create a new instance of this fragment using the provided parameters.
      * @return A new instance of fragment EffectsHostFragment.
      */
-    // TODO: Rename and change types and number of parameters
-    public static EffectsHostFragment newInstance()
+    public static EffectsHostFragment newInstance(WaveTrack track, Project project)
     {
-        //EffectsHostFragment fragment = new EffectsHostFragment();
+        EffectsHostFragment fragment = new EffectsHostFragment();
+        fragment.Project = project;
+        fragment.track = track;
        // Bundle args = new Bundle();
         //fragment.setArguments(args);
-        return new EffectsHostFragment();
+        return fragment;
     }
 
     private BaseEffectFragment effectsFragment = ListEffectsFragment.newInstance();
@@ -168,6 +170,7 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         return root;
     }
 
+    // call only after the fragment appeared
     public void setTrack(WaveTrack track)
     {
         player = new AudioIO(EffectsHostFragment.this.getActivity(), Project);
@@ -228,6 +231,10 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         fragmentTransaction.replace(R.id.effectsFragment, effectsFragment);
         fragmentTransaction.commit();
 
+        player = new AudioIO(EffectsHostFragment.this.getActivity(), Project);
+        player.addPlayerListener(playerListener);
+        player.setTrack(track);
+        player.initialize(false);
     }
 
     @Override

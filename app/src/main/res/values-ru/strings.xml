@@ -15,8 +15,8 @@
     <string name="select_audio_files">Выберите аудио файлы!</string>
 
     <!-- Menu -->
-    <string name="menu_import">Импорт песен</string>
-    <string name="menu_export">Экспорт песни</string>
+    <string name="menu_import">Импорт</string>
+    <string name="menu_export">Экспортировать</string>
     <string name="menu_language">Язык</string>
     <string name="menu_close">Закрыть проект</string>
     <!-- end Menu -->
@@ -126,5 +126,13 @@
     <string name="equalizer">Эквалайзер</string>
 
     <string name="track_not_selected">Выделите трек!</string>
+    <string name="action_copy">Копировать</string>
+    <string name="action_cut">Вырезать</string>
+    <string name="action_paste">Вставить</string>
+    <string name="action_remove">Удалить</string>
+    <string name="effect_apply_message">Эффект применяется</string>
+    <string name="menu_editing">Редактировать</string>
+    <string name="action_move">Рука</string>
+    <string name="action_select">Выделение</string>
 
 </resources>

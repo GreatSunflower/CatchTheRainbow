@@ -10,6 +10,8 @@
     <dimen name="text_normal">14sp</dimen>
     <dimen name="text_small">8sp</dimen>
 
+    <dimen name="popup_width">300dp</dimen>
+
     <!-- Audio track dimensions -->
     <dimen name="audio_track_default_height">200dp</dimen>
     <dimen name="audio_track_default_width">350dp</dimen>
