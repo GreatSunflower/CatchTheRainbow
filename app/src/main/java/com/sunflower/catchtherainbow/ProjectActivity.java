@@ -11,14 +11,11 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.VectorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -36,12 +33,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ListAdapter;
-import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.RemoteViews;
 import android.widget.SeekBar;
-import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.Adapters.PopupSeekbarAdapter;
@@ -66,8 +60,6 @@ import com.sunflower.catchtherainbow.Views.StartedApp.ProjectStartActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
 
@@ -807,7 +799,7 @@ public class ProjectActivity extends AppCompatActivity
 
     //get result from ExportSongFragment
     @Override
-    public void onOk(String name, String album)
+    public void onOk(String name, String album, String year, String format)
     {
         String pathStorageMusic = getResources().getString(R.string.audio_files_saved) + ":\n\""
                 + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath() + "/" + name + "\"";

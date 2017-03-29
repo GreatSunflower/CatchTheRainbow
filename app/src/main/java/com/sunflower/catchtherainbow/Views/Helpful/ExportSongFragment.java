@@ -9,13 +9,19 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.R;
 
-public class ExportSongFragment extends DialogFragment implements View.OnClickListener
+import java.util.ArrayList;
+import java.util.Collections;
+
+public class ExportSongFragment extends DialogFragment implements View.OnClickListener, AdapterView.OnItemSelectedListener
 {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -50,8 +56,11 @@ public class ExportSongFragment extends DialogFragment implements View.OnClickLi
         }
     }
 
-    EditText etName, etAlbum;
+    EditText etName, etAlbum, etYear;
+    private NDSpinner ndSpinFormat;
+    private ArrayAdapter<String> spinFormatAdapter;
     Button bOk, bCancel;
+    private String format = "MP3";
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
@@ -63,11 +72,27 @@ public class ExportSongFragment extends DialogFragment implements View.OnClickLi
         etAlbum = (EditText)resView.findViewById(R.id.edNameAlbum);
         bOk = (Button)resView.findViewById(R.id.bOk);
         bCancel = (Button)resView.findViewById(R.id.bCancel);
+        ndSpinFormat = (NDSpinner)resView.findViewById(R.id.spinnerFormatOfFile);
+        etYear = (EditText)resView.findViewById(R.id.etYear);
+
         bOk.setOnClickListener(this);
         bCancel.setOnClickListener(this);
 
         getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+
+        String[] spinner_array = { "MP3", "WAV", "AIFF", "OGG", "FLAG" };
+
+        ArrayList<String> items = new ArrayList<String>();
+        Collections.addAll(items, spinner_array);
+
+        ndSpinFormat = (NDSpinner) resView.findViewById(R.id.spinnerFormatOfFile);
+        spinFormatAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, items);
+        spinFormatAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        ndSpinFormat.setAdapter(spinFormatAdapter);
+
+        ndSpinFormat.setOnItemSelectedListener(this);
 
         return  resView;
     }
@@ -102,7 +127,7 @@ public class ExportSongFragment extends DialogFragment implements View.OnClickLi
             {
                 if(!etName.getText().toString().equals(""))
                 {
-                    if (mListener != null) mListener.onOk(etName.getText().toString(), etAlbum.getText().toString());
+                    if (mListener != null) mListener.onOk(etName.getText().toString(), etAlbum.getText().toString(), etYear.getText().toString(), ndSpinFormat.getSelectedItem().toString());
                     dismiss();// Закрытие текущего фрагмента
                 }
                 else Toast.makeText(getActivity(), R.string.error_fill_all_fields, Toast.LENGTH_SHORT).show();
@@ -117,8 +142,18 @@ public class ExportSongFragment extends DialogFragment implements View.OnClickLi
         }
     }
 
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int i, long l)
+    {
+        ((TextView) parent.getChildAt(0)).setTextColor(getResources().getColor(R.color.colorForeground));
+        ((TextView) parent.getChildAt(0)).setTextSize(18);
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView){}
+
     public interface OnFragmentExportSongListener
     {
-        void onOk(String name, String album);
+        void onOk(String name, String album, String year, String format);
     }
 }

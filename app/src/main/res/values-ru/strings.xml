@@ -13,14 +13,14 @@
 
     <string name="import_notification">Аудио импортируется. Вы можете просмотреть прогресс в панели уведомлений.</string>
     <string name="select_audio_files">Выберите аудио файлы!</string>
-
+    <string name="year">Год:</string>
     <!-- Menu -->
     <string name="menu_import">Импорт</string>
     <string name="menu_export">Экспортировать</string>
     <string name="menu_language">Язык</string>
     <string name="menu_close">Закрыть проект</string>
     <!-- end Menu -->
-
+    <string name="format">Формат:</string>
     <string name="navigation_drawer_open">Открыть панель навигации</string>
     <string name="navigation_drawer_close">Закрыть панель навигации</string>
 
