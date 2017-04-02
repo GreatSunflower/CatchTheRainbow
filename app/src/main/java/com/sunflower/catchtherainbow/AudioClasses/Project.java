@@ -198,7 +198,7 @@ public class Project implements Serializable
         @Override
         public void onPropertyUpdated(WaveTrack track)
         {
-            updateProjectFile();
+            //updateProjectFile();
         }
     };
 

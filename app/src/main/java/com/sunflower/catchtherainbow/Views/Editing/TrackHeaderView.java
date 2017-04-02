@@ -17,6 +17,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 import android.view.animation.Transformation;
 import android.widget.CompoundButton;
@@ -37,6 +38,7 @@ import com.sunflower.catchtherainbow.Views.Helpful.ResizeAnimation;
 import com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar;
 import com.sunflower.catchtherainbow.Views.Helpful.VerticalSeekBar;
 
+import static com.sunflower.catchtherainbow.R.id.content;
 import static com.sunflower.catchtherainbow.R.id.mute_track;
 
 public class TrackHeaderView extends RelativeLayout
@@ -107,7 +109,7 @@ public class TrackHeaderView extends RelativeLayout
         scaleDown.setInterpolator(new OvershootInterpolator());
 
         Animator scaleUp = ObjectAnimator.ofPropertyValuesHolder((Object)null, PropertyValuesHolder.ofFloat("scaleX", 0, 1), PropertyValuesHolder.ofFloat("scaleY", 0, 1));
-        scaleUp.setDuration(600);
+        scaleUp.setDuration(450);
         //scaleUp.setStartDelay(1000);
         scaleUp.setInterpolator(new OvershootInterpolator());
 
@@ -243,6 +245,7 @@ public class TrackHeaderView extends RelativeLayout
             public void onStopTrackingTouch(SuperSeekBar seekBar){}
         });
 
+        if(hidden) setViewVisibility(content, View.GONE);
     }
 
     public void show()
@@ -265,15 +268,17 @@ public class TrackHeaderView extends RelativeLayout
     }
 
     // animates visibility changes. Applied to child views as well
-    public void setViewVisibility(LinearLayout rootView, int visibility)
+    public void setViewVisibility(ViewGroup rootView, int visibility)
     {
+        if(rootView == null) return;
+
         final int childCount = rootView.getChildCount();
         for (int i = 0; i < childCount; i++)
         {
             View v = rootView.getChildAt(i);
-            if(v instanceof LinearLayout)
+            if(v instanceof ViewGroup)
             {
-                setViewVisibility((LinearLayout)v, visibility);
+                setViewVisibility((ViewGroup)v, visibility);
                 if (R.id.solo_layout != v.getId())
                 {
                     //Helper.animateViewVisibility(v, visibility);

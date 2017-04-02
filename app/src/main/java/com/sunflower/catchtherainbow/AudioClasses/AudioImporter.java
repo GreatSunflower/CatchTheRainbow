@@ -6,6 +6,7 @@ import android.util.Log;
 import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.SuperApplication;
 import com.un4seen.bass.BASS;
+import com.un4seen.bass.BASSmix;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -101,13 +102,16 @@ public class AudioImporter implements Runnable
             String file = query.audioFileInfo.getPath();
 
             // decoder handle
+            int mixerHandle = BASSmix.BASS_Mixer_StreamCreate(project.getProjectAudioInfo().sampleRate, project.getProjectAudioInfo().channels, BASS.BASS_STREAM_DECODE | BASS.BASS_SAMPLE_FLOAT/*|BASS.BASS_SAMPLE_MONO*/);
             int handle = BASS.BASS_StreamCreateFile(file, 0, 0, BASS.BASS_STREAM_DECODE|BASS.BASS_SAMPLE_FLOAT/*|BASS.BASS_SAMPLE_MONO*/);
+
+            BASSmix.BASS_Mixer_StreamAddChannel(mixerHandle, handle, BASSmix.BASS_MIXER_BUFFER);
 
             final long len = BASS.BASS_ChannelGetLength(handle, BASS.BASS_POS_BYTE);
 
             // extract channelHandle info
             BASS.BASS_CHANNELINFO info = new BASS.BASS_CHANNELINFO();
-            BASS.BASS_ChannelGetInfo(handle, info);
+            BASS.BASS_ChannelGetInfo(mixerHandle, info);
 
             // make sure that project directory is created
             Helper.checkDirectory(SuperApplication.getAppDirectory());
@@ -136,23 +140,31 @@ public class AudioImporter implements Runnable
             {
                 ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize);
                 //audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
-                int bytesRead = BASS.BASS_ChannelGetData(handle, audioData, bufferSize|BASS.BASS_DATA_FLOAT);
+                int bytesRead = BASS.BASS_ChannelGetData(mixerHandle, audioData, bufferSize);
+                // end
+                if(bytesRead == 0)
+                {
+                    // notify about progress
+                    final ImporterQuery finalQuery = query;
+                    handler.post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            if(listener != null)
+                                listener.onProgressUpdate(finalQuery, 100, clip);
+                        }
+                    });
+                    break;
+                }
 
                 //audioData.order(ByteOrder.LITTLE_ENDIAN);
-                FloatBuffer ibuffer=audioData.asFloatBuffer();
+                /*FloatBuffer ibuffer=audioData.asFloatBuffer();
                 float[] floatBuff=new float[bufferSize/4]; // allocate a "float" array for the sample data
-                ibuffer.get(floatBuff); // get the data from the buffer into the array
-
-              //  float []f = new float[bufferSize/4];
-             //   audioData.asFloatBuffer().get(f);
+                ibuffer.get(floatBuff);*/ // get the data from the buffer into the array
 
                 totalBytesRead += bytesRead;
 
-                /*byte buffer[] = new byte[bufferSize/4];
-                audioData.get(buffer);
-
-                ByteBuffer resBuff = ByteBuffer.allocate(bufferSize/2);//.wrap(buffer);
-                resBuff.put(buffer);*/
                 try
                 {
                     clip.getSequence().append(audioData, bytesRead/4);

@@ -19,4 +19,8 @@
     <dimen name="audio_track_max_width">500dp</dimen>
     <dimen name="audio_track_min_height">130dp</dimen>
     <dimen name="audio_track_min_width">10dp</dimen>
+
+    <dimen name="track_head_collapsed">90dp</dimen>
+    <dimen name="track_head_expanded">275dp</dimen>
+
 </resources>

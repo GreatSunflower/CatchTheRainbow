@@ -27,11 +27,11 @@
         android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:animateLayoutChanges="true"
-        android:orientation="horizontal"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentStart="false"
+        android:layout_alignParentTop="false"
+        android:animateLayoutChanges="false"
+        android:orientation="horizontal">
 
         <LinearLayout
             android:id="@+id/solo_layout"
@@ -60,7 +60,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:paddingEnd="0dp"
                 android:paddingLeft="5dp"
+                android:paddingRight="0dp"
                 android:paddingStart="5dp"
                 android:thumb="@drawable/switch_thumb_selector"
                 android:track="@drawable/switch_track_selector"/>
@@ -123,7 +125,7 @@
 
                 <com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar
                     android:id="@+id/pan_bar"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_weight="1"
@@ -179,14 +181,13 @@
                         android:paddingStart="5dp"
                         android:progress="50"
                         android:radius="0dp"
-                        android:splitTrack="false"
                         app:seekBarRotation="CW270"/>
 
                 </com.sunflower.catchtherainbow.Views.Helpful.VerticalSeekBarWrapper>
 
                 <ImageView
                     android:id="@+id/bGain"
-                    android:layout_width="18dp"
+                    android:layout_width="0dp"
                     android:layout_height="18dp"
                     android:layout_weight="1"
                     android:translationX="-5dp"

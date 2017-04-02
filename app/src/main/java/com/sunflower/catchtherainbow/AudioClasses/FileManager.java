@@ -28,12 +28,12 @@ public class FileManager implements Serializable
         this.samplesFolder = samplesFolder;
     }
 
-    public AudioChunk createAudioChunk(ByteBuffer sampleData, int len, AudioInfo format) throws IOException
+    public AudioChunk createAudioChunk(ByteBuffer sampleData, long len, AudioInfo format) throws IOException
     {
         String fileName = samplesFolder + "/" + currentFileCount + ".ac";
 
-        AudioChunk chunk = new AudioChunk(fileName, len, format);
-        chunk.writeToDisk(sampleData, len);
+        AudioChunk chunk = new AudioChunk(fileName, (int) len, format);
+        chunk.writeToDisk(sampleData, (int) len);
 
         audioChunks.put(fileName, chunk);
 
@@ -57,6 +57,42 @@ public class FileManager implements Serializable
 
         return refChunk;
     }
+
+    // Adds one to the reference count of the block file,
+    // UNLESS it is "locked", then it makes a NEW copy of
+    // the BlockFile.
+    AudioChunk copyChunk(AudioChunk b)
+    {
+        final String fn = b.getPath();
+
+        // Copy the blockfile
+        AudioChunk b2;
+        if (fn != null && !fn.equals(""))
+        {
+            // Block files with uninitialized filename (i.e. SilentBlockFile)
+            // just need an in-memory copy.
+            b2 = b.copy("");
+        }
+        else
+        {
+            String fileName = samplesFolder + "/" + currentFileCount + ".ac";
+            File newFile = new File(fileName);
+
+            final String newName = newFile.getName();
+            final String newPath = newFile.getAbsolutePath();
+
+            b2 = b.copy(newName);
+
+            if (b2 == null)
+                return null;
+
+            audioChunks.put(newName, b2);
+            chunkReferences.add(newPath);
+        }
+
+        return b2;
+    }
+
 
     /*public boolean removeChunkRef(AudioChunk refChunk)
     {

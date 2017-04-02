@@ -187,6 +187,13 @@ public class ProjectActivity extends AppCompatActivity
             {
                 if (player != null)
                     progressView.setCurrent(progress);
+
+                WaveTrack longestTrack = tracksFragment.findLongestTrack();
+
+                if(longestTrack == null) return;
+                long samples = longestTrack.timeToSamples(progress);
+
+                tracksFragment.setOffset(samples);
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar)
@@ -283,117 +290,30 @@ public class ProjectActivity extends AppCompatActivity
         if(player != null)
             player.stop();
         statusHandler.removeCallbacks(updateTimer);
+
+        tracksFragment.stopDrawing();
+
+        project.updateProjectFile();
+
         super.onStop();
     }
 
     @Override
-    public void onClick(View v)
+    public void onPause()
     {
-        switch (v.getId())
-        {
-            case R.id.Sacha:
-            {
-                if(player.isPlaying()) player.pause();
-                else player.play();
-                break;
-            }
-            case R.id.bRecorderStart:
-            {
-                bRecorderStart.setEnabled(false);
-                break;
-            }
-            case R.id.bStop:
-            {
-                bRecorderStart.setEnabled(true);
-                break;
-            }
-            case R.id.settings:
-            {
-                final ListPopupWindow popupWindow = new ListPopupWindow(this);
+        tracksFragment.stopDrawing();
 
-                PopupSeekbarAdapter adapter = new PopupSeekbarAdapter();
-                ArrayList<String> list = new ArrayList<String>();
-                list.add("Zoom");
-                list.add("Super Option");
+        project.updateProjectFile();
 
-                ArrayList<Integer> progressions = new ArrayList<Integer>();
-                progressions.add((int)((float)tracksFragment.getSamplesPerPixel()/WaveTrackView.MAX_SAMPLES_PER_PIXEL * 10000f));
-                progressions.add(0);
+        super.onPause();
+    }
 
-                adapter.setSeekBarListener(new PopupSeekbarAdapter.SeekBarListener()
-                {
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser, int positionInList)
-                    {
-                        if(positionInList == 0) // zoom
-                        {
-                            int samples = (int) (progress/10000f * WaveTrackView.MAX_SAMPLES_PER_PIXEL + 1);
-                            tracksFragment.setSamplesPerPixel(samples);
-                            Log.e("Zoom", samples+"");
-                        }
-                    }
+    @Override
+    public void onResume()
+    {
+        tracksFragment.startDrawing();
 
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar, int positionInList)
-                    {
-
-                    }
-
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar, int positionInList)
-                    {
-                        //popupWindow.dismiss();
-                    }
-                });
-
-                popupWindow.setAdapter(adapter.getAdapter(this, list, progressions, "Hell yeah!"));
-
-                popupWindow.setModal(true);
-                popupWindow.setAnchorView(v);
-
-                Drawable background = new ColorDrawable(getResources().getColor(android.R.color.transparent));
-                popupWindow.setBackgroundDrawable(background);
-
-                popupWindow.setWidth((int) getResources().getDimension(R.dimen.popup_width));
-                popupWindow.setAnimationStyle(android.R.style.Animation_InputMethod);
-                popupWindow.setVerticalOffset(5);
-                popupWindow.setHorizontalOffset(-5);
-
-                popupWindow.show();
-
-                break;
-            }
-            case R.id.playNext:
-            {
-                if (player != null)
-                {
-                    try
-                    {
-                       // player.playNext();
-                    }
-                    catch (Exception ex)
-                    {
-                        Toast.makeText(this, "Cannot be played!", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                break;
-            }
-            case R.id.playPrev:
-            {
-                if (player != null)
-                {
-                    try
-                    {
-                        //player.playPrev();
-                    }
-                    catch (Exception ex)
-                    {
-                        Toast.makeText(this, "Cannot be played!", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                break;
-            }
-        } // switch
+        super.onResume();
     }
 
     @Override
@@ -402,6 +322,9 @@ public class ProjectActivity extends AppCompatActivity
         if(player != null)
             player.eject();
         statusHandler.removeCallbacks(updateTimer);
+
+        // stop rendering threads
+        tracksFragment.stopDrawing();
 
         project.removeListener(projectListener);
         project.updateProjectFile();
@@ -435,6 +358,8 @@ public class ProjectActivity extends AppCompatActivity
         return true;
     }
 
+    private WaveTrack bufferedTrack = null;
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -443,40 +368,82 @@ public class ProjectActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_copy)
+        switch (id)
         {
-            //...
-        }
-        if (id == R.id.action_effects)
-        {
-            WaveTrack selectedTrack = tracksFragment.getSelectedTrack();
+            case R.id.action_move:
+                tracksFragment.setMode(MainAreaFragment.Mode.Hand);
+                break;
 
-            if(selectedTrack == null)
+            case R.id.action_select:
+                tracksFragment.setMode(MainAreaFragment.Mode.Selection);
+                break;
+
+            case R.id.action_remove: case R.id.action_copy: case R.id.action_paste: case R.id.action_effects:
             {
-                // notify about error
-                Helper.showCuteToast(ProjectActivity.this, R.string.track_not_selected);
-                return super.onOptionsItemSelected(item);
+                WaveTrack selectedTrack = tracksFragment.getSelectedTrack();
+
+                if(selectedTrack == null)
+                {
+                    Helper.showCuteToast(ProjectActivity.this, R.string.track_not_selected, Gravity.CENTER); // error
+                    return super.onOptionsItemSelected(item);
+                }
+
+                double start = tracksFragment.getSelectionStartTime();
+                double end = tracksFragment.getSelectionEndTime();
+
+                Helper.showCuteToast(ProjectActivity.this, "S : " + Helper.secondToString(start) + ", E: " + Helper.secondToString(end), Gravity.CENTER);
+                //Log.e("Area! ", "Start : " + start + ", End: " + end);
+
+                if (id == R.id.action_remove)
+                {
+
+                    if(selectedTrack.clear(start, end))
+                    {
+                        player.initialize(false);
+                        tracksFragment.demandUpdate();
+                    }
+                }
+                else if (id == R.id.action_copy)
+                {
+                    WaveTrack copiedArea = selectedTrack.copy(start, end);
+
+                    if(copiedArea != null)
+                    {
+                        bufferedTrack = copiedArea;
+                    }
+                    else Helper.showCuteToast(ProjectActivity.this, "(((", Gravity.CENTER);
+                }
+                else if (id == R.id.action_paste)
+                {
+                    if(selectedTrack.paste(start, bufferedTrack))
+                    {
+                        player.initialize(false);
+                        tracksFragment.demandUpdate();
+                    }
+                    else Helper.showCuteToast(ProjectActivity.this, "(((", Gravity.CENTER);
+                }
+                else
+                {
+                    //EffectsHostFragment fragment = (EffectsHostFragment) createNewDialog(R.id.effectsFragment, EffectsHostFragment.class, true);
+                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    Fragment prev = getSupportFragmentManager().findFragmentById(R.id.effectsFragment);
+                    if (prev != null) ft.remove(prev);
+                    ft.addToBackStack(null);
+                    // Create and show the dialog.
+
+                    EffectsHostFragment hostFragment = EffectsHostFragment.newInstance(selectedTrack, project);
+                    //Helper.showCuteToast(ProjectActivity.this, selectedTrack.getName());
+                    hostFragment.show(ft, "Effects dialog");
+                    // force to create views
+                    getSupportFragmentManager().executePendingTransactions();
+                    //hostFragment.setTrack(selectedTrack);
+
+                }
+
+                break;
             }
-
-            //EffectsHostFragment fragment = (EffectsHostFragment) createNewDialog(R.id.effectsFragment, EffectsHostFragment.class, true);
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            Fragment prev = getSupportFragmentManager().findFragmentById(R.id.effectsFragment);
-            if (prev != null) ft.remove(prev);
-            ft.addToBackStack(null);
-            // Create and show the dialog.
-
-            EffectsHostFragment hostFragment = EffectsHostFragment.newInstance(selectedTrack, project);
-            //Helper.showCuteToast(ProjectActivity.this, selectedTrack.getName());
-            hostFragment.show(ft, "Effects dialog");
-            // force to create views
-            getSupportFragmentManager().executePendingTransactions();
-            //hostFragment.setTrack(selectedTrack);
-
-            return true;
         }
-
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
     SupportedLanguages currentLanguage;
@@ -570,6 +537,116 @@ public class ProjectActivity extends AppCompatActivity
         intent.putExtra("openProjectWithName", project.getName());
         this.finish();
         startActivity(intent);
+    }
+
+    @Override
+    public void onClick(View v)
+    {
+        switch (v.getId())
+        {
+            case R.id.Sacha:
+            {
+                if(player.isPlaying()) player.pause();
+                else player.play();
+                break;
+            }
+            case R.id.bRecorderStart:
+            {
+                bRecorderStart.setEnabled(false);
+                break;
+            }
+            case R.id.bStop:
+            {
+                bRecorderStart.setEnabled(true);
+                break;
+            }
+            case R.id.settings:
+            {
+                final ListPopupWindow popupWindow = new ListPopupWindow(this);
+
+                PopupSeekbarAdapter adapter = new PopupSeekbarAdapter();
+                ArrayList<String> list = new ArrayList<String>();
+                list.add("Zoom");
+                list.add("Super Option");
+
+                ArrayList<Integer> progressions = new ArrayList<Integer>();
+                progressions.add((int)((float)tracksFragment.getSamplesPerPixel()/WaveTrackView.MAX_SAMPLES_PER_PIXEL * 10000f));
+                progressions.add(0);
+
+                adapter.setSeekBarListener(new PopupSeekbarAdapter.SeekBarListener()
+                {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser, int positionInList)
+                    {
+                        if(positionInList == 0) // zoom
+                        {
+                            int samples = (int) (progress/10000f * WaveTrackView.MAX_SAMPLES_PER_PIXEL + 1);
+                            tracksFragment.setSamplesPerPixel(samples);
+                            Log.e("Zoom", samples+"");
+                        }
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar, int positionInList)
+                    {
+
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar, int positionInList)
+                    {
+                        //popupWindow.dismiss();
+                    }
+                });
+
+                popupWindow.setAdapter(adapter.getAdapter(this, list, progressions, "Hell yeah!"));
+
+                popupWindow.setModal(true);
+                popupWindow.setAnchorView(v);
+
+                Drawable background = new ColorDrawable(getResources().getColor(android.R.color.transparent));
+                popupWindow.setBackgroundDrawable(background);
+
+                popupWindow.setWidth((int) getResources().getDimension(R.dimen.popup_width));
+                popupWindow.setAnimationStyle(android.R.style.Animation_InputMethod);
+                popupWindow.setVerticalOffset(5);
+                popupWindow.setHorizontalOffset(-5);
+
+                popupWindow.show();
+
+                break;
+            }
+            case R.id.playNext:
+            {
+                if (player != null)
+                {
+                    try
+                    {
+                        // player.playNext();
+                    }
+                    catch (Exception ex)
+                    {
+                        Toast.makeText(this, "Cannot be played!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                break;
+            }
+            case R.id.playPrev:
+            {
+                if (player != null)
+                {
+                    try
+                    {
+                        //player.playPrev();
+                    }
+                    catch (Exception ex)
+                    {
+                        Toast.makeText(this, "Cannot be played!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                break;
+            }
+        } // switch
     }
 
     BasePlayer.AudioPlayerListener playerListener = new BasePlayer.AudioPlayerListener()
@@ -674,7 +751,7 @@ public class ProjectActivity extends AppCompatActivity
         importer.addToQueue(queries);
 
         // notify about process
-        Helper.showCuteToast(ProjectActivity.this, R.string.import_notification);
+        Helper.showCuteToast(ProjectActivity.this, R.string.import_notification, Gravity.CENTER);
     }
 
     @Override
@@ -736,7 +813,7 @@ public class ProjectActivity extends AppCompatActivity
             notificationManager.notify(notificationId, notification);
 
             // audio loaded
-            if(progress == 100)
+            if(progress >= 100)
             {
                 WaveTrack track = new WaveTrack(query.audioFileInfo.getTitle(), project.getFileManager());
                 track.addClip(clip);

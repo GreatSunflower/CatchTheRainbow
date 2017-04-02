@@ -360,23 +360,23 @@ public class Helper
         return null;
     }
 
-    public static void showCuteToast(Context context, int resId)
+    public static void showCuteToast(Context context, int resId, int gravity)
     {
         Toast toast = Toast.makeText(context, resId, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.CENTER, 0, 0);
         toast.getView().setBackgroundResource(R.drawable.background_fragment);
         TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
-        if( v != null) v.setGravity(Gravity.CENTER);
+        if( v != null) v.setGravity(gravity);
         toast.show();
     }
 
-    public static void showCuteToast(Context context, String text)
+    public static void showCuteToast(Context context, String text, int gravity)
     {
         Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.CENTER, 0, 0);
         toast.getView().setBackgroundResource(R.drawable.background_fragment);
         TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
-        if (v != null) v.setGravity(Gravity.CENTER);
+        if (v != null) v.setGravity(gravity);
         toast.show();
     }
 }

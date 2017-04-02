@@ -1,24 +1,31 @@
 package com.sunflower.catchtherainbow.Views.Editing;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.graphics.SurfaceTexture;
+import android.support.v4.view.VelocityTrackerCompat;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.TextureView;
+import android.view.VelocityTracker;
+import android.view.View;
+import android.widget.ArrayAdapter;
 
 import com.sunflower.catchtherainbow.AudioClasses.Clip;
 import com.sunflower.catchtherainbow.AudioClasses.WaveData;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.R;
+
+import java.util.ArrayList;
 
 /**
  * Created by SuperComputer on 3/25/2017.
@@ -26,7 +33,7 @@ import com.sunflower.catchtherainbow.R;
  */
 
 // Draws clips of the track
-public class WaveTrackView extends SurfaceView implements SurfaceHolder.Callback
+public class WaveTrackView extends TextureView implements TextureView.SurfaceTextureListener
 {
     public static final int MAX_SAMPLES_PER_PIXEL = 393216/108;
 
@@ -35,21 +42,32 @@ public class WaveTrackView extends SurfaceView implements SurfaceHolder.Callback
 
     protected WaveTrack track;
 
-    protected Paint wavePaint = new Paint();
-
     private Rect rect = new Rect();
 
-    private CDrawThread drawThread;
-    private SurfaceHolder holder;
-
-    private Boolean isCreated = false;
+    private Boolean isScaling = false;
 
     protected GestureDetector gestureDetector;
     protected ScaleGestureDetector scaleGestureDetector;
     protected float initialScaleSpan;
     protected WaveData data;
 
-    protected float offset = 0;
+    protected Paint wavePaint = new Paint();
+    protected Paint selectionPaint = new Paint();
+
+    // should update data
+    private boolean isDirty = true;
+
+    // used for pausing drawing
+    private boolean isSuspended = false;
+
+    protected int backgroundColor;
+
+    private float x1, y1, x2, y2;
+
+    // selection range
+    protected MainAreaFragment.SampleRange selection = new MainAreaFragment.SampleRange();
+
+    protected long offset = 0;
 
     protected WaveTrackViewListener listener;
 
@@ -61,85 +79,138 @@ public class WaveTrackView extends SurfaceView implements SurfaceHolder.Callback
         this.track = track;
         this.samplesPerPixel = samplesPerPixel;
 
-        wavePaint.setStrokeWidth(1.4f);
+        // gesture detectors
+        gestureDetector = new GestureDetector(context, superGestureListener);
+        scaleGestureDetector = new ScaleGestureDetector(context, scaleGestureListener);
+
+        setFocusable(true);
+
+        setSurfaceTextureListener(this);
+
+        // Drawing
+        backgroundColor = context.getResources().getColor(R.color.colorPrimary);
+
+        wavePaint.setStrokeWidth(1.1f/*1.4f*/);
         wavePaint.setColor(Color.WHITE);
         wavePaint.setStyle(Paint.Style.STROKE);
         wavePaint.setAntiAlias(true);
         //wavePaint.setDither(true);
         wavePaint.setStrokeCap(Paint.Cap.ROUND);
         wavePaint.setStrokeJoin(Paint.Join.ROUND);
-        //setBackgroundColor(Color.WHITE);
 
-        gestureDetector = new GestureDetector(
-                context,
-                new GestureDetector.SimpleOnGestureListener()
-                {
-                    public boolean onFling(MotionEvent e1, MotionEvent e2, float vx, float vy)
-                    {
-                        if(listener != null)
-                            listener.fling(vx);
-                        return true;
-                    }
-                });
-
-        scaleGestureDetector = new ScaleGestureDetector(context,
-                new ScaleGestureDetector.SimpleOnScaleGestureListener()
-                {
-                    public boolean onScaleBegin(ScaleGestureDetector d)
-                    {
-                        initialScaleSpan = Math.abs(d.getCurrentSpanX());
-                        return true;
-                    }
-                    public boolean onScale(ScaleGestureDetector d)
-                    {
-                        float scale = Math.abs(d.getCurrentSpanX());
-                        if (scale - initialScaleSpan > 40)
-                        {
-                            if(listener != null)
-                                listener.zoomIn();
-                            initialScaleSpan = scale;
-                        }
-                        if (scale - initialScaleSpan < -40)
-                        {
-                            if(listener != null)
-                                listener.zoomOut();
-                            initialScaleSpan = scale;
-                        }
-                        return true;
-                    }
-                });
-
-        holder = getHolder();
-        holder.addCallback(this);
-        drawThread = new CDrawThread(holder, context);
-        drawThread.setName("" + System.currentTimeMillis());
-        drawThread.setPriority(Thread.MAX_PRIORITY);
-        setFocusable(true);
-
-        holder.setFormat(PixelFormat.TRANSLUCENT);
-
+        selectionPaint.setColor(context.getResources().getColor(R.color.colorAccent));
+        selectionPaint.setAlpha(50);
     }
 
+    protected ScaleGestureDetector.SimpleOnScaleGestureListener scaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener()
+    {
+        public boolean onScaleBegin(ScaleGestureDetector d)
+        {
+            initialScaleSpan = Math.abs(d.getCurrentSpanX());
+            isScaling = true;
+            return true;
+        }
+        public boolean onScale(ScaleGestureDetector d)
+        {
+            float scale = Math.abs(d.getCurrentSpanX());
+            if (scale - initialScaleSpan > 40)
+            {
+                if(listener != null)
+                    listener.zoomIn();
+                initialScaleSpan = scale;
+            }
+            if (scale - initialScaleSpan < -40)
+            {
+                if(listener != null)
+                    listener.zoomOut();
+                initialScaleSpan = scale;
+            }
+            return true;
+        }
+        public void onScaleEnd(ScaleGestureDetector detector)
+        {
+            isScaling = false;
+        }
+    };
+
+    protected GestureDetector.SimpleOnGestureListener superGestureListener = new GestureDetector.SimpleOnGestureListener()
+    {
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
+        {
+            if(listener != null)
+                listener.fling(velocityX);
+
+           //Log.e("Track", "Xvel: " + velocityX + ", Yvel:" + velocityY);
+            return true;
+        }
+    };
+
+    private VelocityTracker velocityTracker = null;
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
         scaleGestureDetector.onTouchEvent(event);
-        if (gestureDetector.onTouchEvent(event))
+        if (gestureDetector.onTouchEvent(event) || isScaling)
         {
             return true;
         }
         if(listener == null)
             return true;
 
-        switch (event.getAction())
+        int index = event.getActionIndex();
+        int action = event.getActionMasked();
+        int pointerId = event.getPointerId(index);
+
+        getParent().requestDisallowInterceptTouchEvent(true);
+
+        switch (action)
         {
             case MotionEvent.ACTION_DOWN:
+                if(velocityTracker == null)
+                {
+                    // Retrieve a new VelocityTracker object to watch the velocity of a motion.
+                    velocityTracker = VelocityTracker.obtain();
+                }
+                else
+                {
+                    // Reset the velocity tracker back to its initial state.
+                    velocityTracker.clear();
+                }
+                // Add a user's movement to the tracker.
+                velocityTracker.addMovement(event);
+
+                // focus row
+                ((View)getTag()).requestFocus();
+
                 listener.touchStart(event.getX());
                 break;
             case MotionEvent.ACTION_MOVE:
+
+                velocityTracker.addMovement(event);
+                velocityTracker.computeCurrentVelocity(1000);
+
+                float velX = VelocityTrackerCompat.getXVelocity(velocityTracker, pointerId);
+                float velY = VelocityTrackerCompat.getYVelocity(velocityTracker, pointerId);
+
+                // Y velocity input should be limited
+                if(Math.abs(velY) > 300)
+                {
+                    //velocityTracker.recycle();
+                    //listener.touchEnd();
+                    //event.setAction(MotionEvent.ACTION_CANCEL);
+                    getParent().requestDisallowInterceptTouchEvent(false);
+                    return false;
+                }
+
+                // to avoid weird-looking jumps
+                if(Math.abs(velX) < 20)
+                    return false;
+
                 listener.touchMove(event.getX());
                 break;
             case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                velocityTracker.recycle();
                 listener.touchEnd();
                 break;
         }
@@ -148,23 +219,7 @@ public class WaveTrackView extends SurfaceView implements SurfaceHolder.Callback
 
     public void demandUpdate()
     {
-        drawThread.demandUpdate();
-    }
-
-    public void zoomIn()
-    {
-        if(samplesPerPixel-zoomFactor < 1) return;
-
-        samplesPerPixel -= zoomFactor;
-        drawThread.demandUpdate();
-    }
-    public void zoomOut()
-    {
-        if(samplesPerPixel + zoomFactor > MAX_SAMPLES_PER_PIXEL) return;
-
-        samplesPerPixel += zoomFactor;
-
-        drawThread.demandUpdate();
+        isDirty = true;
     }
 
     public void setSamplesPerPixel(int samplesPerPixel)
@@ -174,13 +229,9 @@ public class WaveTrackView extends SurfaceView implements SurfaceHolder.Callback
 
         this.samplesPerPixel = samplesPerPixel;
 
-        drawThread.demandUpdate();
+        isDirty = true;
     }
 
-    float []points;
-    Path path = new Path();
-
-    Paint textPaint = new Paint();
    /* @Override
     protected void onDraw(Canvas canvas)
     {
@@ -283,34 +334,56 @@ public class WaveTrackView extends SurfaceView implements SurfaceHolder.Callback
         this.listener = listener;
     }
 
-    public float getOffset()
+    public long getOffset()
     {
         return offset;
     }
 
-    public void setOffset(float offset)
+    public void setOffset(long offset)
     {
         this.offset = offset;
-        drawThread.updateData();
+        demandUpdate();
     }
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder)
+    public boolean isSuspended()
     {
-        if(!drawThread.isRunning)
-            drawThread.start();
+        return isSuspended;
     }
 
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
+    public void setSuspended(boolean suspended)
     {
-        rect.set(0, 0, width, height);
-        //drawThread.setSurfaceSize(width, height);
+        isSuspended = suspended;
     }
 
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder)
+    public MainAreaFragment.SampleRange getSelection()
     {
+        return selection;
+    }
+
+    public void setSelection(MainAreaFragment.SampleRange selection)
+    {
+        this.selection = selection;
+        demandUpdate();
+    }
+
+    // -------------------------------------------------------Drawing stuff-----------------------------------------------
+
+    public void startDrawing()
+    {
+        isSuspended = false;
+      /*  stopDrawing();
+
+        drawThread = new CDrawThread(getContext());
+        drawThread.setName("" + System.currentTimeMillis());
+        drawThread.start();*/
+        //drawThread.setPriority(Thread.MAX_PRIORITY);
+    }
+
+    public void stopDrawing()
+    {
+        isSuspended = true;
+        /*if(drawThread == null) return;
+
         boolean retry = true;
         drawThread.setRunning(false);
         while (retry)
@@ -321,206 +394,127 @@ public class WaveTrackView extends SurfaceView implements SurfaceHolder.Callback
                 retry = false;
             }
             catch (InterruptedException e) {}
-        }
+        }*/
     }
 
-    class CDrawThread extends Thread
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)
     {
-        private Paint mBackPaint;
-        private Bitmap mBackgroundImage;
-        private int mCanvasHeight = 1;
-        private int mCanvasWidth = 1;
-        private Paint mLinePaint;
-        private final SurfaceHolder mSurfaceHolder;
-        private boolean isDirty = false;
-
-        private boolean isRunning = false;
-
-        /**
-         * Instanciate the Thread
-         * All the parameters i handled by the cDrawer class
-         * @param paramContext
-         * @param paramHandler
-         */
-        public CDrawThread(SurfaceHolder paramContext, Context paramHandler)
-        {
-            mSurfaceHolder = paramContext;
-            mLinePaint = new Paint();
-            mLinePaint.setAntiAlias(true);
-            mLinePaint.setARGB(255, 255, 0, 0);
-            mLinePaint = new Paint();
-            mLinePaint.setAntiAlias(true);
-            mLinePaint.setARGB(255, 255, 0, 255);
-            mBackPaint = new Paint();
-            mBackPaint.setAntiAlias(true);
-            mBackPaint.setARGB(255, 0, 0, 0);
-            mBackgroundImage = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
-
-        }
-
-        public void demandUpdate()
-        {
-            isDirty = true;
-        }
-
-        /**
-         * Calculate and draws the line
-         * @param canvas to draw on, handled by cDrawer class
-         */
-        public void doDraw(Canvas canvas)
-        {
-       /* textPaint.setColor(Color.RED);
-        textPaint.setFakeBoldText(true);
-        textPaint.setTextSize(rect.height()/3f);
-        //textPaint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText("Samples: " + samplesPerPixel, 15, rect.height()/2, textPaint);*/
-            //path.reset();
-
-            /*Clip startingClip = track.getClipAtSample((int) (offset*samplesPerPixel));
-            if(startingClip == null) return;
-
-            WaveData data = new WaveData(frames);
-
-            // if there are no points or they are less than buffer size
-            if (points == null || points.length < frames * 4)
-            {
-                points = new float[frames * 4];
-            }
-
-            int startSample = (int) (offset*samplesPerPixel);
-            int len = rect.width()*samplesPerPixel;
-            startingClip.getWaveData(startSample, len, samplesPerPixel, data);*/
-            canvas.drawColor(getContext().getResources().getColor(R.color.colorPrimary));
-
-            int frames = rect.width();
-
-            if(data.max == null || data.max.length < frames) return;
-
-            // canvas.drawBitmap(mBackgroundImage, 0, 0, mBackPaint);
-
-            if(data.max.length > 0) path.moveTo(data.min[0], data.max[0]);
-            for(int i = 0; i < frames; i++)
-            {
-                float x1 = i ;
-                float y1 = rect.height() / 2 + data.min[i] * (rect.height() / 2);
-
-                float x2 = i ;
-                float y2 = rect.height() / 2 + data.max[i] * (rect.height() / 2);
-
-                points[i * 4] = x1;
-                points[i * 4 + 1] = y1 ;
-                points[i * 4 + 2] = x2;
-                points[i * 4 + 3] = y2;
-
-               // canvas.drawLine(x1, y1, x2, y2, wavePaint);
-                //path.quadTo(x1, y1, x2, y2);
-            }
-            canvas.drawLines(points, wavePaint);
-        }
-
-        //Frame speed
-        long timeNow;
-        long timePrev = 0;
-        long timePrevFrame = 0;
-        long timeDelta;
-
-        /**
-         * Updated the Surface and redraws the new audio-data
-         */
-        public void run()
-        {
-            isRunning = true;
-            updateData();
-
-            while (isRunning)
-            {
-                //limit frame rate to max 60fps
-                timeNow = System.currentTimeMillis();
-                timeDelta = timeNow - timePrevFrame;
-                if ( timeDelta < 16)
-                {
-                    try
-                    {
-                        Thread.sleep(16 - timeDelta);
-                    }
-                    catch(InterruptedException e) {
-
-                    }
-                }
-                timePrevFrame = System.currentTimeMillis();
-
-                Canvas localCanvas = null;
-                try
-                {
-                    localCanvas = mSurfaceHolder.lockCanvas(null);
-                    synchronized (mSurfaceHolder)
-                    {
-                        int frames = rect.width();
-
-                        if(isDirty) // data needs to be updated
-                        {
-                            updateData();
-                            isDirty = false;
-                        }
-                        else if(frames != data.max.length)
-                        {
-                            updateData();
-                        }
-
-                        if (localCanvas != null)
-                            doDraw(localCanvas);
-                    }
-                }
-                finally
-                {
-                    if (localCanvas != null)
-                        mSurfaceHolder.unlockCanvasAndPost(localCanvas);
-                }
-            }
-        }
-
-        public void updateData()
-        {
-            int normalizedOffset = (int) (offset * samplesPerPixel /*/** zoomFactor*/);
-
-            Clip startingClip = track.getClipAtSample((int) (normalizedOffset));
-            if(startingClip == null) return;
-
-            int frames = rect.width();
-            data = new WaveData(frames);
-
-            // if there are no points or they are less than buffer size
-            if (points == null || points.length < frames * 4)
-            {
-                points = new float[frames * 4];
-            }
-
-            long startSample = (long) (normalizedOffset);
-            //long len = (long) (samplesPerPixel*rect.width());
-
-            startingClip.getWaveData(startSample, rect.width(), samplesPerPixel, data);
-            Log.e("Wave", "samples per frame: " + samplesPerPixel + ", offset: " + normalizedOffset);
-        }
-        public boolean isRunning()
-        {
-            return isRunning;
-        }
-
-        public void setRunning(boolean running)
-        {
-            isRunning = running;
-        }
-
-        public void setSurfaceSize(int paramInt1, int paramInt2)
-        {
-            //synchronized (mSurfaceHolder)
-            {
-                mCanvasWidth = paramInt1;
-                mCanvasHeight = paramInt2;
-                //mBackgroundImage = Bitmap.createScaledBitmap(mBackgroundImage, paramInt1, paramInt2, true);
-            }
-        }
+        rect.set(0, 0, width, height);
+        startDrawing();
     }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height)
+    {
+        rect.set(0, 0, width, height);
+        demandUpdate();
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface)
+    {
+        stopDrawing();
+        return true;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface){}
+
+    /**
+     * draw waveform
+     */
+    public void doDraw(Canvas canvas)
+    {
+        canvas.drawColor(backgroundColor);
+
+        int frames = rect.width();
+
+        if(isDirty) // data needs to be updated
+        {
+            updateData();
+            isDirty = false;
+        }
+        else if(data.max == null || data.max.length < frames)
+        {
+            updateData();
+        }
+
+        float width = rect.width();
+        float height = rect.height();
+        float centerY = height / 2;
+
+        // update selection
+        if(selection != null)
+        {
+            long startPos = selection.startingSample - offset;
+
+            long endPos = 1;
+
+            if(selection.endSample > selection.startingSample)
+                endPos = startPos + selection.getLen();
+
+            canvas.drawRect(startPos / samplesPerPixel, 0, endPos/ samplesPerPixel, height, selectionPaint);
+        }
+
+        boolean showSamples = data.individualSamples;
+
+        for(int i = 0; i < frames-1; i++)
+        {
+            if(showSamples) // read data sequentially
+            {
+                x1 = i ;
+                y1 = centerY + data.min[i] * (centerY);
+
+                x2 = i ;
+                y2 = centerY + data.min[i+1] * (centerY);
+            }
+            else // read min/max
+            {
+                x1 = i ;
+                y1 = centerY + data.min[i] * (centerY);
+
+                x2 = i ;
+                y2 = centerY + data.max[i] * (centerY);
+            }
+
+            if(y1 == y2)
+                y2 += 1;
+
+            canvas.drawLine(x1, y1, x2, y2, wavePaint);
+
+            // canvas.drawLine(x1, y1, x2, y2, wavePaint);
+            //path.quadTo(x1, y1, x2, y2);
+        }
+        //canvas.drawPoints(points, wavePaint);
+        //canvas.drawLines(points, wavePaint);
+    }
+
+    public void updateData()
+    {
+        //int normalizedOffset = (int) (offset * samplesPerPixel /*/** zoomFactor*/);
+        Clip startingClip = track.getClipAtSample((int) (offset));
+        if(startingClip == null)
+        {
+            for (int i = 0; i < rect.width(); i++) // fill with silence
+            {
+                data.max[i] = 0 ;
+                data.min[i] = 0 ;
+            }
+            return;
+        }
+
+        // TEST!! Take 2 times more data!!!
+        int frames = rect.width()+2;
+        data = new WaveData(frames);
+
+        long startSample = (long) (offset);
+        //long len = (long) (samplesPerPixel*rect.width());
+
+        startingClip.getWaveData(startSample, rect.width(), samplesPerPixel, data);
+        Log.e(track.getName(), "Samples per frame: " + samplesPerPixel + ", offset: " + offset);
+    }
+
 
     public interface WaveTrackViewListener
     {
@@ -532,6 +526,6 @@ public class WaveTrackView extends SurfaceView implements SurfaceHolder.Callback
         void zoomIn();
         void zoomOut();
     }
-
-
 }
+
+

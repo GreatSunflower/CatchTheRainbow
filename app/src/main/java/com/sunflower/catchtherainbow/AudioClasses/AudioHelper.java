@@ -86,4 +86,9 @@ public class AudioHelper
     {
         return Math.min(bufferSize, Math.max(0, limit));
     }
+
+    public static long limitSampleBufferSize(long bufferSize, long limit)
+    {
+        return Math.min(bufferSize, Math.max(0, limit));
+    }
 }

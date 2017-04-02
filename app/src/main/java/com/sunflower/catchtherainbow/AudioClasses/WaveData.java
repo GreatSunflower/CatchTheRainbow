@@ -9,6 +9,8 @@ public class WaveData
     public float []min;
     public float []max;
 
+    public boolean individualSamples = false;
+
     public WaveData()
     {
     }

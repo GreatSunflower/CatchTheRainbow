@@ -28,6 +28,8 @@ public class SuperApplication extends Application
     {
         super.onCreate();
 
+        Helper.checkDirectory(appDirectory);
+
         // initialize default output device
         if (!BASS.BASS_Init(-1, 44100, 0))
         {

@@ -275,9 +275,9 @@ public class AudioIO extends BasePlayer
     {
         protected WaveTrack track;
 
-        protected int channel;
+        protected Integer channel;
 
-        protected int currentSample = 0;
+        protected long currentSample = 0;
 
         public TrackInfo(int channel, WaveTrack track, int currentSample)
         {
@@ -286,7 +286,7 @@ public class AudioIO extends BasePlayer
             this.currentSample = currentSample;
         }
 
-        public void setCurrentSample(int currentSample)
+        public void setCurrentSample(long currentSample)
         {
             this.currentSample = currentSample;
         }
@@ -301,7 +301,7 @@ public class AudioIO extends BasePlayer
             this.channel = channel;
         }
 
-        public int getCurrentSample()
+        public long getCurrentSample()
         {
             return currentSample;
         }
@@ -330,13 +330,13 @@ public class AudioIO extends BasePlayer
 
                 track.currentSample+=samplesRead;
 
+                //Log.e(LOG_TAG, "Len: " + length + ", SLen: " + length/4 + ", Samples Read: " + samplesRead);
                 if (samplesRead == -1 || samplesRead < length / sampleSize || track.track.getEndSample() < track.currentSample)
                 {
                     Log.e(LOG_TAG, "Normal end! " + track.track.name);
 
                     samplesRead |= BASS.BASS_STREAMPROC_END;
 
-                   // checkFinish(track);
                     return samplesRead;
                 }
 

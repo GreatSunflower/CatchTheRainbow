@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.util.Log;
@@ -24,6 +25,7 @@ import android.view.animation.CycleInterpolator;
 import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -47,19 +49,25 @@ import java.util.ArrayList;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link MainAreaFragment.OnFragmentInteractionListener} interface
+ * {@link MainAreaFragment.TrackFragmentListener} interface
  * to handle interaction events.
  * Use the {@link MainAreaFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
 public class MainAreaFragment extends Fragment
 {
+    private Mode mode = Mode.Hand;
+
+    private SampleRange selection = new SampleRange();
+
     private Project project;
+
+    private WaveRenderer renderer;
 
     // a reference to sample player
     private AudioIO globalPlayer;
 
-    private OnFragmentInteractionListener mListener;
+    private TrackFragmentListener mListener;
 
     private TableLayout tracksLayout;
 
@@ -69,13 +77,18 @@ public class MainAreaFragment extends Fragment
     protected WaveTrack selectedTrack = null;
 
     // wave track drawing management
-    protected float offset = 0;
+    protected long offset = 0;
     protected float touchStart = 0;
     protected float touchInitialOffset = 0;
 
     protected int samplesPerPixel = 1;
 
     protected boolean headerCollapsed = false;
+
+    protected View dummySpacer;
+
+    protected float collapsedHeadWidth = 0;
+    protected float expandedHeadWidth = 0;
 
     public MainAreaFragment()
     {
@@ -95,6 +108,14 @@ public class MainAreaFragment extends Fragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+        collapsedHeadWidth = getResources().getDimension(R.dimen.track_head_collapsed);
+        expandedHeadWidth = getResources().getDimension(R.dimen.track_head_expanded);
+
+        renderer = new WaveRenderer(getContext());
+        renderer.setName("Wave tracks renderer");
+        renderer.setPriority(Thread.MAX_PRIORITY);
+        renderer.start();
     }
 
     @Override
@@ -105,30 +126,40 @@ public class MainAreaFragment extends Fragment
 
         tracksLayout = (TableLayout)root.findViewById(R.id.tracks_layout);
 
+        dummySpacer = root.findViewById(R.id.dummy_view);
+
+       /* if(headerCollapsed) setViewWidth(dummySpacer, collapsedHeadWidth, false);
+        else setViewWidth(dummySpacer, expandedHeadWidth, false);;*/
+
+        /*ScrollView scrollView = (ScrollView)root.findViewById(R.id.verticalScrollView);
+        scrollView.requestDisallowInterceptTouchEvent(true);*/
         clearTracks();
         for(WaveTrack track: project.getTracks())
         {
-            addTrack(track, 400, 250);
+            addTrack(track);
         }
 
         return root;
     }
 
-    @Override
-    public void onAttach(Context context)
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState)
     {
-        super.onAttach(context);
+        super.onViewCreated(view, savedInstanceState);
+
+        if(headerCollapsed) setViewWidth(dummySpacer, collapsedHeadWidth, false);
+        else setViewWidth(dummySpacer, expandedHeadWidth, false);
     }
 
     @Override
     public void onDetach()
     {
         project.removeListener(projectListener);
+        renderer.setRunning(false);
 
         super.onDetach();
     }
 
-    public void addTrack(final WaveTrack track, int w, int h)
+    public void addTrack(final WaveTrack track)
     {
         // we already have this track
         if(containsTrack(track)) return;
@@ -149,12 +180,17 @@ public class MainAreaFragment extends Fragment
         TrackHeaderView head = new TrackHeaderView(getActivity());
         head.setTag(trow);
         trow.addView(head, 0);
+        head.setCollapsed(headerCollapsed);
+        setViewWidth(head, headerCollapsed?collapsedHeadWidth:expandedHeadWidth, false);
 
         // waveform view
         WaveTrackView trackView = new WaveTrackView(getActivity(), track, 1);
         lp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT);
         trackView.setLayoutParams(lp);
         trackView.setListener(waveTrackViewListener);
+        trackView.setTag(trow);
+        trackView.setOffset(offset);
+        trackView.setSelection(selection);
         trow.addView(trackView, 1);
 
         // add header row
@@ -186,6 +222,9 @@ public class MainAreaFragment extends Fragment
 
         TrackHolder holder = new TrackHolder(track, trow, head, trackView, thumbRow);
         tracks.add(holder);
+
+        // make it render waveforms
+        renderer.addTrack(trackView);
     }
 
     public void removeTrack(WaveTrack track)
@@ -198,6 +237,7 @@ public class MainAreaFragment extends Fragment
                 tracksLayout.removeView(holder.row);
                 tracksLayout.removeView(holder.thumb);
                 tracks.remove(holder);
+                renderer.removeTrack(holder.waveformView);
                 break;
             }
         } // for
@@ -222,6 +262,22 @@ public class MainAreaFragment extends Fragment
         tracksLayout.removeAllViews();
     }
 
+    public void startDrawing()
+    {
+        for(TrackHolder holder: tracks)
+        {
+            holder.waveformView.startDrawing();
+        }
+    }
+
+    public void stopDrawing()
+    {
+        for(TrackHolder holder: tracks)
+        {
+            holder.waveformView.stopDrawing();
+        }
+    }
+
     public void setSamplesPerPixel(int samplesPerPixel)
     {
         if(samplesPerPixel < 1 || samplesPerPixel > WaveTrackView.MAX_SAMPLES_PER_PIXEL)
@@ -233,11 +289,78 @@ public class MainAreaFragment extends Fragment
         }
 
         this.samplesPerPixel = samplesPerPixel;
+
+        demandUpdate();
     }
 
     public int getSamplesPerPixel()
     {
         return samplesPerPixel;
+    }
+
+    public float getOffset()
+    {
+        return offset;
+    }
+
+    // offset in samples
+    public void setOffset(long offset)
+    {
+        WaveTrack longestTrack = findLongestTrack();
+
+        if(longestTrack == null) return;
+
+        if(offset < 0) offset = 0;
+        if(offset > longestTrack.getEndSample()) return;
+
+        this.offset = offset;
+
+        //Log.e("Offset Update! ", "Offset : " + offset);
+
+        for(TrackHolder holder: tracks)
+        {
+            holder.waveformView.setOffset(offset);
+        }
+    }
+
+    public double getSelectionStartTime()
+    {
+        if(selection == null) return -1;
+
+        return selectedTrack.samplesToTime(selection.startingSample);
+    }
+
+    public double getSelectionEndTime()
+    {
+        if(selection == null) return -1;
+
+        return selectedTrack.samplesToTime(selection.endSample);
+    }
+
+    // returns null if an error occurred
+    public WaveTrack findLongestTrack()
+    {
+        if(tracks.isEmpty()) return null;
+
+        WaveTrack maxTrack = tracks.get(0).track;
+        for(int i = 0; i < tracks.size(); i++)
+        {
+            WaveTrack track =  tracks.get(i).track;
+
+            if(track.getEndTime() > maxTrack.getEndTime())
+            {
+                maxTrack = track;
+            }
+        }
+        return maxTrack;
+    }
+
+    public void demandUpdate()
+    {
+        for (TrackHolder holder : tracks)
+        {
+            holder.waveformView.demandUpdate();
+        }
     }
 
 
@@ -253,21 +376,42 @@ public class MainAreaFragment extends Fragment
         @Override
         public void touchMove(float x)
         {
-            offset = touchInitialOffset + (touchStart - x);
-
-            if(offset < 0) offset = 0;
-
-            for(TrackHolder holder: tracks)
+            if(mode == Mode.Hand)
             {
-                holder.waveformView.setOffset(offset);
+                offset = (long) (touchInitialOffset + ((touchStart - x)* samplesPerPixel));
+
+                if(offset < 0) offset = 0;
+
+                for (TrackHolder holder : tracks)
+                {
+                    holder.waveformView.setOffset((long) (offset));
+                }
+            }
+            else // selection
+            {
+                long startSample = (long)(offset + (touchStart * samplesPerPixel));
+                long endSample = (long) (offset + ((x) * samplesPerPixel));
+
+                if(startSample > endSample)  // swap
+                {
+                    long temp = startSample;
+                    startSample = endSample;
+                    endSample = temp;
+                }
+
+                selection = new SampleRange(startSample, endSample);
+
+                // Log.e("Selection Update ", "Start : " + startSample + ", End: " + endSample);
+
+                for (TrackHolder holder : tracks)
+                {
+                    holder.waveformView.setSelection(selection);
+                }
             }
         }
 
         @Override
-        public void touchEnd()
-        {
-
-        }
+        public void touchEnd(){}
 
         @Override
         public void fling(float x)
@@ -284,10 +428,7 @@ public class MainAreaFragment extends Fragment
         @Override
         public void zoomIn()
         {
-            for(TrackHolder holder: tracks)
-            {
-                holder.waveformView.zoomIn();
-            }
+            setSamplesPerPixel(samplesPerPixel + 4);
         }
 
         @Override
@@ -295,7 +436,7 @@ public class MainAreaFragment extends Fragment
         {
             for(TrackHolder holder: tracks)
             {
-                holder.waveformView.zoomOut();
+                setSamplesPerPixel(samplesPerPixel - 4);
             }
         }
     };
@@ -308,7 +449,7 @@ public class MainAreaFragment extends Fragment
             clearTracks();
             for(WaveTrack track: project.getTracks())
             {
-                addTrack(track, 400, 250);
+                addTrack(track);
             }
         }
 
@@ -318,7 +459,7 @@ public class MainAreaFragment extends Fragment
             clearTracks();
             for(WaveTrack track: project.getTracks())
             {
-                addTrack(track, 400, 250);
+                addTrack(track);
             }
         }
 
@@ -331,7 +472,7 @@ public class MainAreaFragment extends Fragment
         @Override
         public void onTrackAdded(Project project, WaveTrack track)
         {
-            addTrack(track, 400, 250);
+            addTrack(track);
         }
 
         @Override
@@ -356,7 +497,28 @@ public class MainAreaFragment extends Fragment
         this.globalPlayer = globalPlayer;
     }
 
-    public interface OnFragmentInteractionListener
+    public SampleRange getSelection()
+    {
+        return selection;
+    }
+
+    public void setSelection(SampleRange selection)
+    {
+        this.selection = selection;
+    }
+
+    public Mode getMode()
+    {
+        return mode;
+    }
+
+    public void setMode(Mode mode)
+    {
+        this.mode = mode;
+    }
+
+
+    public interface TrackFragmentListener
     {
         void onFragmentInteraction(Uri uri);
     }
@@ -368,18 +530,16 @@ public class MainAreaFragment extends Fragment
         public void onToggleVisibilityRequest()
         {
             final boolean cachedCollapsed = headerCollapsed;
+
+            float newWidth;
+            if (headerCollapsed) newWidth = expandedHeadWidth;
+            else newWidth = collapsedHeadWidth;
+
             for(final TrackHolder trackHolder: tracks)
             {
                 trackHolder.header.setCollapsed(!headerCollapsed);
-                int newWidth;
-                if (headerCollapsed) newWidth = 375;
-                else newWidth = 10;
 
-                // Set the layer type to hardware
-                //trackHolder.row.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-                //trackHolder.waveformView.setWillNotDraw(true);
-
-                ResizeAnimation animation = new ResizeAnimation(trackHolder.header, trackHolder.header.getWidth(), newWidth); /*.applyTransformation(2000, new Transformation())*/;
+                ResizeAnimation animation = new ResizeAnimation(trackHolder.header, trackHolder.header.getWidth(), newWidth);
                 animation.setDuration(600);
                 animation.setInterpolator(new FastOutSlowInInterpolator());
                 animation.setAnimationListener(new Animation.AnimationListener()
@@ -389,7 +549,6 @@ public class MainAreaFragment extends Fragment
                     @Override
                     public void onAnimationEnd(Animation animation)
                     {
-                        // Set the layer type to hardware
                         trackHolder.waveformView.demandUpdate();
                     }
                     @Override
@@ -399,20 +558,30 @@ public class MainAreaFragment extends Fragment
                 trackHolder.header.startAnimation(animation);
             }
 
-            // resize timeline view
-            /*int newWidth;
-            if (headerCollapsed) newWidth = 375;
-            else newWidth = 10;
-
-            ResizeAnimation animation = new ResizeAnimation(trackHolder.header, trackHolder.header.getWidth(), newWidth);
-            animation.setDuration(600);
-            animation.setInterpolator(new FastOutSlowInInterpolator());
-
-            trackHolder.header.startAnimation(animation);*/
+            // resize timeline
+            setViewWidth(dummySpacer, newWidth, true);
 
             headerCollapsed = !headerCollapsed;
         }
     };
+
+    private void setViewWidth(View view, float newWidth, boolean animated)
+    {
+        if(animated)
+        {
+            ResizeAnimation animation = new ResizeAnimation(view, view.getWidth(), newWidth);
+            animation.setDuration(600);
+            animation.setInterpolator(new FastOutSlowInInterpolator());
+            view.startAnimation(animation);
+        }
+        else
+        {
+            ViewGroup.LayoutParams p = view.getLayoutParams();
+            p.width = (int) newWidth;
+            view.requestLayout();
+        }
+
+    }
 
     // holds views and main track
     class TrackHolder
@@ -432,5 +601,33 @@ public class MainAreaFragment extends Fragment
             this.thumb = thumb;
             header.setTrack(track, project, headerListener);
         }
+    }
+
+    public enum Mode
+    {
+        Hand,
+        Selection
+    }
+
+    public static class SampleRange
+    {
+        Long startingSample = 0L;
+        Long endSample = 0L;
+
+        public SampleRange(){}
+
+        public SampleRange(long startingSample, long endSample)
+        {
+            this.startingSample = startingSample;
+            this.endSample = endSample;
+        }
+
+        public long getLen()
+        {
+            if(endSample < startingSample) return 0;
+
+            return endSample - startingSample;
+        }
+
     }
 }

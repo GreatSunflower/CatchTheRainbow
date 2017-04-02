@@ -53,7 +53,7 @@ public class AudioChunk implements Serializable
         this.samplesCount = samplesCount;
         this.audioInfo = audioInfo;
 
-        bytesPerFrame = 4;/*size of float 3/*firlds*/;
+        bytesPerFrame = 4*4;/*size of float 3/*firlds*/;
 
         frames64K = (samplesCount + 65535) / 65536;
         frames256 = frames64K * 256;
@@ -62,6 +62,31 @@ public class AudioChunk implements Serializable
         //int offset256 = offset64K + (frames64K * bytesPerFrame);
         totalSummaryBytes = (frames64K * bytesPerFrame) + (frames256 * bytesPerFrame);
     }
+
+    /// Construct a SimpleBlockFile memory structure that will point to an
+    /// existing chunk file.  This file must exist and be a valid block file.
+    ///
+    /// @param existingFile The disk file this SimpleBlockFile should use.
+    public AudioChunk(String existingFile, int len, float min, float max, float rms)
+    {
+        this.path = path;
+        this.samplesCount = samplesCount;
+        this.audioInfo = audioInfo;
+
+        bytesPerFrame = 4*4;;
+
+        frames64K = (samplesCount + 65535) / 65536;
+        frames256 = frames64K * 256;
+
+        //int offset64K = headerTagLen;
+        //int offset256 = offset64K + (frames64K * bytesPerFrame);
+        totalSummaryBytes = (frames64K * bytesPerFrame) + (frames256 * bytesPerFrame);
+
+        this.min = min;
+        this.max = max;
+        this.rms = rms;
+    }
+
 
     public boolean writeToDisk(ByteBuffer buffer, int samplesLen) throws IOException
     {
@@ -74,7 +99,7 @@ public class AudioChunk implements Serializable
         ChunkHeader header = new ChunkHeader(audioInfo, samplesLen);
         header.summary64K = new float[frames64K * bytesPerFrame];
 
-        header.summary256 = new float[(frames64K * bytesPerFrame) + (frames256 * bytesPerFrame)];
+        header.summary256 = new float[((frames64K * bytesPerFrame) + (frames256 * bytesPerFrame))];
 
         calcSummary(buffer, samplesLen, audioInfo, header.summary64K, header.summary256);
 
@@ -126,10 +151,7 @@ public class AudioChunk implements Serializable
 
             // first read the header
             ChunkHeader header = (ChunkHeader)objectInputStream.readObject();
-
             //objectInputStream.skipBytes(start * 4/* Size of one sample */);
-
-
             objectInputStream.skipBytes((int) (start * sampleSize));
            // read = (int) fileChannel.read(new ByteBuffer[]{buffer}, start, length);
 
@@ -180,6 +202,17 @@ public class AudioChunk implements Serializable
         }
 
         return read;
+    }
+
+
+        /// Create a copy of this BlockFile, but using a different disk file.
+    ///
+    /// @param newFileName The name of the NEW file to use.
+    AudioChunk copy(String newFileName)
+    {
+        AudioChunk newBlockFile = new AudioChunk(newFileName, samplesCount, min, max, rms);
+
+        return newBlockFile;
     }
 
     ChunkHeader readHeader()
@@ -302,6 +335,11 @@ public class AudioChunk implements Serializable
         sumLen = (len + 255) / 256;
         int summaries = 256;
 
+        if(sumLen*3 > summary256.length)
+        {
+            sumLen = (len + 255) / 256;
+        }
+
         for (int i = 0; i < sumLen; i++)
         {
             min = fbuffer[i * 256];
@@ -352,7 +390,8 @@ public class AudioChunk implements Serializable
             max = summary256[3 * i * 256 + 1];
             sumsq = (float)summary256[3 * i * 256 + 2];
             sumsq *= sumsq;
-            for (int j = 1; j < 256; j++) {   // we can overflow the useful summary256 values here, but have put non-harmful values in them
+            for (int j = 1; j < 256; j++)
+            {   // we can overflow the useful summary256 values here, but have put non-harmful values in them
                 if (summary256[3 * (i * 256 + j)] < min)
                     min = summary256[3 * (i * 256 + j)];
                 if (summary256[3 * (i * 256 + j) + 1] > max)

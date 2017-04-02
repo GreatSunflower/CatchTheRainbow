@@ -305,7 +305,7 @@ class ApplyEffectStreamProc implements BASS.STREAMPROC
         AudioIO.TrackInfo track = (AudioIO.TrackInfo)user;
         int samplesRead = 0;
 
-        int currentSample = track.getCurrentSample();
+        long currentSample = track.getCurrentSample();
 
         try
         {

@@ -7,10 +7,22 @@
               android:orientation="vertical"
               tools:context="com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment">
 
-    <com.sunflower.catchtherainbow.Views.Editing.Timeline
-        android:id="@+id/view"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="30dp"/>
+        android:layout_height="30dp"
+        android:orientation="horizontal">
+
+        <Space
+            android:id="@+id/dummy_view"
+            android:layout_width="35dp"
+            android:layout_height="match_parent"/>
+
+        <com.sunflower.catchtherainbow.Views.Editing.Timeline
+            android:id="@+id/view"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"/>
+    </LinearLayout>
 
     <ScrollView
         android:id="@+id/verticalScrollView"
