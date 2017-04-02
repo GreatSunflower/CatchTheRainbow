@@ -128,7 +128,8 @@
     <string name="audio_files">Audio Files</string>
     <string name="folders">Folders</string>
 
-
+    <string name="year">Year:</string>
+    <string name="format">Format:</string>
     <string name="echo">Echo</string>
     <string name="flanger">Flanger</string>
     <string name="distortion">Distortion</string>
