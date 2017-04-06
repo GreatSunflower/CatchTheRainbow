@@ -454,6 +454,12 @@ public class MainAreaFragment extends Fragment
         }
 
         @Override
+        public void onOpenError(Project project)
+        {
+
+        }
+
+        @Override
         public void onUpdate(Project project)
         {
             clearTracks();

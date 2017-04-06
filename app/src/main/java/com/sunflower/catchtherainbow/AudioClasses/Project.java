@@ -1,5 +1,7 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
+import android.os.Handler;
+
 import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.SuperApplication;
 
@@ -101,6 +103,81 @@ public class Project implements Serializable
         }
 
         return project;
+    }
+
+    // creates a new project
+    // if something is wrong with the name null will be returned
+    public static void openProjectAsync(final String name, final ProjectListener listener)
+    {
+        if(name == null || name.equals(""))
+            return;
+
+        final Handler handler = new Handler();
+
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                final Project project = new Project(name, listener);
+
+                try
+                {
+                    // create project and samples directories
+                    String path = project.getProjectFolderLocation() + "/" + name + ".ctr";
+
+                    // buffer for outputting in ctr format
+                    ObjectInputStream objectInputStreamStream = null;
+
+                    objectInputStreamStream = new ObjectInputStream(new FileInputStream(path));
+
+                    ProjectHeader header = (ProjectHeader)objectInputStreamStream.readObject();
+
+                    project.tracks = header.tracks;
+                    project.fileManager = header.manager;
+                    project.projectAudioInfo = header.info;
+
+                    // close the steam
+                    objectInputStreamStream.close();
+
+                    Helper.checkDirectory(project.getSamplesDirectory());
+
+                    for(WaveTrack track: project.tracks)
+                        track.addListener(project.trackListener);
+
+                    handler.post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            // notify listener
+                            if(listener != null)
+                            {
+                                listener.onCreate(project);
+                            }
+                        }
+                    });
+                }
+                catch (IOException | ClassNotFoundException e)
+                {
+                    e.printStackTrace();
+                    // notify listener
+                    handler.post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            // notify listener
+                            if(listener != null)
+                            {
+                                listener.onOpenError(project);
+                            }
+                        }
+                    });
+                }
+
+            }
+        }).start();
     }
 
     public void updateProjectFile()
@@ -224,6 +301,7 @@ public class Project implements Serializable
     public interface ProjectListener
     {
         void onCreate(Project project);
+        void onOpenError(Project project);
         void onUpdate(Project project);
         void onTrackRemoved(Project project, WaveTrack track);
         void onTrackAdded(Project project, WaveTrack track);

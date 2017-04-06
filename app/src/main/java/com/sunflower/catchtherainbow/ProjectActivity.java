@@ -213,7 +213,8 @@ public class ProjectActivity extends AppCompatActivity
         if(nameProject != null) project = Project.createNewProject(nameProject, projectListener);
         if(openProjectWithName != null)
         {
-            // open it!
+            Project.openProjectAsync(openProjectWithName, projectListener);
+            /*// open it!
             try
             {
                 project = Project.openProject(openProjectWithName, projectListener);
@@ -223,58 +224,10 @@ public class ProjectActivity extends AppCompatActivity
                 e.printStackTrace();
                 finish();
                 return;
-            }
+            }*/
         }
         // ----------------------------- finish handling project----------------------------
 
-        // creates tracks fragment
-        tracksFragment = MainAreaFragment.newInstance(project);
-        tracksFragment.setGlobalPlayer(player);
-
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainAreaContainer, tracksFragment)
-                .commit();
-
-        // force to create views
-        getSupportFragmentManager().executePendingTransactions();
-
-        // --------------------------------------AUDIO STUFF-------------------------------------------------
-     /*   new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {*/
-                player = new AudioIO(ProjectActivity.this, project);
-                player.addPlayerListener(playerListener);
-                player.setTracks(project.getTracks());
-        // player
-            /*}
-        }).start();*/
-
-        // timer to update the display
-        updateTimer = new Runnable()
-        {
-            public void run()
-            {
-                if (!isDragging && player.isPlaying()) progressView.setCurrent((float) player.getProgress());
-                /*int bufferSize = 1024;
-                ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize*4);
-                audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
-                BASS.BASS_ChannelGetData(player.getChannelHandle(), audioData, bufferSize*4);
-                float[] pcm = new float[bufferSize]; // allocate an array for the sample data
-                audioData.asFloatBuffer().get(pcm);
-
-                // make object array
-                Float []res = new Float[pcm.length];
-                for(int i = 0; i < pcm.length; i++)
-                    res[i] = pcm[i];
-
-                // pass new data
-                visualizerView.updateVisualizer(res);*/
-                statusHandler.postDelayed(this, 50);
-            }
-        };
-        statusHandler.postDelayed(updateTimer, 50);
     }
 
     @Override
@@ -284,9 +237,11 @@ public class ProjectActivity extends AppCompatActivity
             player.stop();
         statusHandler.removeCallbacks(updateTimer);
 
-        tracksFragment.stopDrawing();
+        if(tracksFragment != null)
+            tracksFragment.stopDrawing();
 
-        project.updateProjectFile();
+        if(project != null)
+            project.updateProjectFile();
 
         super.onStop();
     }
@@ -294,9 +249,11 @@ public class ProjectActivity extends AppCompatActivity
     @Override
     public void onPause()
     {
-        tracksFragment.stopDrawing();
+        if(tracksFragment != null)
+            tracksFragment.stopDrawing();
 
-        project.updateProjectFile();
+        if(project != null)
+            project.updateProjectFile();
 
         super.onPause();
     }
@@ -304,7 +261,8 @@ public class ProjectActivity extends AppCompatActivity
     @Override
     public void onResume()
     {
-        tracksFragment.startDrawing();
+        if(tracksFragment != null)
+            tracksFragment.startDrawing();
 
         super.onResume();
     }
@@ -317,10 +275,14 @@ public class ProjectActivity extends AppCompatActivity
         statusHandler.removeCallbacks(updateTimer);
 
         // stop rendering threads
-        tracksFragment.stopDrawing();
+        if(tracksFragment != null)
+            tracksFragment.stopDrawing();
 
-        project.removeListener(projectListener);
-        project.updateProjectFile();
+        if(project != null)
+        {
+            project.removeListener(projectListener);
+            project.updateProjectFile();
+        }
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         // remove the notification in case it's there
@@ -348,6 +310,7 @@ public class ProjectActivity extends AppCompatActivity
     {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.project, /*amvMenu.getMenu() /**/menu); // adds menu items to the left side. If it's not needed replace second param with default menu
+        //menu.findItem(R.id.action_editing).setEnabled(false);
         return true;
     }
 
@@ -664,6 +627,7 @@ public class ProjectActivity extends AppCompatActivity
         public void onPlay()
         {
             playPauseButt.setImageResource(R.drawable.ic_pause);
+            // lockEditing
         }
 
         @Override
@@ -676,6 +640,7 @@ public class ProjectActivity extends AppCompatActivity
         public void onStop()
         {
             playPauseButt.setImageResource(R.drawable.ic_play);
+            // unlock
         }
 
         @Override
@@ -683,6 +648,7 @@ public class ProjectActivity extends AppCompatActivity
         {
             progressView.setCurrent(0);
             playPauseButt.setImageResource(R.drawable.ic_play);
+            // unlock
         }
     };
 
@@ -691,6 +657,54 @@ public class ProjectActivity extends AppCompatActivity
         @Override
         public void onCreate(Project project)
         {
+            ProjectActivity.this.project = project;
+
+            // creates tracks fragment
+            tracksFragment = MainAreaFragment.newInstance(project);
+            tracksFragment.setGlobalPlayer(player);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.mainAreaContainer, tracksFragment)
+                    .commit();
+
+            // force to create views
+            getSupportFragmentManager().executePendingTransactions();
+
+            // --------------------------------------AUDIO STUFF-------------------------------------------------
+            player = new AudioIO(ProjectActivity.this, project);
+            player.addPlayerListener(playerListener);
+            player.setTracks(project.getTracks());
+
+            // timer to update the display
+            updateTimer = new Runnable()
+            {
+                public void run()
+                {
+                    if (!isDragging && player.isPlaying()) progressView.setCurrent((float) player.getProgress());
+                /*int bufferSize = 1024;
+                ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize*4);
+                audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
+                BASS.BASS_ChannelGetData(player.getChannelHandle(), audioData, bufferSize*4);
+                float[] pcm = new float[bufferSize]; // allocate an array for the sample data
+                audioData.asFloatBuffer().get(pcm);
+
+                // make object array
+                Float []res = new Float[pcm.length];
+                for(int i = 0; i < pcm.length; i++)
+                    res[i] = pcm[i];
+
+                // pass new data
+                visualizerView.updateVisualizer(res);*/
+                    statusHandler.postDelayed(this, 50);
+                }
+            };
+            statusHandler.postDelayed(updateTimer, 50);
+        }
+
+        @Override
+        public void onOpenError(Project project)
+        {
+            finish();
         }
 
         @Override
