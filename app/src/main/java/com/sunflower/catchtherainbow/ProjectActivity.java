@@ -40,6 +40,7 @@ import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.Adapters.PopupSeekbarAdapter;
 import com.sunflower.catchtherainbow.Adapters.SupportedLanguages;
+import com.sunflower.catchtherainbow.AudioClasses.AudioExporter;
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
 import com.sunflower.catchtherainbow.AudioClasses.AudioImporter;
@@ -878,11 +879,15 @@ public class ProjectActivity extends AppCompatActivity
     @Override
     public void onOk(String name, String album, String year, String format)
     {
-        String pathStorageMusic = getResources().getString(R.string.audio_files_saved) + ":\n\""
-                + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath() + "/" + name + "\"";
-        Toast toast = Toast.makeText(ProjectActivity.this, pathStorageMusic, Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0);
-        toast.show();
+        String pathStorageMusic = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath();
+
+        Helper.checkDirectory(pathStorageMusic);
+       // Toast toast = Toast.makeText(ProjectActivity.this, pathStorageMusic, Toast.LENGTH_LONG);
+       // toast.setGravity(Gravity.CENTER, 0, 0);
+       // toast.show();
+
+        AudioExporter exporter = new AudioExporter(this, "Encoding...", project, name, album, year, format, pathStorageMusic);
+        exporter.execute();
     }
 }
 

@@ -64,7 +64,7 @@ public class WaveTrack implements Serializable
                     // startDelta is zero
                 }
 
-                if (clip.setSamples(buffer, inClipDelta, samplesToCopy, info))
+                if (!clip.setSamples(buffer, inClipDelta, samplesToCopy, info))
                 {
                     return false;
                 }
