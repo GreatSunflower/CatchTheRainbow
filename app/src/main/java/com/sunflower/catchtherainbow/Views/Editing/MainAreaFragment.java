@@ -1,49 +1,27 @@
 package com.sunflower.catchtherainbow.Views.Editing;
 
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
-import android.media.AudioTrack;
-import android.media.Image;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
-import android.view.animation.BounceInterpolator;
-import android.view.animation.CycleInterpolator;
-import android.view.animation.Transformation;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
-import android.widget.TextView;
 
-import com.sunflower.catchtherainbow.AudioClasses.AudioFileData;
 import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
 import com.sunflower.catchtherainbow.AudioClasses.Project;
-import com.sunflower.catchtherainbow.AudioClasses.SamplePlayer;
-import com.sunflower.catchtherainbow.AudioClasses.SuperAudioPlayer;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
+import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.R;
-import com.sunflower.catchtherainbow.Views.Editing.Waveform.soundfile.CheapSoundFile;
-import com.sunflower.catchtherainbow.Views.Editing.Waveform.view.WaveformView;
 import com.sunflower.catchtherainbow.Views.Helpful.ResizeAnimation;
 import com.sunflower.catchtherainbow.Views.Helpful.Thumb;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -118,6 +96,7 @@ public class MainAreaFragment extends Fragment
         renderer.start();
     }
 
+    LinearLayout liner, message;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
@@ -125,6 +104,8 @@ public class MainAreaFragment extends Fragment
         View root = inflater.inflate(R.layout.fragment_main_area, container, false);
 
         tracksLayout = (TableLayout)root.findViewById(R.id.tracks_layout);
+        liner = (LinearLayout)root.findViewById(R.id.id_liner);
+        message = (LinearLayout)root.findViewById(R.id.id_message);
 
         dummySpacer = root.findViewById(R.id.dummy_view);
 
@@ -139,7 +120,23 @@ public class MainAreaFragment extends Fragment
             addTrack(track);
         }
 
+        setVisibilityView();
+
         return root;
+    }
+
+    public void setVisibilityView()
+    {
+        if(project.getTracks().size() == 0)
+        {
+            Helper.animateViewVisibility(message, View.VISIBLE);
+            Helper.animateViewVisibility(liner, View.GONE);
+        }
+        else
+        {
+            Helper.animateViewVisibility(liner, View.VISIBLE);
+            Helper.animateViewVisibility(message, View.GONE);
+        }
     }
 
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState)
@@ -225,6 +222,7 @@ public class MainAreaFragment extends Fragment
 
         // make it render waveforms
         renderer.addTrack(trackView);
+        setVisibilityView();
     }
 
     public void removeTrack(WaveTrack track)
@@ -241,6 +239,7 @@ public class MainAreaFragment extends Fragment
                 break;
             }
         } // for
+        setVisibilityView();
     }
 
     public boolean containsTrack(WaveTrack track)

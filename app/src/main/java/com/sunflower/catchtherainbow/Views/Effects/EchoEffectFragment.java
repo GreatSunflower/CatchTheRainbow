@@ -114,6 +114,16 @@ public class EchoEffectFragment extends BaseEffectFragment implements DetailedSe
         }
     }
 
+    public boolean onOk()
+    {
+        BASS.BASS_ChannelRemoveFX(chan, echo);
+
+        if(bass_dx8_echo == null) return false;
+
+        new ApplyEffectTask(getActivity(), getResources().getString(R.string.effect_apply_message), player.getTracks().get(0).getTrack(), BASS.BASS_FX_DX8_ECHO, bass_dx8_echo ).execute();
+
+        return true;
+    }
 
     public boolean cancel() //при закрытии окна
     {

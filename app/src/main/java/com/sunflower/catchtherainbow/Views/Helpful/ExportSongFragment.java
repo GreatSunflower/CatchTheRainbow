@@ -81,7 +81,7 @@ public class ExportSongFragment extends DialogFragment implements View.OnClickLi
         getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
-        String[] spinner_array = { "MP3", "WAV", "AIFF", "OGG", "FLAG" };
+        String[] spinner_array = { "WAV", "AIFF", "OPUS", "OGG" };
 
         ArrayList<String> items = new ArrayList<String>();
         Collections.addAll(items, spinner_array);

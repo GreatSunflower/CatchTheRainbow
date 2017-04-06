@@ -63,11 +63,11 @@
             android:layout_gravity="left"
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp"
-            android:background="@null"
+            android:background="@drawable/background_settings"
             android:scaleType="fitCenter"
             android:text="Play"
             android:textColor="@color/colorForeground"
-            app:srcCompat="@drawable/ic_settings"/>
+            />
 
         <LinearLayout
             android:layout_width="match_parent"

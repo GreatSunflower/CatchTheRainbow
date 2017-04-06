@@ -60,7 +60,6 @@ import com.sunflower.catchtherainbow.Views.Helpful.ExportSongFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.LanguageFragment;
 import com.sunflower.catchtherainbow.Views.StartedApp.ProjectStartActivity;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Queue;
@@ -294,12 +293,17 @@ public class ProjectActivity extends AppCompatActivity
         }
     }
 
+    MenuItem action_effects, action_move, action_select, action_editing;
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.project, /*amvMenu.getMenu() /**/menu); // adds menu items to the left side. If it's not needed replace second param with default menu
-        //menu.findItem(R.id.action_editing).setEnabled(false);
+        action_effects = menu.findItem(R.id.action_effects);
+        action_move = menu.findItem(R.id.action_move);
+        action_select = menu.findItem(R.id.action_select);
+        action_editing = menu.findItem(R.id.action_editing);
+        //menu.findItem(R.id.action_effects).setEnabled(false);
         return true;
     }
 
@@ -616,20 +620,21 @@ public class ProjectActivity extends AppCompatActivity
         public void onPlay()
         {
             playPauseButt.setImageResource(R.drawable.ic_pause);
-            // lockEditing
+            unlockEditing(false);
         }
 
         @Override
         public void onPause()
         {
             playPauseButt.setImageResource(R.drawable.ic_play);
+            unlockEditing(true);
         }
 
         @Override
         public void onStop()
         {
             playPauseButt.setImageResource(R.drawable.ic_play);
-            // unlock
+            unlockEditing(true);
         }
 
         @Override
@@ -637,9 +642,25 @@ public class ProjectActivity extends AppCompatActivity
         {
             progressView.setCurrent(0);
             playPauseButt.setImageResource(R.drawable.ic_play);
-            // unlock
+            unlockEditing(true);
         }
     };
+
+    public void unlockEditing(boolean unlock)
+    {
+        if(unlock)
+        {
+            action_effects.setEnabled(true);
+            action_select.setEnabled(true);
+            action_editing.setEnabled(true);
+        }
+        else
+        {
+            action_effects.setEnabled(false);
+            action_select.setEnabled(false);
+            action_editing.setEnabled(false);
+        }
+    }
 
     private Project.ProjectListener projectListener = new Project.ProjectListener()
     {
@@ -921,7 +942,7 @@ public class ProjectActivity extends AppCompatActivity
        // toast.setGravity(Gravity.CENTER, 0, 0);
        // toast.show();
 
-        AudioExporter exporter = new AudioExporter(this, "Encoding...", project, name, album, year, format, pathStorageMusic);
+        AudioExporter exporter = new AudioExporter(this, getResources().getString(R.string.encoding), project, name, album, year, format, pathStorageMusic);
         exporter.execute();
     }
 }

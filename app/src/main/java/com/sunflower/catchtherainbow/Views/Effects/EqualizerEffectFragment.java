@@ -181,6 +181,20 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
         }
     }
 
+    public boolean onOk()
+    {
+        for(int i = 0; i < bass_dx8_equalizer.length; i++)
+        {
+            BASS.BASS_ChannelRemoveFX(chan, fx[i]);
+        }
+
+        if(bass_dx8_equalizer == null) return false;
+
+        new ApplyEffectTask(getActivity(), getResources().getString(R.string.effect_apply_message), player.getTracks().get(0).getTrack(), BASS.BASS_FX_DX8_PARAMEQ, bass_dx8_equalizer ).execute();
+
+        return true;
+    }
+
     public boolean cancel() //при закрытии окна
     {
         for(int i = 0; i < bass_dx8_equalizer.length; i++)

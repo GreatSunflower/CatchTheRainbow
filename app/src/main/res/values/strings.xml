@@ -65,6 +65,8 @@
     <string name="path">Path</string>
     <string name="folder">Folder</string>
 
+    <string name="encoding">Encoding...</string>
+    <string name="please_import_some_audio">Please, import some audio.</string>
 
     <string name="effect_echo">ECHO</string>
     <string name="fwet_dry_mix">Wet Dry Mix</string>

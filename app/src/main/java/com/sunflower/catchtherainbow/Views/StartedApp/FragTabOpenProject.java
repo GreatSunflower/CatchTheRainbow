@@ -86,6 +86,13 @@ public class FragTabOpenProject extends Fragment implements View.OnClickListener
     public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3)
     {
         Project item = adapter.getProjects().get(position);
+        if(selectProject == item)
+        {
+            Intent intent = new Intent(FragTabOpenProject.this.getActivity(), ProjectActivity.class);
+            intent.putExtra("openProjectWithName", selectProject.getName());
+            startActivity(intent);
+            getActivity().finish();
+        }
         File f = new File(item.getProjectFolderLocation());
         if(f.isDirectory())
         {

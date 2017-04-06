@@ -53,6 +53,17 @@ public class FlangerEffectFragment extends BaseEffectFragment implements Detaile
         return root;
     }
 
+    public boolean onOk()
+    {
+        BASS.BASS_ChannelRemoveFX(chan, flanger);
+
+        if(bass_dx8_flanger == null) return false;
+
+        new ApplyEffectTask(getActivity(), getResources().getString(R.string.effect_apply_message), player.getTracks().get(0).getTrack(), BASS.BASS_FX_DX8_FLANGER, bass_dx8_flanger ).execute();
+
+        return true;
+    }
+
     public boolean cancel() //при закрытии окна
     {
         BASS.BASS_ChannelRemoveFX(chan, flanger);

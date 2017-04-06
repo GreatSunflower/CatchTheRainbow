@@ -63,6 +63,17 @@ public class ReverbEffectFragment extends BaseEffectFragment implements Detailed
         }
     }
 
+    public boolean onOk()
+    {
+        BASS.BASS_ChannelRemoveFX(chan, reverb);
+
+        if(bass_bfx_reverb == null) return false;
+
+        new ApplyEffectTask(getActivity(), getResources().getString(R.string.effect_apply_message), player.getTracks().get(0).getTrack(), BASS.BASS_FX_DX8_REVERB, bass_bfx_reverb ).execute();
+
+        return true;
+    }
+
     public boolean cancel() //при закрытии окна
     {
         BASS.BASS_ChannelRemoveFX(chan, reverb);
