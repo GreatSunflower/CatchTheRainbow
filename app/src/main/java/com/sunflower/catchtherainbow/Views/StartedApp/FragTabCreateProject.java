@@ -103,7 +103,7 @@ public class FragTabCreateProject extends Fragment implements View.OnClickListen
                     startActivity(intent);
                     getActivity().finish();
                 }
-               break;
+                break;
             }
         }
     }

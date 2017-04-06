@@ -1,16 +1,22 @@
 package com.sunflower.catchtherainbow.Views.StartedApp;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.sunflower.catchtherainbow.Adapters.SupportedLanguages;
 import com.sunflower.catchtherainbow.Adapters.StartProjectPagerAdapter;
+import com.sunflower.catchtherainbow.Adapters.SupportedLanguages;
 import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.R;
 
@@ -57,7 +63,8 @@ public class ProjectStartActivity extends AppCompatActivity
             {
                 //To check the availability of projects
                 //if true: Touch doesn't work
-                if(new File(Helper.getPathOfProject()).listFiles().length == 0) return true;
+                File file = new File(Helper.getPathOfProject());
+                if(file.listFiles() != null && file.listFiles().length == 0) return true;
                 else return false;
             }
         });
@@ -89,17 +96,85 @@ public class ProjectStartActivity extends AppCompatActivity
             }
         });
 
+        ////////////////////////////////////////////////////permissions//////////////////////////
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT)
+        {
+            int PERMISSION_ALL = 1;
+            String[] PERMISSIONS = new String[0];
+
+            PERMISSIONS = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
+            if (!hasPermissions(this, PERMISSIONS))
+            {
+                ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
+
+                viewPager.setCurrentItem(0);
+            }
+            else
+            {
+                File file = new File(Helper.getPathOfProject());
+                if (!file.exists() || file.listFiles() == null || file.listFiles().length == 0)
+                    viewPager.setCurrentItem(0);
+                else viewPager.setCurrentItem(1);
+            }
+        }
+        else
+        {
+            File file = new File(Helper.getPathOfProject());
+            if (!file.exists() || file.listFiles() == null || file.listFiles().length == 0)
+                viewPager.setCurrentItem(0);
+            else viewPager.setCurrentItem(1);
+        }
+        //////////////////////////////////////////////////////////end permissions///////////////////////
+
+    }
+
+    // ----- permissions ----------
+    public boolean hasPermissions(Context context, String... permissions)
+    {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null)
+        {
+            for (String permission : permissions)
+            {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED)
+                {
+                    reportFullyDrawn();
+                    //finish();
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     @Override
-    protected void onResume()
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults)
     {
-        super.onResume();
-        if(viewPager != null)
+        switch (requestCode)
         {
-            if (new File(Helper.getPathOfProject()).listFiles().length == 0)
-                viewPager.setCurrentItem(0);
-            else viewPager.setCurrentItem(1);
+            case 1:
+            {
+                for(int i = 0; i < permissions.length; i++)
+                {
+                    if(permissions[i].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE))
+                    {
+                        // If request is cancelled, the result arrays are empty.
+                        if (grantResults[i] == PackageManager.PERMISSION_GRANTED)
+                        {
+                            // permission was granted, yay!
+                        }
+                        else
+                        {
+                            finish();
+                            // permission denied, boo! Disable the functionality that depends on this permission.
+                        }
+                    }
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
         }
     }
 }

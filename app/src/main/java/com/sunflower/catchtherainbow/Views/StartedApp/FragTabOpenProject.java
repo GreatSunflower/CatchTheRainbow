@@ -70,7 +70,6 @@ public class FragTabOpenProject extends Fragment implements View.OnClickListener
 
         listView.setOnItemClickListener(this);
 
-        adapter.readFileSD();
         adapter.notifyDataSetChanged();
 
         return resView;

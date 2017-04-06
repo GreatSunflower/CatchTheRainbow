@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -108,9 +109,6 @@ public class ProjectActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_project);
 
-        // TEMP. Clears project directory on loading------------------------------------------------
-        //Helper.createOrRecreateDir(SuperApplication.getAppDirectory());
-
         ////////////////////////////////////////////////////permissions//////////////////////////
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT)
         {
@@ -118,7 +116,7 @@ public class ProjectActivity extends AppCompatActivity
             String[] PERMISSIONS = new String[0];
 
             PERMISSIONS = new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.CAPTURE_AUDIO_OUTPUT,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.MEDIA_CONTENT_CONTROL};
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
             if (!hasPermissions(this, PERMISSIONS))
             {
@@ -126,6 +124,7 @@ public class ProjectActivity extends AppCompatActivity
             }
         }
         //////////////////////////////////////////////////////////end permissions///////////////////////
+
 
         viewContentProject = (View) findViewById(R.id.content_project);
 
@@ -214,19 +213,9 @@ public class ProjectActivity extends AppCompatActivity
         if(openProjectWithName != null)
         {
             Project.openProjectAsync(openProjectWithName, projectListener);
-            /*// open it!
-            try
-            {
-                project = Project.openProject(openProjectWithName, projectListener);
-            }
-            catch (IOException | ClassNotFoundException e)
-            {
-                e.printStackTrace();
-                finish();
-                return;
-            }*/
         }
         // ----------------------------- finish handling project----------------------------
+
 
     }
 
@@ -888,6 +877,38 @@ public class ProjectActivity extends AppCompatActivity
         }
         return true;
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults)
+    {
+        switch (requestCode)
+        {
+            case 1:
+            {
+                for(int i = 0; i < permissions.length; i++)
+                {
+                    if(permissions[i].equals(Manifest.permission.RECORD_AUDIO))
+                    {
+                        // If request is cancelled, the result arrays are empty.
+                        if (grantResults[i] == PackageManager.PERMISSION_GRANTED)
+                        {
+                            // permission was granted, yay!
+                        }
+                        else
+                        {
+                            finish();
+                            // permission denied, boo! Disable the functionality that depends on this permission.
+                        }
+                    }
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+
 
     //get result from ExportSongFragment
     @Override

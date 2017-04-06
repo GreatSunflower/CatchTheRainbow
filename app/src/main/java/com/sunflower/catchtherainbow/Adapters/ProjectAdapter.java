@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,7 +49,7 @@ public class ProjectAdapter extends ArrayAdapter<Project> implements View.OnClic
 
     public void add(Project p)
     {
-        // Добавить человека в начало списка
+        // Добавить проект в начало списка
         projects.add(projects.size(), p);
         // Перерисовать список
         notifyDataSetChanged();
@@ -84,8 +85,14 @@ public class ProjectAdapter extends ArrayAdapter<Project> implements View.OnClic
                 if (fileList.get(i).isDirectory())
                 {
                     if(fileList.get(i).getName().toLowerCase().contains(search.toLowerCase()))
-                        add(Project.openProject(fileList.get(i).getName(), null));
-                }
+                    {
+                        try
+                        {
+                            add(Project.openProject(fileList.get(i).getName(), null));
+                        }
+                        catch (Exception exception){}
+                    }
+                } // is dir
             }
             notifyDataSetChanged();
 
@@ -118,69 +125,40 @@ public class ProjectAdapter extends ArrayAdapter<Project> implements View.OnClic
         {
             for (int i = 0; i < listFile.length; i++)
             {
-
                 if (listFile[i].isDirectory())
                 {
-                    fileList.add(listFile[i]);
-
-                } else
-                {
-                    if (listFile[i].getName().endsWith(".png")
-                            || listFile[i].getName().endsWith(".jpg")
-                            || listFile[i].getName().endsWith(".jpeg")
-                            || listFile[i].getName().endsWith(".gif"))
-
+                    if(hasProjectFile(listFile[i].getAbsolutePath()))
                     {
                         fileList.add(listFile[i]);
                     }
                 }
-
             }
         }
         return fileList;
     }
 
-    public void readFileSD()
+    private boolean hasProjectFile(String dirPath)
     {
+        File dir = new File(dirPath);
 
-        /*if (!Environment.getExternalStorageState().equals(
-                Environment.MEDIA_MOUNTED)) {
-            Log.d("files", "SD-карта не доступна: " + Environment.getExternalStorageState());
-            return;
-        }
+        if(!dir.exists() || !dir.isDirectory()) return false;
 
-        File sdPath = Environment.getExternalStorageDirectory();
-
-        sdPath = new File(sdPath.getAbsolutePath() + "/" + "Android_Files");
-
-        File sdFile = new File(sdPath, fileName.toString());
-        try
+        for (File f: dir.listFiles())
         {
-            projects.clear();
-            FileInputStream is = new FileInputStream(sdFile.getPath());
-            ObjectInputStream objin = new ObjectInputStream(is);
-            ArrayList<FileItem> pe = (ArrayList<FileItem>)objin.readObject();
-            for(FileItem p : pe)
+            try
             {
-                add(p);
+                Project.openProject(f.getName().replaceFirst("[.][^.]+$", ""), null);
+                return true;
             }
-            objin.close();
+            catch (Exception ex){}
         }
-        catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        catch (ClassNotFoundException e)
-        {
-            e.printStackTrace();
-        }*/
+        return false;
     }
 
-
     // Отрендерить пункт
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent)
+    public View getView(int position, View convertView, @NonNull ViewGroup parent)
     {
         Project project = getItem(position);
         if(convertView==null)
