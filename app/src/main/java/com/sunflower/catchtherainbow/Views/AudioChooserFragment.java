@@ -26,6 +26,7 @@ import com.sunflower.catchtherainbow.Adapters.SongsOfFolderAdapter;
 import com.sunflower.catchtherainbow.AudioClasses.AudioFile;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Helpful.NDSpinner;
+import com.sunflower.catchtherainbow.Views.ViewPagerTransformers.DepthPageTransformer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -139,7 +140,7 @@ public class AudioChooserFragment extends DialogFragment
         fragPagerAdapter = new FragPagerAdapter(getChildFragmentManager(), getActivity(), tabLayout, this);
 
         viewPager.setAdapter(fragPagerAdapter);
-
+        viewPager.setPageTransformer(true, new DepthPageTransformer()); //set the animation
         tabLayout.setupWithViewPager(viewPager);
 
         /////Tabs/////
