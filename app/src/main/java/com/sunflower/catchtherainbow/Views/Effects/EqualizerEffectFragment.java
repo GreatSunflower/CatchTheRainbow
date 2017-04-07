@@ -190,7 +190,7 @@ public class EqualizerEffectFragment extends BaseEffectFragment implements Detai
 
         if(bass_dx8_equalizer == null) return false;
 
-        new ApplyEffectTask(getActivity(), getResources().getString(R.string.effect_apply_message), player.getTracks().get(0).getTrack(), BASS.BASS_FX_DX8_PARAMEQ, bass_dx8_equalizer ).execute();
+        new ApplyEffectTask(getActivity(), getResources().getString(R.string.effect_apply_message), player.getTracks().get(0).getTrack(), fx, bass_dx8_equalizer ).execute();
 
         return true;
     }
