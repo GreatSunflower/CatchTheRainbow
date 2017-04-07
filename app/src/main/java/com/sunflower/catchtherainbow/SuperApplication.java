@@ -38,6 +38,12 @@ public class SuperApplication extends Application
         }
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_FLOATDSP, 1);
 
+        // setup recording device (using default device)
+        if (!BASS.BASS_RecordInit(-1))
+        {
+            Log.e("App", "Can't initialize recording device");
+        }
+
         // !!!-----Load plugins-----!!!
         ApplicationInfo info = this.getApplicationInfo();
         if(info != null)

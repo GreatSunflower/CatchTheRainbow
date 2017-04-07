@@ -1,5 +1,7 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -47,26 +49,32 @@ public class AudioHelper
         long lastChunkSamplesCount = chunk.getSamplesCount();
 
         // original data
-        byte[] lastChunkBuffer = new byte[(int) lastChunkSamplesCount*info.format.getSampleSize()];
+       // byte[] lastChunkBuffer = new byte[(int) lastChunkSamplesCount*info.format.getSampleSize()];
         ByteBuffer lastChunkWrapper = ByteBuffer.allocateDirect((int) lastChunkSamplesCount*info.format.getSampleSize());
         chunk.readToBuffer(lastChunkWrapper, 0, (int)lastChunkSamplesCount);
         lastChunkWrapper.rewind();
-        lastChunkWrapper.get(lastChunkBuffer);
+      //  lastChunkWrapper.get(lastChunkBuffer);
 
         // data to add
         byte[] addBuffer = new byte[addLen*info.format.getSampleSize()];
         orig.rewind();
         orig.get(addBuffer, 0, addLen * info.format.getSampleSize());
 
+        int newLen = (int) ((addLen + lastChunkSamplesCount) * info.format.getSampleSize());
         // put it all together
-        ByteBuffer chunkBuffer = ByteBuffer.allocateDirect((int) (addLen * info.format.getSampleSize() + lastChunkSamplesCount * info.format.getSampleSize()));
-        chunkBuffer.put(lastChunkBuffer);
+        ByteBuffer chunkBuffer = ByteBuffer.allocateDirect(newLen);
+        chunkBuffer.put(lastChunkWrapper);
+        //orig.rewind();
         chunkBuffer.put(addBuffer);
 
-        final int newLastChunkLen = (int) (lastChunkSamplesCount + addLen);
+        final int newLastChunkSamplesLen = (int) (lastChunkSamplesCount + addLen);
+
+        /*byte test[] = new byte[newLen];
+        chunkBuffer.rewind();
+        chunkBuffer.get(test);*/
 
         // save
-        chunk.writeToDisk(chunkBuffer, newLastChunkLen);
+        chunk.writeToDisk(chunkBuffer, newLastChunkSamplesLen);
 
         return true;
     }
@@ -90,5 +98,20 @@ public class AudioHelper
     public static long limitSampleBufferSize(long bufferSize, long limit)
     {
         return Math.min(bufferSize, Math.max(0, limit));
+    }
+
+
+    public static long timeToSamples(double time, AudioInfo info)
+    {
+        return (long) Math.floor(time * info.sampleRate * info.channels + 0.5);
+    }
+    /** @brief Convert correctly between an number of samples and an (absolute) time in seconds.
+     *
+     * @param pos The time number of samples from the start of the track to convert.
+     * @return The time in seconds.
+     */
+    public static double samplesToTime(long pos, AudioInfo info)
+    {
+        return pos / (double)info.sampleRate / info.channels;
     }
 }

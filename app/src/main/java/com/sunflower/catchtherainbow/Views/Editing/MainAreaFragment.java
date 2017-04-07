@@ -13,11 +13,14 @@ import android.view.animation.Animation;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
+import android.widget.Toast;
 
+import com.sunflower.catchtherainbow.AudioClasses.AudioHelper;
 import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
 import com.sunflower.catchtherainbow.AudioClasses.Project;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.Helper;
+import com.sunflower.catchtherainbow.ProjectActivity;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Helpful.ResizeAnimation;
 import com.sunflower.catchtherainbow.Views.Helpful.Thumb;
@@ -97,6 +100,7 @@ public class MainAreaFragment extends Fragment
     }
 
     LinearLayout liner, message;
+    Timeline timeline;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
@@ -108,6 +112,9 @@ public class MainAreaFragment extends Fragment
         message = (LinearLayout)root.findViewById(R.id.id_message);
 
         dummySpacer = root.findViewById(R.id.dummy_view);
+
+        timeline = (Timeline)root.findViewById(R.id.timeline);
+        timeline.setProject(project);
 
        /* if(headerCollapsed) setViewWidth(dummySpacer, collapsedHeadWidth, false);
         else setViewWidth(dummySpacer, expandedHeadWidth, false);;*/
@@ -289,6 +296,8 @@ public class MainAreaFragment extends Fragment
 
         this.samplesPerPixel = samplesPerPixel;
 
+        timeline.setSamplesPerPixel(samplesPerPixel);
+
         demandUpdate();
     }
 
@@ -314,6 +323,8 @@ public class MainAreaFragment extends Fragment
 
         this.offset = offset;
 
+        timeline.setOffset(offset);
+
         //Log.e("Offset Update! ", "Offset : " + offset);
 
         for(TrackHolder holder: tracks)
@@ -326,14 +337,14 @@ public class MainAreaFragment extends Fragment
     {
         if(selection == null) return -1;
 
-        return selectedTrack.samplesToTime(selection.startingSample);
+        return AudioHelper.samplesToTime(selection.startingSample, project.getProjectAudioInfo());
     }
 
     public double getSelectionEndTime()
     {
         if(selection == null) return -1;
 
-        return selectedTrack.samplesToTime(selection.endSample);
+        return AudioHelper.samplesToTime(selection.endSample, project.getProjectAudioInfo());
     }
 
     // returns null if an error occurred
@@ -385,6 +396,8 @@ public class MainAreaFragment extends Fragment
                 {
                     holder.waveformView.setOffset((long) (offset));
                 }
+
+                timeline.setOffset(offset);
             }
             else // selection
             {
@@ -410,7 +423,16 @@ public class MainAreaFragment extends Fragment
         }
 
         @Override
-        public void touchEnd(){}
+        public void touchEnd()
+        {
+            if(mode == Mode.Selection)
+            {
+                double start = getSelectionStartTime();
+                double end = getSelectionEndTime();
+
+                Helper.showCuteToast(getContext(), "S : " + Helper.round(start, 2) + ", E: " + Helper.round(end, 2), Gravity.CENTER, Toast.LENGTH_SHORT);
+            }
+        }
 
         @Override
         public void fling(float x)
@@ -525,7 +547,7 @@ public class MainAreaFragment extends Fragment
 
     public interface TrackFragmentListener
     {
-        void onFragmentInteraction(Uri uri);
+        void onSelectionChanged(SampleRange newSelection);
     }
 
     // changes header sizes
@@ -555,6 +577,7 @@ public class MainAreaFragment extends Fragment
                     public void onAnimationEnd(Animation animation)
                     {
                         trackHolder.waveformView.demandUpdate();
+                        timeline.invalidate();
                     }
                     @Override
                     public void onAnimationRepeat(Animation animation){}
@@ -616,8 +639,8 @@ public class MainAreaFragment extends Fragment
 
     public static class SampleRange
     {
-        Long startingSample = 0L;
-        Long endSample = 0L;
+        public Long startingSample = 0L;
+        public Long endSample = 0L;
 
         public SampleRange(){}
 

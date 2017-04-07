@@ -6,12 +6,16 @@ import android.util.Log;
 import com.un4seen.bass.BASS;
 import com.un4seen.bass.BASSmix;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
 
 /**
  * Created by SuperComputer on 3/3/2017.
+ * Plays audio tracks and records sound
  */
 
 public class AudioIO extends BasePlayer
@@ -23,6 +27,9 @@ public class AudioIO extends BasePlayer
 //    private Handler handler = new Handler();
 
     private PlayerState state = PlayerState.NotInitialized;
+
+    private boolean isRecording = false;
+    private TrackInfo recorderTrack = null;
 
     public AudioIO(Activity context, Project project)
     {
@@ -38,6 +45,12 @@ public class AudioIO extends BasePlayer
 
        // BASS.BASS_ChannelPlay(mixer, false);
         updateTrackAttributes(true);
+
+        if(isRecording && recorderTrack != null)
+        {
+            BASS.BASS_ChannelPlay(recorderTrack.channel, false);
+        }
+
         state = PlayerState.Playing;
 
        // handler.post(new Runnable()
@@ -57,6 +70,11 @@ public class AudioIO extends BasePlayer
     public void pause()
     {
         if(state != PlayerState.Playing) return;
+
+        if(isRecording && recorderTrack != null)
+        {
+            BASS.BASS_ChannelPause(recorderTrack.channel);
+        }
 
        // BASS.BASS_ChannelPause(mixer);
         for (int i = 0; i < tracks.size(); i++)
@@ -89,9 +107,19 @@ public class AudioIO extends BasePlayer
     {
         if(state != PlayerState.NotInitialized)
         {
+            if(isRecording && recorderTrack != null)
+            {
+                BASS.BASS_ChannelStop(recorderTrack.channel);
+
+                isRecording = false;
+                recorderTrack = null;
+            }
+
             for(int i = 0; i < tracks.size(); i++)
             {
                 TrackInfo trackInfo = tracks.get(i);
+
+                if(recorderTrack != null && trackInfo.getTrack() == recorderTrack.getTrack()) continue;
 
                 BASS.BASS_ChannelStop(trackInfo.getChannel());
             }
@@ -111,6 +139,40 @@ public class AudioIO extends BasePlayer
                 }
             });
         } // is init
+    }
+
+    public void startRecording(WaveTrack recorderTrack)
+    {
+        if(recorderTrack == null) return;
+
+
+        AudioInfo info = project.getProjectAudioInfo();
+
+        int recHandle = BASS.BASS_RecordStart(info.sampleRate, info.channels, BASS.BASS_RECORD_PAUSE/*|BASS.BASS_SAMPLE_FLOAT*/, new RecordProc(), null);
+
+        this.recorderTrack = new TrackInfo(recHandle, recorderTrack, 0);
+
+        initialize(false);
+
+        isRecording = true;
+
+        BASS.BASS_ChannelPlay(recHandle, false);
+
+        // BASS.BASS_ChannelPlay(mixer, false);
+        updateTrackAttributes(true);
+        state = PlayerState.Playing;
+
+        context.runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                for (AudioPlayerListener listener : audioPlayerListeners)
+                {
+                    listener.onStartRecording();
+                }
+            }
+        });
     }
 
     // releases all of the tracks!!! Careful!
@@ -137,6 +199,9 @@ public class AudioIO extends BasePlayer
         for(int i = 0; i < tracks.size(); i++)
         {
             TrackInfo trackInfo = tracks.get(i);
+
+            // it is a recording track. Leave it alone!
+            if(recorderTrack != null && trackInfo.getTrack() == recorderTrack.getTrack()) continue;
 
             if(trackInfo.track.isMuted())
             {
@@ -187,10 +252,19 @@ public class AudioIO extends BasePlayer
     @Override
     public double getProgress()
     {
-        final TrackInfo longestTrack = findLongestTrack();
-        if(longestTrack == null) return 0;
-       //double position = BASS.BASS_ChannelBytes2Seconds(longestTrack.getChannel(), BASS.BASS_ChannelGetPosition(longestTrack.getChannel(), BASS.BASS_POS_BYTE));
-        double position = longestTrack.track.samplesToTime(longestTrack.currentSample);
+        double position = 0;
+        // if we are recording sound, get data based on that track!
+        if(isRecording && recorderTrack != null)
+        {
+            position = recorderTrack.track.samplesToTime(recorderTrack.currentSample);
+        }
+        else // based on longest track
+        {
+            final TrackInfo longestTrack = findLongestTrack();
+            if (longestTrack == null) return 0;
+            //double position = BASS.BASS_ChannelBytes2Seconds(longestTrack.getChannel(), BASS.BASS_ChannelGetPosition(longestTrack.getChannel(), BASS.BASS_POS_BYTE));
+            position = longestTrack.track.samplesToTime(longestTrack.currentSample);
+        }
         return position;
     }
 
@@ -198,6 +272,9 @@ public class AudioIO extends BasePlayer
     public void setPosition(double position)
     {
         if(state == PlayerState.NotInitialized || state == PlayerState.Stopped) return;
+
+        // cannot change position during recording
+        if(isRecording) return;
 
         PlayerState cachedState = state;
 
@@ -281,7 +358,7 @@ public class AudioIO extends BasePlayer
 
             TrackInfo trackInfo = (TrackInfo)user;
 
-            if(trackInfo == longestTrack)
+            if(!isRecording && trackInfo == longestTrack)
             {
                 stop();
                 // notify about the end
@@ -361,6 +438,9 @@ public class AudioIO extends BasePlayer
             TrackInfo trackInfo = tracks.get(i); // new TrackInfo(0, track, track.timeToSamples(start));
             AudioInfo audioInfo = trackInfo.track.getInfo();
 
+            // leave recorder track alone
+            if(recorderTrack != null && trackInfo.getTrack() == recorderTrack.getTrack()) continue;
+
             int channel = BASS.BASS_StreamCreate(audioInfo.sampleRate, audioInfo.channels,
                     BASS.BASS_SAMPLE_FLOAT | BASS.BASS_STREAM_AUTOFREE, new StreamProc(), trackInfo);
 
@@ -430,6 +510,84 @@ public class AudioIO extends BasePlayer
         {
             //throw new Exception(String.format("bass.dll reported {0}.", err));
             Log.e(LOG_TAG, "BASS reported " + err);
+        }
+    }
+
+    // --------------------------------- Simple getters/setters----------------------
+    public boolean isRecording()
+    {
+        return isRecording;
+    }
+
+    public TrackInfo getRecorderTrack()
+    {
+        return recorderTrack;
+    }
+    // --------------------------------- Simple getters/setters end----------------------
+
+    private class RecordProc implements BASS.RECORDPROC
+    {
+        @Override
+        public boolean RECORDPROC(int handle, final ByteBuffer buffer, final int length, Object user)
+        {
+            try
+            {
+                buffer.order(ByteOrder.LITTLE_ENDIAN);
+                buffer.rewind();
+
+                //final float []fbuf = new float[length * 2];
+                final int floatLen = length / 2;
+                final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(floatLen*4);
+                //byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+                for (int a = 0; a < length/2; a++)
+                {
+                    float num = (float)buffer.getShort()/ 32768.f;
+                    byteBuffer.putFloat(num);
+                    //Log.e("Sample: ", num+"");
+                }
+
+                /*final int floatLen = length * 2;
+                ByteBuffer temp = ByteBuffer.allocateDirect(floatLen*4);
+                //temp.order(ByteOrder.LITTLE_ENDIAN);
+
+                final float []fbuf = new float[floatLen];
+                for (int a = 0; a < length/2; a++)
+                //for (int a = length/2-1; a >= 0; a--)
+                {
+                    float num = buffer.getShort(a) / 32768.f;
+                    fbuf[a] = num;
+
+                    temp.putFloat(num);
+                    //Log.e("Sample: ", num+"");
+                }
+
+                temp.order(ByteOrder.LITTLE_ENDIAN);
+
+                temp.rewind();
+                FloatBuffer ibuffer=temp.asFloatBuffer();
+                float[] floatBuff=new float[floatLen];// allocate a "float" array for the sample data
+                ibuffer.get(floatBuff);
+
+
+                /*FloatBuffer floatBufferBuffer = buffer.asFloatBuffer();
+                float[] floatBuff=new float[length/4];// allocate a "float" array for the sample data
+                floatBufferBuffer.get(floatBuff);
+
+
+                ByteBuffer res = ByteBuffer.allocateDirect(floatLen*4);
+                for(int i = 0; i < floatBuff.length; i++)
+                    res.putFloat(floatBuff[i]);*/
+
+                recorderTrack.currentSample += floatLen;
+
+                recorderTrack.getTrack().getClips().get(0).append(byteBuffer, floatLen);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
         }
     }
 }

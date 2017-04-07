@@ -11,6 +11,7 @@ import com.sunflower.catchtherainbow.AudioClasses.AudioInfo;
 import com.sunflower.catchtherainbow.AudioClasses.AudioSequence;
 import com.sunflower.catchtherainbow.AudioClasses.TrackInfo;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
+import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
 import com.un4seen.bass.BASS;
 
 import java.nio.ByteBuffer;
@@ -23,6 +24,8 @@ public abstract class BaseEffectFragment extends Fragment
 {
     protected int chan = 0;
     protected AudioIO player;
+
+    protected MainAreaFragment.SampleRange range;
 
     public BaseEffectFragment() {/*Required empty public constructor*/}
 
@@ -50,6 +53,16 @@ public abstract class BaseEffectFragment extends Fragment
     {
         this.player = player;
     }
+
+    public MainAreaFragment.SampleRange getRange()
+    {
+        return range;
+    }
+
+    public void setRange(MainAreaFragment.SampleRange range)
+    {
+        this.range = range;
+    }
 }
 
 // Saves effect samples to track
@@ -62,26 +75,93 @@ class ApplyEffectTask extends AsyncTask<Void, Integer, Void>
     private int[] effectIds;
     private Object[] effects;
     private WaveTrack track;
+    private MainAreaFragment.SampleRange range;
 
-    public ApplyEffectTask(Context context, String message, WaveTrack track, int effectId, Object effect)
+    public ApplyEffectTask(Context context, String message, WaveTrack track, int effectId, Object effect, MainAreaFragment.SampleRange range)
     {
         this.context = context;
         this.message = message;
         this.track = track;
+        this.range = range;
 
         this.effectIds = new int[] {effectId};
         this.effects = new Object[] {effect};
     }
 
-    public ApplyEffectTask(Context context, String message, WaveTrack track, int []effectIds, Object []effects)
+    public ApplyEffectTask(Context context, String message, WaveTrack track, int []effectIds, Object []effects, MainAreaFragment.SampleRange range)
     {
         this.context = context;
         this.message = message;
         this.track = track;
+        this.range = range;
 
         this.effectIds = effectIds;
         this.effects = effects;
     }
+
+  /*  @Override
+    protected Void doInBackground(Void... params)
+    {
+        TrackInfo trackInfo = new TrackInfo(0, track, 0); // new TrackInfo(0, track, track.timeToSamples(start));
+        AudioInfo audioInfo = trackInfo.getTrack().getInfo();
+
+        int sampleSize = audioInfo.getFormat().getSampleSize();
+
+        int channel = BASS.BASS_StreamCreate(audioInfo.getSampleRate(), audioInfo.getChannels(),
+                BASS.BASS_SAMPLE_FLOAT|BASS.BASS_STREAM_DECODE, new ApplyEffectStreamProc(), trackInfo);
+
+        trackInfo.setChannel(channel);
+        trackInfo.setCurrentSample(trackInfo.getTrack().timeToSamples(0));
+
+        for(int i = 0; i < effectIds.length; i++)
+        {
+            // set effects
+            int fx = BASS.BASS_ChannelSetFX(channel, effectIds[i], 0);
+            BASS.BASS_FXSetParameters(fx, effects[i]);
+        }
+
+        // length in bytes
+        long len =  track.getEndSample() * sampleSize;//BASS.BASS_ChannelGetLength(channel, BASS.BASS_POS_BYTE);
+
+        // size in bytes
+        int bufferSize = AudioSequence.maxChunkSize / 2; /*1048576*4*/;
+/*
+
+        long totalBytesRead = 0;
+
+        if(range != null)
+        {
+            trackInfo.setCurrentSample(range.startingSample);
+            totalBytesRead = range.startingSample * sampleSize;
+            len = range.getLen() * sampleSize;
+
+            if(range.getLen() > 100000) bufferSize = (int) (range.getLen() * sampleSize / 16);
+            else bufferSize = (int) (range.getLen() * sampleSize / 6);
+        }
+
+        // read data piece by piece
+        while(len > 0)
+        {
+            ByteBuffer audioData = ByteBuffer.allocateDirect(bufferSize);
+            int bytesRead = BASS.BASS_ChannelGetData(channel, audioData, bufferSize);
+
+            if(bytesRead <= 0)
+            {
+                publishProgress(100);
+                break;
+            }
+
+            track.set(audioData, totalBytesRead / sampleSize, (bytesRead) / sampleSize);
+
+            totalBytesRead += bytesRead;
+            len -= bytesRead;
+
+
+            publishProgress((int) ((range.getLen() * sampleSize) / (float)len * 100f));
+        }
+
+        return null;
+    }*/
 
     @Override
     protected Void doInBackground(Void... params)
@@ -197,7 +277,7 @@ class ApplyEffectStreamProc implements BASS.STREAMPROC
 
             track.setCurrentSample(track.getCurrentSample() + samplesRead);
 
-            if (samplesRead == -1 || samplesRead < length / sampleSize || track.getTrack().getEndSample() < track.getCurrentSample())
+            if (samplesRead <= 0 || samplesRead < length / sampleSize || track.getTrack().getEndSample() < track.getCurrentSample())
             {
                 Log.e("Decoding", "Normal end! " + track.getTrack().getName());
 

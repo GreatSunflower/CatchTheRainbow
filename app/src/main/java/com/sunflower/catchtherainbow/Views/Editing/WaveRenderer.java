@@ -2,6 +2,7 @@ package com.sunflower.catchtherainbow.Views.Editing;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -46,13 +47,13 @@ class WaveRenderer extends Thread
             //---------------limit frame rate to max 60fps----------------------
             timeNow = System.currentTimeMillis();
             timeDelta = timeNow - timePrevFrame;
-            if ( timeDelta < 60)
+            if ( timeDelta < 50)
             {
                 try
                 {
-                    Thread.sleep(60 - timeDelta);
+                    Thread.sleep(50 - timeDelta);
                 }
-                catch(InterruptedException e) { }
+                catch(InterruptedException ex) { }
             }
             timePrevFrame = System.currentTimeMillis();
 
@@ -76,6 +77,10 @@ class WaveRenderer extends Thread
                         if (localCanvas != null)
                             track.doDraw(localCanvas);
                     }
+                }
+                catch (Exception ex)
+                {
+                    Log.e("Renderer", ex.getMessage());
                 }
                 finally
                 {

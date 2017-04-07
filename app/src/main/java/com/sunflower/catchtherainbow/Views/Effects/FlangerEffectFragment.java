@@ -59,7 +59,7 @@ public class FlangerEffectFragment extends BaseEffectFragment implements Detaile
 
         if(bass_dx8_flanger == null) return false;
 
-        new ApplyEffectTask(getActivity(), getResources().getString(R.string.effect_apply_message), player.getTracks().get(0).getTrack(), BASS.BASS_FX_DX8_FLANGER, bass_dx8_flanger ).execute();
+        new ApplyEffectTask(getActivity(), getResources().getString(R.string.effect_apply_message), player.getTracks().get(0).getTrack(), BASS.BASS_FX_DX8_FLANGER, bass_dx8_flanger, range ).execute();
 
         return true;
     }

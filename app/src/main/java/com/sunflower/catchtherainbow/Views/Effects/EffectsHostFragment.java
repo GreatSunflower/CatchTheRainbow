@@ -23,6 +23,7 @@ import com.sunflower.catchtherainbow.AudioClasses.Project;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.AudioProgressView;
+import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -36,6 +37,8 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
 {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
+
+    protected MainAreaFragment.SampleRange range;
 
     AudioProgressView progressView;
     ImageButton playStopButt;
@@ -58,11 +61,12 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
      * Use this factory method to create a new instance of this fragment using the provided parameters.
      * @return A new instance of fragment EffectsHostFragment.
      */
-    public static EffectsHostFragment newInstance(WaveTrack track, Project project)
+    public static EffectsHostFragment newInstance(WaveTrack track, Project project, MainAreaFragment.SampleRange range)
     {
         EffectsHostFragment fragment = new EffectsHostFragment();
         fragment.Project = project;
         fragment.track = track;
+        fragment.range = range;
        // Bundle args = new Bundle();
         //fragment.setArguments(args);
         return fragment;
@@ -167,6 +171,8 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
 
         ///////////////////////////
 
+        effectsFragment.setRange(range);
+
         return root;
     }
 
@@ -190,6 +196,9 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
             effectsFragment.setPlayer(player);
             effectsFragment.setChannel(player.getTracks().get(0).getChannel());
         }
+
+        @Override
+        public void onStartRecording(){}
 
         @Override
         public void onPlay()

@@ -62,7 +62,7 @@ public class Clip implements Serializable
         return true;
     }
 
-    public boolean copy(double t0, double t1, final Clip other)
+    public boolean createFromCopy(double t0, double t1, final Clip other)
     {
         long s0, s1;
 
@@ -70,11 +70,14 @@ public class Clip implements Serializable
         s1 = other.timeToSamplesClip(t1);
 
         AudioSequence oldSequence = sequence;
-        if (!other.sequence.copy(s0, s1, new AtomicReference<AudioSequence>(sequence)))
+
+        AtomicReference<AudioSequence> seqRef = new AtomicReference<AudioSequence>(sequence);
+        if (!other.sequence.copy(s0, s1, seqRef))
         {
             sequence = oldSequence;
             return false;
         }
+        else sequence = seqRef.get();
 
         return true;
     }
@@ -103,7 +106,7 @@ public class Clip implements Serializable
         }
         else
         {
-            // No resampling or format change needed, just use original clip without making a copy
+            // No resampling or format change needed, just use original clip without making a createFromCopy
             pastedClip = other;
         }
 

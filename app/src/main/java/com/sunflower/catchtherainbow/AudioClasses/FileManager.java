@@ -59,7 +59,7 @@ public class FileManager implements Serializable
     }
 
     // Adds one to the reference count of the block file,
-    // UNLESS it is "locked", then it makes a NEW copy of
+    // UNLESS it is "locked", then it makes a NEW createFromCopy of
     // the BlockFile.
     AudioChunk copyChunk(AudioChunk b)
     {
@@ -70,7 +70,7 @@ public class FileManager implements Serializable
         if (fn != null && !fn.equals(""))
         {
             // Block files with uninitialized filename (i.e. SilentBlockFile)
-            // just need an in-memory copy.
+            // just need an in-memory createFromCopy.
             b2 = b.copy("");
         }
         else

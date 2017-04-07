@@ -115,6 +115,7 @@ public class ListEffectsFragment extends BaseEffectFragment implements AdapterVi
             newFragment = itemEffect.getFragment().newInstance();
             newFragment.setChannel(chan);
             newFragment.setPlayer(player);
+            newFragment.setRange(range);
 
             fragmentTransaction.add(R.id.effectsFragment, newFragment);
             fragmentTransaction.commit();

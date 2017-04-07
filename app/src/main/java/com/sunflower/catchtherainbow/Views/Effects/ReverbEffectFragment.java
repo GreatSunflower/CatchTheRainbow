@@ -69,7 +69,7 @@ public class ReverbEffectFragment extends BaseEffectFragment implements Detailed
 
         if(bass_bfx_reverb == null) return false;
 
-        new ApplyEffectTask(getActivity(), getResources().getString(R.string.effect_apply_message), player.getTracks().get(0).getTrack(), BASS.BASS_FX_DX8_REVERB, bass_bfx_reverb ).execute();
+        new ApplyEffectTask(getActivity(), getResources().getString(R.string.effect_apply_message), player.getTracks().get(0).getTrack(), BASS.BASS_FX_DX8_REVERB, bass_bfx_reverb, range ).execute();
 
         return true;
     }

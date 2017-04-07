@@ -5,6 +5,7 @@ import android.util.Log;
 import com.un4seen.bass.BASS;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * Created by SuperComputer on 4/5/2017.
@@ -33,7 +34,7 @@ public class StreamProc implements BASS.STREAMPROC
             track.currentSample+=samplesRead;
 
             //Log.e(LOG_TAG, "Len: " + length + ", SLen: " + length/4 + ", Samples Read: " + samplesRead);
-            if (samplesRead == -1 || samplesRead < length / sampleSize || track.track.getEndSample() < track.currentSample)
+            if (samplesRead <= 0 || samplesRead < length / sampleSize || track.track.getEndSample() < track.currentSample)
             {
                 Log.e(LOG_TAG, "Normal end! " + track.track.name);
 

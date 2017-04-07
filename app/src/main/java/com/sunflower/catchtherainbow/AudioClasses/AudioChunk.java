@@ -92,14 +92,16 @@ public class AudioChunk implements Serializable
     {
         if(buffer == null) return false;
 
+        this.samplesCount = samplesLen;
+
         FileOutputStream fileOutputStream = new FileOutputStream(path);
         // buffer for outputting in ctr format
         ObjectOutputStream outputStream = new ObjectOutputStream(fileOutputStream);
 
         ChunkHeader header = new ChunkHeader(audioInfo, samplesLen);
-        header.summary64K = new float[frames64K * bytesPerFrame];
+        header.summary64K = new float[frames64K * bytesPerFrame * 4];
 
-        header.summary256 = new float[((frames64K * bytesPerFrame) + (frames256 * bytesPerFrame))];
+        header.summary256 = new float[((frames64K * bytesPerFrame) + (frames256 * bytesPerFrame)) * 4];
 
         calcSummary(buffer, samplesLen, audioInfo, header.summary64K, header.summary256);
 
@@ -120,7 +122,7 @@ public class AudioChunk implements Serializable
         // write sample data
         outputStream.write(res);
 
-        // write all of the data
+        // write all of the data to disk
         outputStream.flush();
 
         // close the steam
@@ -205,7 +207,7 @@ public class AudioChunk implements Serializable
     }
 
 
-        /// Create a copy of this BlockFile, but using a different disk file.
+        /// Create a createFromCopy of this BlockFile, but using a different disk file.
     ///
     /// @param newFileName The name of the NEW file to use.
     AudioChunk copy(String newFileName)

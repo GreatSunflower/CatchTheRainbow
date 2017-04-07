@@ -83,6 +83,7 @@ public abstract class BasePlayer
     public interface AudioPlayerListener
     {
         void onInitialized(float totalTime);
+        void onStartRecording();
         void onPlay();
         void onPause();
         void onStop();

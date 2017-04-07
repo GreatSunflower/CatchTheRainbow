@@ -199,6 +199,7 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
                     //listener.touchEnd();
                     //event.setAction(MotionEvent.ACTION_CANCEL);
                     getParent().requestDisallowInterceptTouchEvent(false);
+                    listener.touchEnd();
                     return false;
                 }
 
@@ -493,10 +494,14 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
     public void updateData()
     {
         //int normalizedOffset = (int) (offset * samplesPerPixel /*/** zoomFactor*/);
+        int frames = rect.width()+2;
+        data = new WaveData(frames);
+
         Clip startingClip = track.getClipAtSample((int) (offset));
+
         if(startingClip == null)
         {
-            for (int i = 0; i < rect.width(); i++) // fill with silence
+            for (int i = 0; i < frames; i++) // fill with silence
             {
                 data.max[i] = 0 ;
                 data.min[i] = 0 ;
@@ -504,15 +509,11 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
             return;
         }
 
-        // TEST!! Take 2 times more data!!!
-        int frames = rect.width()+2;
-        data = new WaveData(frames);
-
-        long startSample = (long) (offset);
+        long startSample = offset;
         //long len = (long) (samplesPerPixel*rect.width());
 
-        startingClip.getWaveData(startSample, rect.width(), samplesPerPixel, data);
-        Log.e(track.getName(), "Samples per frame: " + samplesPerPixel + ", offset: " + offset);
+        startingClip.getWaveData(startSample, frames, samplesPerPixel, data);
+        //Log.e(track.getName(), "Samples per frame: " + samplesPerPixel + ", offset: " + offset);
     }
 
 

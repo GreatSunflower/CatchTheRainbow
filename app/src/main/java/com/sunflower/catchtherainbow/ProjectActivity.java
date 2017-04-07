@@ -59,7 +59,11 @@ import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.ExportSongFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.LanguageFragment;
 import com.sunflower.catchtherainbow.Views.StartedApp.ProjectStartActivity;
+import com.un4seen.bass.BASS;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Queue;
@@ -333,14 +337,15 @@ public class ProjectActivity extends AppCompatActivity
 
                 if(selectedTrack == null)
                 {
-                    Helper.showCuteToast(ProjectActivity.this, R.string.track_not_selected, Gravity.CENTER); // error
+                    Helper.showCuteToast(ProjectActivity.this, R.string.track_not_selected, Gravity.CENTER, Toast.LENGTH_SHORT); // error
                     return super.onOptionsItemSelected(item);
                 }
 
+                // stereo!!!
                 double start = tracksFragment.getSelectionStartTime();
                 double end = tracksFragment.getSelectionEndTime();
 
-                Helper.showCuteToast(ProjectActivity.this, "S : " + Helper.secondToString(start) + ", E: " + Helper.secondToString(end), Gravity.CENTER);
+                //Helper.showCuteToast(ProjectActivity.this, "S : " + Helper.round(start, 2) + ", E: " + Helper.round(end, 2), Gravity.CENTER);
                 //Log.e("Area! ", "Start : " + start + ", End: " + end);
 
                 if (id == R.id.action_remove)
@@ -359,17 +364,20 @@ public class ProjectActivity extends AppCompatActivity
                     if(copiedArea != null)
                     {
                         bufferedTrack = copiedArea;
+                        Helper.showCuteToast(ProjectActivity.this, ")", Gravity.CENTER, Toast.LENGTH_SHORT);
                     }
-                    else Helper.showCuteToast(ProjectActivity.this, "(((", Gravity.CENTER);
+                    else Helper.showCuteToast(ProjectActivity.this, "(", Gravity.CENTER, Toast.LENGTH_SHORT);
                 }
                 else if (id == R.id.action_paste)
                 {
+                    if(bufferedTrack == null) return false;
                     if(selectedTrack.paste(start, bufferedTrack))
                     {
                         player.initialize(false);
                         tracksFragment.demandUpdate();
+                        Helper.showCuteToast(ProjectActivity.this, ")", Gravity.CENTER, Toast.LENGTH_SHORT);
                     }
-                    else Helper.showCuteToast(ProjectActivity.this, "(((", Gravity.CENTER);
+                    else Helper.showCuteToast(ProjectActivity.this, "(", Gravity.CENTER, Toast.LENGTH_SHORT);
                 }
                 else
                 {
@@ -380,7 +388,7 @@ public class ProjectActivity extends AppCompatActivity
                     ft.addToBackStack(null);
                     // Create and show the dialog.
 
-                    EffectsHostFragment hostFragment = EffectsHostFragment.newInstance(selectedTrack, project);
+                    EffectsHostFragment hostFragment = EffectsHostFragment.newInstance(selectedTrack, project, tracksFragment.getSelection());
                     //Helper.showCuteToast(ProjectActivity.this, selectedTrack.getName());
                     hostFragment.show(ft, "Effects dialog");
                     // force to create views
@@ -501,12 +509,15 @@ public class ProjectActivity extends AppCompatActivity
             }
             case R.id.bRecorderStart:
             {
-                bRecorderStart.setEnabled(false);
+                WaveTrack recorderTrack = new WaveTrack(getResources().getString(R.string.name), project.getFileManager());
+                recorderTrack.addClip(new Clip(project.getFileManager(), project.getProjectAudioInfo()));
+                project.addTrack(recorderTrack);
+                player.startRecording(recorderTrack);
                 break;
             }
             case R.id.bStop:
             {
-                bRecorderStart.setEnabled(true);
+                player.stop();
                 break;
             }
             case R.id.settings:
@@ -531,7 +542,7 @@ public class ProjectActivity extends AppCompatActivity
                         {
                             int samples = (int) (progress/10000f * WaveTrackView.MAX_SAMPLES_PER_PIXEL + 1);
                             tracksFragment.setSamplesPerPixel(samples);
-                            Log.e("Zoom", samples+"");
+                            //Log.e("Zoom", samples+"");
                         }
                     }
 
@@ -558,41 +569,11 @@ public class ProjectActivity extends AppCompatActivity
 
                 popupWindow.setWidth((int) getResources().getDimension(R.dimen.popup_width));
                 popupWindow.setAnimationStyle(android.R.style.Animation_InputMethod);
-                popupWindow.setVerticalOffset(5);
+                popupWindow.setVerticalOffset(7);
                 popupWindow.setHorizontalOffset(-5);
 
                 popupWindow.show();
 
-                break;
-            }
-            case R.id.playNext:
-            {
-                if (player != null)
-                {
-                    try
-                    {
-                        // player.playNext();
-                    }
-                    catch (Exception ex)
-                    {
-                        Toast.makeText(this, "Cannot be played!", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                break;
-            }
-            case R.id.playPrev:
-            {
-                if (player != null)
-                {
-                    try
-                    {
-                        //player.playPrev();
-                    }
-                    catch (Exception ex)
-                    {
-                        Toast.makeText(this, "Cannot be played!", Toast.LENGTH_SHORT).show();
-                    }
-                }
                 break;
             }
         } // switch
@@ -617,6 +598,13 @@ public class ProjectActivity extends AppCompatActivity
         }
 
         @Override
+        public void onStartRecording()
+        {
+            playPauseButt.setImageResource(R.drawable.ic_pause);
+            bRecorderStart.setEnabled(false);
+        }
+
+        @Override
         public void onPlay()
         {
             playPauseButt.setImageResource(R.drawable.ic_pause);
@@ -627,13 +615,13 @@ public class ProjectActivity extends AppCompatActivity
         public void onPause()
         {
             playPauseButt.setImageResource(R.drawable.ic_play);
-            unlockEditing(true);
         }
 
         @Override
         public void onStop()
         {
             playPauseButt.setImageResource(R.drawable.ic_play);
+            bRecorderStart.setEnabled(true);
             unlockEditing(true);
         }
 
@@ -705,7 +693,29 @@ public class ProjectActivity extends AppCompatActivity
 
                 // pass new data
                 visualizerView.updateVisualizer(res);*/
-                    statusHandler.postDelayed(this, 50);
+
+                /*if(player.isRecording())
+                {
+                    final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(512);
+                    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+
+                    int len = BASS.BASS_ChannelGetData(player.getRecorderTrack().getChannel(), byteBuffer, 512);
+
+                    if(len > 0)
+                    {
+                        final int floatLen = len / 2;
+                        final Float[] floatBuff = new Float[floatLen];
+                        for (int a = 0; a < floatLen; a++)
+                        {
+                            float num = byteBuffer.getShort(a) / 32768.f;
+                            floatBuff[a] = num;
+
+                            //Log.e("Sample: ", num+"");
+                        }
+                        visualizerView.updateVisualizer(floatBuff);
+                    }
+                }*/
+                statusHandler.postDelayed(this, 50);
                 }
             };
             statusHandler.postDelayed(updateTimer, 50);
@@ -768,7 +778,7 @@ public class ProjectActivity extends AppCompatActivity
         importer.addToQueue(queries);
 
         // notify about process
-        Helper.showCuteToast(ProjectActivity.this, R.string.import_notification, Gravity.CENTER);
+        Helper.showCuteToast(ProjectActivity.this, R.string.import_notification, Gravity.CENTER, Toast.LENGTH_SHORT);
     }
 
     @Override

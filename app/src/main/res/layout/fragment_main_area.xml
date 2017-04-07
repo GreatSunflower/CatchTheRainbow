@@ -47,7 +47,7 @@
                 android:layout_height="match_parent"/>
 
             <com.sunflower.catchtherainbow.Views.Editing.Timeline
-                android:id="@+id/view"
+                android:id="@+id/timeline"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"/>

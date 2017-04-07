@@ -135,8 +135,8 @@ public class WaveTrack implements Serializable
         {
             if (t0 <= clip.getStartTime() && t1 >= clip.getEndTime())
             {
-                // Whole clip is in copy region
-                //printf("copy: clip %i is in copy region\n", (int)clip);
+                // Whole clip is in createFromCopy region
+                //printf("createFromCopy: clip %i is in createFromCopy region\n", (int)clip);
                 Clip newClip = new Clip(clip, manager);
                 newTrack.clips.add(newClip);
                 newClip.offset(-t0);
@@ -158,7 +158,7 @@ public class WaveTrack implements Serializable
                     newClip.setOffset(0);
 
 
-                if (newClip.copy(clip_t0, clip_t1, clip))
+                if (newClip.createFromCopy(clip_t0, clip_t1, clip))
                 {
                     newTrack.clips.add(newClip); // transfer ownership
                 }
