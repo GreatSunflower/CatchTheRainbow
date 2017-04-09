@@ -5,6 +5,10 @@
         android:id="@+id/group_one"
         android:checkableBehavior="single">
         <item
+            android:id="@+id/nav_newTrack"
+            android:icon="@drawable/ic_add_circle"
+            android:title="@string/menu_new_track"/>
+        <item
             android:id="@+id/nav_import"
             android:icon="@drawable/ic_import_song"
             android:title="@string/menu_import"/>

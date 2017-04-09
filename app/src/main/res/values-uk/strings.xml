@@ -24,8 +24,9 @@
     <string name="navigation_drawer_open">Відкрити панель навігації</string>
     <string name="navigation_drawer_close">Закрити панель навігації</string>
 
+    <string name="menu_new_track">Новий трек</string>
     <string name="encoding">Експортування...</string>
-    <string name="please_import_some_audio">Будь ласка, імпортуйте деякі аудіо.</string>
+    <string name="please_import_some_audio">Будь ласка, імпортуйте декілька аудіо.</string>
     <string name="navigation_swipe_open_project">Проведіть по екрану, щоб відкрити існуючий проект.</string>
     <string name="navigation_swipe_create_project">Проведіть по екрану, щоб створити новий проект.</string>
     <string name="create_a_new_project">Створити новий проект</string>

@@ -4,6 +4,7 @@
     <string name="delete">Удалить</string>
     <string name="name">Название:</string>
     <string name="album">Альбом:</string>
+    <string name="menu_new_track">Новый трек</string>
     <string name="my_album">Мой альбом</string>
     <string name="ask_delete">Вы действительно хотите удалить?</string>
     <string name="ask_open">Проект с таким именем уже существует, открыть его?</string>

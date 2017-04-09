@@ -15,11 +15,9 @@ import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
-import android.view.animation.Transformation;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -28,17 +26,16 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TableRow;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.sunflower.catchtherainbow.AudioClasses.Project;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.R;
-import com.sunflower.catchtherainbow.Views.Helpful.ResizeAnimation;
 import com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar;
 import com.sunflower.catchtherainbow.Views.Helpful.VerticalSeekBar;
 
-import static com.sunflower.catchtherainbow.R.id.content;
 import static com.sunflower.catchtherainbow.R.id.mute_track;
 
 public class TrackHeaderView extends RelativeLayout
@@ -55,6 +52,7 @@ public class TrackHeaderView extends RelativeLayout
     EditText trackNameEdit;
     Switch muteSwitch;
     SuperSeekBar pan;
+    TextView duration;
     //pan	The pan position... -1 (full left) to +1 (full right), 0 = centre.
 
     boolean isGainDragging = false;
@@ -96,6 +94,7 @@ public class TrackHeaderView extends RelativeLayout
         gainBar = (VerticalSeekBar)findViewById(R.id.gain_bar);
         soloToggle = (ToggleButton)findViewById(R.id.solo_toggle);
         muteSwitch = (Switch)findViewById(mute_track);
+        duration = (TextView) findViewById(R.id.id_duration);
         removeButton = (ImageButton)findViewById(R.id.removeButton);
         trackNameEdit = (EditText)findViewById(R.id.track_name_edit);
         pan = (SuperSeekBar)findViewById(R.id.pan_bar);
@@ -140,7 +139,7 @@ public class TrackHeaderView extends RelativeLayout
         soloToggle.setChecked(track.isSolo());
         muteSwitch.setChecked(!track.isMuted());
         trackNameEdit.setText(track.getName());
-
+        duration.setText(Helper.secondToString(track.getEndTime()));
         //.setOnSuperSeekBarChangeListener(new SuperSeekBar.OnSuperSeekBarChangeListener()
         gainBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
         {

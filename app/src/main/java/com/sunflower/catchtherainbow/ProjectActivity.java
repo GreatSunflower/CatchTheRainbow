@@ -61,11 +61,8 @@ import com.sunflower.catchtherainbow.Views.Helpful.ExportSongFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.LanguageFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar;
 import com.sunflower.catchtherainbow.Views.StartedApp.ProjectStartActivity;
-import com.un4seen.bass.BASS;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Queue;
@@ -447,6 +444,13 @@ public class ProjectActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
+        if (id == R.id.nav_newTrack)
+        {
+
+            /////////////////////////////////////////
+
+
+        }
         if (id == R.id.nav_import)
         {
            //drawer.closeDrawer(GravityCompat.END);

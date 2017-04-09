@@ -3,6 +3,7 @@
 
     <string name="delete">Delete</string>
     <string name="name">Name:</string>
+    <string name="menu_new_track">New track</string>
     <string name="album">Album:</string>
     <string name="my_album">My album</string>
     <string name="ask_delete">Do you want to Delete?</string>
