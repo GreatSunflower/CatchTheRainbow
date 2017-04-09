@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -51,7 +52,14 @@ public class AudioSequence implements Serializable
         this.fileManager = manager;
         this.info = other.info;
 
-        paste(0, other);
+        try
+        {
+            paste(0, other);
+        }
+        catch (IOException | ClassNotFoundException e)
+        {
+            e.printStackTrace();
+        }
 
         // TEMP!!! USE only paste
       /*  for(int i = 0; i < other.chunks.size(); i++)
@@ -63,7 +71,7 @@ public class AudioSequence implements Serializable
 
     public boolean copyWrite(ByteBuffer scratch,
                              ByteBuffer buffer, AudioChunkPos chunk,
-                             long blockRelativeStart, int len)
+                             long blockRelativeStart, int len) throws IOException, ClassNotFoundException
     {
         // We don't ever write to an existing block; to support Undo,
         // we createFromCopy the old block entirely into memory, dereference it,
@@ -95,7 +103,7 @@ public class AudioSequence implements Serializable
     }
 
     // adds samples to the end
-    public boolean append(ByteBuffer buffer, long len) throws IOException
+    public boolean append(ByteBuffer buffer, long len) throws IOException, ClassNotFoundException
     {
         int chunksCount = chunks.size();
 
@@ -135,6 +143,8 @@ public class AudioSequence implements Serializable
             }
         }
 
+        Date startDate = new Date();
+
         // temp file count
         int q = 1;
         // append the rest as new chunks
@@ -143,6 +153,7 @@ public class AudioSequence implements Serializable
             final long chunkLen = Math.min(maxSamples, len);
 
             ByteBuffer res = ByteBuffer.allocateDirect((int) chunkLen * info.format.getSampleSize());
+            res.order(ByteOrder.LITTLE_ENDIAN);
             AudioHelper.copySamples(res, buffer, 0, (int) chunkLen, info);
 
             AudioChunk file = fileManager.createAudioChunk(res, (int)chunkLen, info);
@@ -162,6 +173,12 @@ public class AudioSequence implements Serializable
             samplesCount += chunkLen;
             len -= chunkLen;
         }
+
+        Date endDate = new Date();
+        long difference = endDate.getTime() - startDate.getTime();
+
+        Log.e("TIME", Helper.millisecondsToSeconds(difference)+"");
+
         return true;
     }
 
@@ -230,7 +247,7 @@ public class AudioSequence implements Serializable
         return guess;
     }
 
-    public int read(ByteBuffer buffer, AudioChunkPos chunkRef, long start, long len)
+    public int read(ByteBuffer buffer, AudioChunkPos chunkRef, long start, long len) throws IOException, ClassNotFoundException
     {
         AudioChunk chunk = chunkRef.getChunk();
 
@@ -249,18 +266,20 @@ public class AudioSequence implements Serializable
     }
 
     // pass null buffer to set silence
-    public boolean set(ByteBuffer buffer, long start, long len, AudioInfo info)
+    public boolean set(ByteBuffer buffer, long start, long len, AudioInfo info) throws IOException, ClassNotFoundException
     {
         if (start < 0 || start >= samplesCount || start+len > samplesCount)
             return false;
 
         ByteBuffer scratch = ByteBuffer.allocateDirect (maxSamples * info.format.getSampleSize());
+        scratch.order(ByteOrder.LITTLE_ENDIAN);
 
         ByteBuffer temp = null;
         if (buffer != null && info.format.getSampleSize() != getInfo().format.getSampleSize())
         {
             long size = AudioHelper.limitSampleBufferSize(maxSamples, len);
             temp = ByteBuffer.allocateDirect((int) (size * info.format.getSampleSize()));
+            temp.order(ByteOrder.LITTLE_ENDIAN);
         }
 
         int pos = findChunk(start);
@@ -279,7 +298,6 @@ public class AudioSequence implements Serializable
                     copyWrite(scratch, buffer, chunkPos, bstart, (int) blen);
                 else
                 {
-
                     AudioHelper.copySamples(temp, buffer, (int)bstart, (int)blen, info);
                     copyWrite(scratch, temp, chunkPos, bstart, (int) blen);
                 }
@@ -295,6 +313,7 @@ public class AudioSequence implements Serializable
                 {
                     // Odd partial blocks of silence at start or end.
                     temp = ByteBuffer.allocateDirect((int) (blen * info.format.getSampleSize()));
+                    temp.order(ByteOrder.LITTLE_ENDIAN);
                     AudioHelper.clearSamples(temp, 0, (int) blen, info);
                     // Otherwise write silence just to the portion of the block
                     copyWrite(scratch, temp, chunkPos, bstart, (int) blen);
@@ -309,7 +328,7 @@ public class AudioSequence implements Serializable
     }
 
     // fills buffer with samples
-    public int get(ByteBuffer buffer, long start, int len)
+    public int get(ByteBuffer buffer, long start, int len) throws IOException, ClassNotFoundException
     {
         if(start == samplesCount)
             return 0;
@@ -325,7 +344,7 @@ public class AudioSequence implements Serializable
         return get(pos, buffer, start, len);
     }
 
-    public int get(int pos, ByteBuffer buffer, long start, int len)
+    public int get(int pos, ByteBuffer buffer, long start, int len) throws IOException, ClassNotFoundException
     {
         int bytesRead = 0;
         while (len > 0)
@@ -346,7 +365,7 @@ public class AudioSequence implements Serializable
         return bytesRead;
     }
 
-    public boolean copy(long start, long end, AtomicReference<AudioSequence> dest)
+    public boolean copy(long start, long end, AtomicReference<AudioSequence> dest) throws IOException, ClassNotFoundException
     {
         if (start >= end || start >= samplesCount || end < 0)
             return false;
@@ -362,6 +381,7 @@ public class AudioSequence implements Serializable
         dest.set(new AudioSequence(fileManager, info));
 
         ByteBuffer buffer = ByteBuffer.allocateDirect(maxSamples * info.format.getSampleSize());
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
 
         int blocklen;
 
@@ -422,7 +442,7 @@ public class AudioSequence implements Serializable
 
         return true;
     }
-    public boolean paste(long pos, final AudioSequence src)
+    public boolean paste(long pos, final AudioSequence src) throws IOException, ClassNotFoundException
     {
         if ((pos < 0) || (pos > samplesCount))
         {
@@ -481,21 +501,22 @@ public class AudioSequence implements Serializable
             AudioChunkPos block = pBlock;
             // largerBlockLen is not more than mMaxSamples...
             ByteBuffer buffer = ByteBuffer.allocateDirect((int) (largerBlockLen * sampleSize));
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
 
             // ...and addedLen is not more than largerBlockLen
             long sAddedLen = addedLen;
             // s lies within block:
             long splitPoint = pos - block.start;
-            read(buffer, block, 0, splitPoint);
-            src.get(0, buffer,0, (int) sAddedLen);
-            read(buffer, block, splitPoint, length - splitPoint);
-
             AudioChunk file = null;
             try
             {
+                read(buffer, block, 0, splitPoint);
+                src.get(0, buffer,0, (int) sAddedLen);
+                read(buffer, block, splitPoint, length - splitPoint);
+
                 file = fileManager.createAudioChunk(buffer, largerBlockLen, info);
             }
-            catch (IOException e)
+            catch (IOException | ClassNotFoundException e)
             {
                 e.printStackTrace();
                 return false;
@@ -532,6 +553,8 @@ public class AudioSequence implements Serializable
             final long sum = splitLen + sAddedLen;
 
             ByteBuffer sumBuffer = ByteBuffer.allocateDirect((int) (sum * sampleSize));
+            sumBuffer.order(ByteOrder.LITTLE_ENDIAN);
+
             read(sumBuffer, splitBlock, 0, splitPoint);
             src.get(0, sumBuffer, 0, (int) sAddedLen);
             read(sumBuffer, splitBlock, splitPoint, splitLen - splitPoint);
@@ -556,6 +579,7 @@ public class AudioSequence implements Serializable
             final long rightLen = rightSplit + srcLastTwoLen;
 
             ByteBuffer sampleBuffer = ByteBuffer.allocateDirect((int) (Math.max(leftLen, rightLen) * sampleSize));
+            sampleBuffer.order(ByteOrder.LITTLE_ENDIAN);
 
             read(sampleBuffer, splitBlock, 0, splitPoint);
             src.get(0, sampleBuffer, 0, (int) srcFirstTwoLen);
@@ -598,7 +622,7 @@ public class AudioSequence implements Serializable
     }
 
     //long GetIdealAppendLen() const;
-    public synchronized boolean delete(long start, long len)
+    public synchronized boolean delete(long start, long len) throws IOException, ClassNotFoundException
     {
         if (len == 0)
             return true;
@@ -636,6 +660,7 @@ public class AudioSequence implements Serializable
             long newLen = length - len;
 
             scratch = ByteBuffer.allocateDirect(scratchSize * sampleSize);
+            scratch.order(ByteOrder.LITTLE_ENDIAN);
 
             read(scratch, b, 0, pos);
             read(scratch, b, pos + len, newLen - pos); // pos + len is not more than the length of the block
@@ -679,7 +704,9 @@ public class AudioSequence implements Serializable
             if (preBufferLen >= minSamples || b0 == 0)
             {
                 //if (scratch == null)
-                    scratch = ByteBuffer.allocateDirect(scratchSize * sampleSize);
+                scratch = ByteBuffer.allocateDirect(scratchSize * sampleSize);
+                scratch.order(ByteOrder.LITTLE_ENDIAN);
+
                 read(scratch, preBlock, 0, preBufferLen);
                 AudioChunk pFile = null;
                 try
@@ -701,7 +728,8 @@ public class AudioSequence implements Serializable
                 final long sum = prepreLen + preBufferLen;
 
                 //if (scratch == null)
-                    scratch = ByteBuffer.allocateDirect(scratchSize * sampleSize);
+                scratch = ByteBuffer.allocateDirect(scratchSize * sampleSize);
+                scratch.order(ByteOrder.LITTLE_ENDIAN);
 
                 read(scratch, preBlock, 0, prepreLen);
                 read(scratch, preBlock, 0, preBufferLen);
@@ -725,7 +753,9 @@ public class AudioSequence implements Serializable
             {
                // if (scratch == null)
                     // Last use of scratch, can ask for smaller
-                    scratch = ByteBuffer.allocateDirect((int) (postBufferLen * sampleSize));
+                scratch = ByteBuffer.allocateDirect((int) (postBufferLen * sampleSize));
+                scratch.order(ByteOrder.LITTLE_ENDIAN);
+
                 // start + len - 1 lies within postBlock
                 long pos = start + len - postBlock.start;
                 read(scratch, postBlock, pos, postBufferLen);
@@ -750,7 +780,9 @@ public class AudioSequence implements Serializable
 
                 //if (scratch == null)
                     // Last use of scratch, can ask for smaller
-                    scratch = ByteBuffer.allocateDirect((int) (sum * sampleSize));
+                scratch = ByteBuffer.allocateDirect((int) (sum * sampleSize));
+                scratch.order(ByteOrder.LITTLE_ENDIAN);
+
                 // start + len - 1 lies within postBlock
                 long pos = start + len - postBlock.start;
                 read(scratch, postBlock, pos, postBufferLen);
@@ -783,6 +815,12 @@ public class AudioSequence implements Serializable
             return;
         long num = (len + (maxSamples - 1)) / maxSamples;
 
+        buffer.rewind();
+        //bufStart.put(buffer);
+        byte[]buff = new byte[(int) len * info.format.getSampleSize()];
+        buffer.rewind();
+        buffer.get(buff);
+
         for (long i = 0; i < num; i++)
         {
             AudioChunkPos b = new AudioChunkPos();
@@ -791,10 +829,10 @@ public class AudioSequence implements Serializable
             b.start = (int) (start + offset);
             int newLen = (int) ( ((i + 1) * len / num) - offset);
 
-            ByteBuffer bufStart = ByteBuffer.allocateDirect ((int) (/*len + */offset * info.format.getSampleSize()));
-            byte[]buff = new byte[newLen];
-            buffer.get(buff, offset, newLen);
-            bufStart.put(buff);
+            ByteBuffer bufStart = ByteBuffer.allocateDirect ((int) (newLen * info.format.getSampleSize() /*len +*/ /*offset * info.format.getSampleSize()*/));
+            bufStart.order(ByteOrder.LITTLE_ENDIAN);
+
+            bufStart.put(buff, offset, newLen * info.format.getSampleSize());
 
             try
             {
@@ -850,11 +888,20 @@ public class AudioSequence implements Serializable
 
         sTrack.samplesCount = (int) pos;
 
-        return paste(s0, sTrack);
+        boolean res= false;
+        try
+        {
+            res = paste(s0, sTrack);
+        }
+        catch (IOException | ClassNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+        return res;
     }
 
     // wave data
-    boolean getWaveData(long startSample, long frameCount, long samplesPerFrame, WaveData waveData)
+    boolean getWaveData(long startSample, long frameCount, long samplesPerFrame, WaveData waveData) throws IOException, ClassNotFoundException
     {
         if(waveData == null || samplesPerFrame < 1) return false;
 
@@ -874,24 +921,24 @@ public class AudioSequence implements Serializable
         int index = findChunk(startSample);
         int frame = 0;
 
+        long start = startSample;
         long len = samplesPerFrame * frameCount;
 
         //Log.e("Sequence","Total Len: " + len);
+        int checkedChunks = 0;
 
+        long srcX = start;
         while (len > 0 && index < chunks.size() && index >= 0)
         {
             AudioChunkPos chunkPos = chunks.get(index);
 
             // start is in block
-            long bStart = startSample - chunkPos.getStart();
+            long bStart = start - chunkPos.getStart();
             // bstart is not more than block length
             long bLen = Math.min(len, chunkPos.getChunk().getSamplesCount() - bStart);
+            long nextSrcX = Math.min(samplesCount, start + chunkPos.getChunk().getSamplesCount());
 
             if(bLen == 0) break;
-
-            // decrement while we can
-            len -= bLen;
-            startSample += bLen;
 
             /*bStart = Math.max(0, bStart / divider);
             int inclusiveEndPosition = Math.min( (bLen / divider) - 1, (startSample) / divider);
@@ -909,9 +956,11 @@ public class AudioSequence implements Serializable
                     chunkPos.getChunk().readToBuffer(buffer, bStart, bLen);
                     break;
                 case 256: // summary 256
-                    bStart = bStart / divider;
-                    bLen = bLen / samplesPerFrame * 6;
-                    //bLen *= 24;
+                    bStart = Math.max(0, bStart / divider);
+                   // long inclusiveEndPosition = Math.min(maxSamples / divider - 1, (bLen - 1 - chunkPos.getStart()) / divider);
+                    //bLen = 1 + inclusiveEndPosition - bStart;
+                    bLen = bLen / divider;
+                    //bLen = bLen/*/divider*/ /*bLen / samplesPerFrame * 6*/;
                     buffer = ByteBuffer.allocateDirect((int) (bLen * 4));
                     chunkPos.getChunk().read256(buffer, bStart, bLen);
                     break;
@@ -926,20 +975,24 @@ public class AudioSequence implements Serializable
                     break;
             }
 
+            // decrement while we can
+            len -= bLen;
+            start += bLen;
+
             // get float buffer
             float []floatBuffer = new float[(int) bLen];
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            if(divider == 1) buffer.order(ByteOrder.LITTLE_ENDIAN);
             buffer.rewind();
             buffer.asFloatBuffer().get(floatBuffer);
 
-            int curPos = 0;
-
-            int div = Math.round(floatBuffer.length / (float) frameCount / 2)/*(int) (samplesPerFrame / divider)*/;
+            int div = Math.round((float) (samplesPerFrame / divider) * floatBuffer.length /  floatBuffer.length); //Math.round(floatBuffer.length / (float) frameCount / 2)/*(int) (samplesPerFrame / divider)*/;
+            div = Math.abs(div);
             //Log.e("SEQUENCE", "Div: " + div+"");
 
             // no data gathered
             if(div == 0)
             {
+                Log.e("SEQUENCE", "Div: " + div);
                 index++;
                 continue;
             }
@@ -958,8 +1011,10 @@ public class AudioSequence implements Serializable
                 continue;
             }*/
 
+            int curPos = 0;
             // round samples to fit the frame
             for(; curPos < bLen; )
+            //for(int iter = 0; iter < bLen; iter+=div)
             {
                 if(frame >= waveData.max.length) break;
 
@@ -970,19 +1025,18 @@ public class AudioSequence implements Serializable
                 }
 
                 // find average values
-                float avgMin = Float.MAX_VALUE, avgMax = Float.MIN_VALUE;
+                float avgMin = Float.MAX_VALUE, avgMax = -Float.MAX_VALUE;
 
                 // read pcm data
                 if(divider == 1)
                 {
                     for (int i = 0; i < div; i++)
                     {
-                        /*if (curPos < floatBuffer.length)
-                            avgMin += floatBuffer[curPos];
-                        if (curPos + 2 < floatBuffer.length)
-                            avgMax += floatBuffer[curPos + 2];*/
-
-                        if (curPos >= floatBuffer.length /*|| curPos + 2 >= floatBuffer.length*/) break;
+                        if (curPos >= floatBuffer.length /*|| curPos + 2 >= floatBuffer.length*/)
+                        {
+                            curPos+=2;
+                            break;
+                        }
 
                         if (waveData.individualSamples)
                         {
@@ -1001,14 +1055,18 @@ public class AudioSequence implements Serializable
                     }
 
                     // modify wave data
-                    waveData.max[frame] = avgMax;
-                    waveData.min[frame] = avgMin;
+                    waveData.max[frame] = avgMax;//Helper.clamp(avgMax, -1f, 1f);
+                    waveData.min[frame] = avgMin;//Helper.clamp(avgMin, -1f, 1f);
                 }
                 else // read summary data
                 {
                     for (int i = 0; i < div; i++)
                     {
-                        if (curPos >= floatBuffer.length || curPos + 1 >= floatBuffer.length) break;
+                        if (curPos >= floatBuffer.length || curPos + 1 >= floatBuffer.length)
+                        {
+                            curPos+=3;
+                            break;
+                        }
 
                         if(floatBuffer[curPos] < avgMin) avgMin = floatBuffer[curPos];
                         if(floatBuffer[curPos + 1] > avgMax) avgMax = floatBuffer[curPos + 1];
@@ -1017,16 +1075,32 @@ public class AudioSequence implements Serializable
                     }
 
                     // modify wave data
-                    waveData.max[frame] = avgMax ;
-                    waveData.min[frame] = avgMin ;
+                    waveData.max[frame] = avgMax;//Helper.clamp(avgMax, -6.0000f, 6.0000f);
+                    waveData.min[frame] = avgMin;//Helper.clamp(avgMin, -6.0000f, 6.0000f);
 
                     //curPos += div + 3*6/*+3+1*/;
                 }
                 frame++;
             } // for
 
+            srcX = nextSrcX;
             index++;
+            checkedChunks++;
         }
+
+        //Log.e("Sequence", "Checked Chunks: " + checkedChunks);
+
+        boolean corrupt = false;
+        for (int i = 0; i < frameCount; i++)
+        {
+            if(Float.isInfinite(waveData.min[i]) || Float.isNaN(waveData.min[i]))
+            {
+                corrupt = true;
+                break;
+            }
+        }
+        if(corrupt)
+            Log.e("Sequence", "Nulls");
 
         //Log.e("Sequence", "Frames written: " + frame + ", Divider: " + divider);
         return true;

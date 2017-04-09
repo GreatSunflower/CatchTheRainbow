@@ -1,5 +1,6 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public class WaveTrack implements Serializable
         return this;
     }
 
-    public boolean set(ByteBuffer buffer, long start, long len)
+    public boolean set(ByteBuffer buffer, long start, long len) throws IOException, ClassNotFoundException
     {
         for (Clip clip: clips)
         {
@@ -73,7 +74,7 @@ public class WaveTrack implements Serializable
         return true;
     }
 
-    public int get(ByteBuffer buffer, long start, int len)
+    public int get(ByteBuffer buffer, long start, int len) throws IOException, ClassNotFoundException
     {
         boolean doClear = true;
         for (final Clip clip: clips)
@@ -122,7 +123,7 @@ public class WaveTrack implements Serializable
         return bytesRead;
     }
 
-    public WaveTrack copy(double t0, double t1)
+    public WaveTrack copy(double t0, double t1) throws IOException, ClassNotFoundException
     {
         if (t1 <= t0)
             return null;
@@ -182,7 +183,7 @@ public class WaveTrack implements Serializable
         return newTrack;
     }
 
-    public boolean paste(double t0, WaveTrack src)
+    public boolean paste(double t0, WaveTrack src) throws IOException, ClassNotFoundException
     {
         if(src == null)
             return false;
@@ -278,7 +279,7 @@ public class WaveTrack implements Serializable
         return true;
     }
 
-    WaveTrack cut(double t0, double t1)
+    WaveTrack cut(double t0, double t1) throws IOException, ClassNotFoundException
     {
         if (t1 < t0)
             return null;
@@ -317,12 +318,12 @@ public class WaveTrack implements Serializable
     }
 
 
-    public boolean clear(double t0, double t1)
+    public boolean clear(double t0, double t1) throws IOException, ClassNotFoundException
     {
         return handleDelete(t0, t1, false);
     }
 
-    private boolean handleDelete(double t0, double t1, boolean split)
+    private boolean handleDelete(double t0, double t1, boolean split) throws IOException, ClassNotFoundException
     {
         if (t1 < t0)
             return false;
@@ -492,7 +493,43 @@ public class WaveTrack implements Serializable
         return null;
     }
 
+    public Clip createClip()
+    {
+        Clip clip = new Clip(manager, info);
+        clips.add(clip);
+        return clip;
+    }
 
+    public Clip rightmostOrNewClip()
+    {
+        if (clips.isEmpty())
+        {
+            Clip clip = createClip();
+            clip.setOffset(0);
+            return clip;
+        }
+        else
+        {
+            Clip rightmost = clips.get(0);
+            double maxOffset = rightmost.getOffset();
+            for (int i = clips.size()-1; i > 0; i--)
+            {
+                Clip clip = clips.get(i);
+                double offset = clip.getOffset();
+                if (maxOffset < offset)
+                {
+                    maxOffset = offset;
+                    rightmost = clip;
+                }
+            }
+            return rightmost;
+        }
+    }
+
+    boolean append(ByteBuffer buffer, int len) throws IOException, ClassNotFoundException
+    {
+        return rightmostOrNewClip().append(buffer, len);
+    }
 
     // ------- Getters setters -------------
     public ArrayList<Clip> getClips()

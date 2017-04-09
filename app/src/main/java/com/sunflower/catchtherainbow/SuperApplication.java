@@ -57,11 +57,21 @@ public class SuperApplication extends Application
         }
         // plugins end
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_BUFFER, 5000);
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_REC_BUFFER, 5000);
+        //BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATEPERIOD, 100);
+
+
+        /*int len=BASS.BASS_GetConfig(BASS.BASS_CONFIG_UPDATEPERIOD); // get update period
+        BASS.BASS_INFO binfo = new BASS.BASS_INFO();
+        BASS.BASS_GetInfo(binfo); // retrieve device info
+        len+=binfo.minbuf+1; // add the 'minbuf' plus 1ms margin
+        BASS.BASS_SetConfig(BASS.BASS_CONFIG_BUFFER, len); // set the buffer length*/
+
 
         //BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATETHREADS, project.getTracks().size());
         //BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATEPERIOD, 30);
         //BASS.BASS_SetConfig(BASS.BASS_CONFIG_ASYNCFILE_BUFFER, 4096*2);/* */
-        BASS.BASS_SetConfig(BASSmix.BASS_CONFIG_MIXER_BUFFER, 5);
+        //BASS.BASS_SetConfig(BASSmix.BASS_CONFIG_MIXER_BUFFER, 5);
         //BASS.BASS_SetConfig(BASSmix.BASS_CONFIG_MIXER_POSEX, 5000);
     }
 }

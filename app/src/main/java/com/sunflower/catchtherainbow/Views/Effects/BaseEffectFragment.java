@@ -14,6 +14,7 @@ import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
 import com.un4seen.bass.BASS;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -99,7 +100,7 @@ class ApplyEffectTask extends AsyncTask<Void, Integer, Void>
         this.effects = effects;
     }
 
-  /*  @Override
+    @Override
     protected Void doInBackground(Void... params)
     {
         TrackInfo trackInfo = new TrackInfo(0, track, 0); // new TrackInfo(0, track, track.timeToSamples(start));
@@ -125,7 +126,6 @@ class ApplyEffectTask extends AsyncTask<Void, Integer, Void>
 
         // size in bytes
         int bufferSize = AudioSequence.maxChunkSize / 2; /*1048576*4*/;
-/*
 
         long totalBytesRead = 0;
 
@@ -151,7 +151,14 @@ class ApplyEffectTask extends AsyncTask<Void, Integer, Void>
                 break;
             }
 
-            track.set(audioData, totalBytesRead / sampleSize, (bytesRead) / sampleSize);
+            try
+            {
+                track.set(audioData, totalBytesRead / sampleSize, (bytesRead) / sampleSize);
+            }
+            catch (IOException | ClassNotFoundException e)
+            {
+                e.printStackTrace();
+            }
 
             totalBytesRead += bytesRead;
             len -= bytesRead;
@@ -161,9 +168,9 @@ class ApplyEffectTask extends AsyncTask<Void, Integer, Void>
         }
 
         return null;
-    }*/
+    }
 
-    @Override
+   /* @Override
     protected Void doInBackground(Void... params)
     {
 
@@ -190,7 +197,7 @@ class ApplyEffectTask extends AsyncTask<Void, Integer, Void>
 
         // size in bytes
         int bufferSize = AudioSequence.maxChunkSize / 2; /*1048576*4*/;
-        int totalBytesRead = 0;
+        /*int totalBytesRead = 0;
 
         // read data piece by piece
         while(totalBytesRead < len)
@@ -213,7 +220,7 @@ class ApplyEffectTask extends AsyncTask<Void, Integer, Void>
         }
 
         return null;
-    }
+    }*/
 
     @Override
     protected void onProgressUpdate(Integer... values)

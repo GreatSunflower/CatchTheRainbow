@@ -4,28 +4,25 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.support.v4.view.VelocityTrackerCompat;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.VelocityTracker;
 import android.view.View;
-import android.widget.ArrayAdapter;
 
 import com.sunflower.catchtherainbow.AudioClasses.Clip;
 import com.sunflower.catchtherainbow.AudioClasses.WaveData;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.R;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 /**
  * Created by SuperComputer on 3/25/2017.
@@ -55,7 +52,8 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
     protected Paint selectionPaint = new Paint();
 
     // should update data
-    private boolean isDirty = true;
+    //private boolean isDirty = true;
+    private Queue<Boolean> updateQueue = new LinkedList<>();
 
     // used for pausing drawing
     private boolean isSuspended = false;
@@ -80,7 +78,6 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
         this.samplesPerPixel = samplesPerPixel;
 
         // gesture detectors
-        gestureDetector = new GestureDetector(context, superGestureListener);
         scaleGestureDetector = new ScaleGestureDetector(context, scaleGestureListener);
 
         setFocusable(true);
@@ -100,6 +97,9 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
 
         selectionPaint.setColor(context.getResources().getColor(R.color.colorAccent));
         selectionPaint.setAlpha(50);
+
+        // make view to gather the data
+        demandFullUpdate();
     }
 
     protected ScaleGestureDetector.SimpleOnScaleGestureListener scaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener()
@@ -133,24 +133,12 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
         }
     };
 
-    protected GestureDetector.SimpleOnGestureListener superGestureListener = new GestureDetector.SimpleOnGestureListener()
-    {
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
-        {
-            if(listener != null)
-                listener.fling(velocityX);
-
-           //Log.e("Track", "Xvel: " + velocityX + ", Yvel:" + velocityY);
-            return true;
-        }
-    };
-
     private VelocityTracker velocityTracker = null;
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
         scaleGestureDetector.onTouchEvent(event);
-        if (gestureDetector.onTouchEvent(event) || isScaling)
+        if (/*gestureDetector.onTouchEvent(event) || */isScaling)
         {
             return true;
         }
@@ -166,21 +154,18 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
         switch (action)
         {
             case MotionEvent.ACTION_DOWN:
-                if(velocityTracker == null)
-                {
+                /*if(velocityTracker == null)
+                {*/
                     // Retrieve a new VelocityTracker object to watch the velocity of a motion.
                     velocityTracker = VelocityTracker.obtain();
-                }
+                /*}
                 else
                 {
                     // Reset the velocity tracker back to its initial state.
                     velocityTracker.clear();
-                }
+                }*/
                 // Add a user's movement to the tracker.
                 velocityTracker.addMovement(event);
-
-                // focus row
-                ((View)getTag()).requestFocus();
 
                 listener.touchStart(event.getX());
                 break;
@@ -199,13 +184,17 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
                     //listener.touchEnd();
                     //event.setAction(MotionEvent.ACTION_CANCEL);
                     getParent().requestDisallowInterceptTouchEvent(false);
-                    listener.touchEnd();
                     return false;
                 }
 
+                // focus row
+                ((View)getTag()).requestFocus();
+
                 // to avoid weird-looking jumps
                 if(Math.abs(velX) < 20)
-                    return false;
+                {
+                    return true;
+                }
 
                 listener.touchMove(event.getX());
                 break;
@@ -218,9 +207,17 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
         return true;
     }
 
-    public void demandUpdate()
+    public void demandFullUpdate()
     {
-        isDirty = true;
+        //isDirty = true;
+        updateQueue.add(Boolean.TRUE);
+    }
+
+    // doesn't update data, only redraws
+    public void demandDrawUpdate()
+    {
+        //isDirty = true;
+        updateQueue.add(Boolean.FALSE);
     }
 
     public void setSamplesPerPixel(int samplesPerPixel)
@@ -230,7 +227,7 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
 
         this.samplesPerPixel = samplesPerPixel;
 
-        isDirty = true;
+        demandFullUpdate();
     }
 
    /* @Override
@@ -343,7 +340,7 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
     public void setOffset(long offset)
     {
         this.offset = offset;
-        demandUpdate();
+        demandFullUpdate();
     }
 
     public boolean isSuspended()
@@ -364,7 +361,12 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
     public void setSelection(MainAreaFragment.SampleRange selection)
     {
         this.selection = selection;
-        demandUpdate();
+        demandDrawUpdate();
+    }
+
+    public Queue<Boolean> getUpdateQueue()
+    {
+        return updateQueue;
     }
 
     // -------------------------------------------------------Drawing stuff-----------------------------------------------
@@ -409,7 +411,7 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height)
     {
         rect.set(0, 0, width, height);
-        demandUpdate();
+        demandFullUpdate();
     }
 
     @Override
@@ -422,30 +424,8 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface){}
 
-    /**
-     * draw waveform
-     */
-    public void doDraw(Canvas canvas)
+    public void drawSelection(Canvas canvas, float width, float height)
     {
-        canvas.drawColor(backgroundColor);
-
-        int frames = rect.width();
-
-        if(isDirty) // data needs to be updated
-        {
-            updateData();
-            isDirty = false;
-        }
-        else if(data.max == null || data.max.length < frames)
-        {
-            updateData();
-        }
-
-        float width = rect.width();
-        float height = rect.height();
-        float centerY = height / 2;
-
-        // update selection
         if(selection != null)
         {
             long startPos = selection.startingSample - offset;
@@ -457,6 +437,35 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
 
             canvas.drawRect(startPos / samplesPerPixel, 0, endPos/ samplesPerPixel, height, selectionPaint);
         }
+    }
+
+    /**
+     * draw waveform
+     */
+    public void doDraw(Canvas canvas)
+    {
+        canvas.drawColor(backgroundColor);
+
+        int frames = rect.width();
+
+        /*if(isDirty) // data needs to be updated
+        {
+            updateData();
+            isDirty = false;
+        }
+        else */
+        // not enough data!!!
+        if(data == null || data.max == null || data.max.length < frames)
+        {
+            updateData();
+        }
+
+        float width = frames;
+        float height = rect.height();
+        float centerY = height / 2;
+
+        // update selection
+        drawSelection(canvas, width, height);
 
         boolean showSamples = data.individualSamples;
 
@@ -472,11 +481,12 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
             }
             else // read min/max
             {
+                // here we calculate symmetrical lines
                 x1 = i ;
-                y1 = centerY + data.min[i] * (centerY);
+                y1 = centerY - data.min[i] * (centerY);
 
                 x2 = i ;
-                y2 = centerY + data.max[i] * (centerY);
+                y2 = centerY + data.min[i] * (centerY);
             }
 
             if(y1 == y2)
@@ -512,7 +522,14 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
         long startSample = offset;
         //long len = (long) (samplesPerPixel*rect.width());
 
-        startingClip.getWaveData(startSample, frames, samplesPerPixel, data);
+        try
+        {
+            startingClip.getWaveData(startSample, frames, samplesPerPixel, data);
+        }
+        catch (IOException | ClassNotFoundException e)
+        {
+            e.printStackTrace();
+        }
         //Log.e(track.getName(), "Samples per frame: " + samplesPerPixel + ", offset: " + offset);
     }
 
@@ -522,7 +539,6 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
         void touchStart(float x);
         void touchMove(float x);
         void touchEnd();
-        void fling(float x);
         void draw();
         void zoomIn();
         void zoomOut();

@@ -24,6 +24,7 @@ import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.AudioProgressView;
 import com.sunflower.catchtherainbow.Views.Editing.MainAreaFragment;
+import com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -117,26 +118,26 @@ public class EffectsHostFragment extends DialogFragment implements View.OnClickL
         progressView = (AudioProgressView) root.findViewById(R.id.audioProgressEffect);
         progressView.setMax(1.f);
         progressView.setCurrent(0);
-        progressView.setOnSeekBar(new SeekBar.OnSeekBarChangeListener()
+        progressView.setOnSeekBar(new SuperSeekBar.OnSuperSeekBarChangeListener()
         {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean b)
+            public void onProgressChanged(SuperSeekBar seekBar, float progress, boolean b)
             {
                 if (player != null)
                     progressView.setCurrent(progress);
             }
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar)
+            public void onStartTrackingTouch(SuperSeekBar seekBar)
             {
                 isDragging = true;
             }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar)
+            public void onStopTrackingTouch(SuperSeekBar seekBar)
             {
                 if (player != null)
                 {
-                    player.setPosition(seekBar.getProgress());
+                    player.setPosition(seekBar.getCurrentValue());
                 }
                 isDragging = false;
             }

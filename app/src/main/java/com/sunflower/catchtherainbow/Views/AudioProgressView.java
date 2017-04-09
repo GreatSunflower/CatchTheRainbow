@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.sunflower.catchtherainbow.Helper;
 import com.sunflower.catchtherainbow.R;
+import com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar;
 
 /**
  * Created by SuperComputer on 2/5/2017.
@@ -16,7 +17,7 @@ import com.sunflower.catchtherainbow.R;
 
 public class AudioProgressView extends RelativeLayout
 {
-    private SeekBar audioProgressBar;
+    private SuperSeekBar audioProgressBar;
     private TextView curTimeTextView, audioDurationTextView;
 
     // Time Variables
@@ -39,8 +40,8 @@ public class AudioProgressView extends RelativeLayout
         try
         {
             //get the text and colors specified using the names in attrs.xml
-            setMax((int)a.getFloat(R.styleable.RangedParameters_max, 0.f));
-            setCurrent((int)a.getFloat(R.styleable.RangedParameters_current, 0.f));
+            setMax(a.getFloat(R.styleable.RangedParameters_max, 0.f));
+            setCurrent(a.getFloat(R.styleable.RangedParameters_current, 0.f));
         }
         catch (Exception e){}
         finally
@@ -56,7 +57,7 @@ public class AudioProgressView extends RelativeLayout
         inflate(getContext(), R.layout.view_audio_progress, this);
         this.curTimeTextView = (TextView)findViewById(R.id.currentTime);
         this.audioDurationTextView = (TextView)findViewById(R.id.totalDuration);
-        this.audioProgressBar = (SeekBar) findViewById(R.id.audioSeekBar);
+        this.audioProgressBar = (SuperSeekBar) findViewById(R.id.audioSeekBar);
     }
 
     public float getMax()
@@ -72,7 +73,7 @@ public class AudioProgressView extends RelativeLayout
     public void setMax(float max)
     {
         this.max = max;
-        audioProgressBar.setMax((int) max);
+        audioProgressBar.setMaxValue(max);
         curTimeTextView.setText("00:00");
         audioDurationTextView.setText(Helper.secondToString(max));
     }
@@ -85,12 +86,12 @@ public class AudioProgressView extends RelativeLayout
     public void setCurrent(float current)
     {
         this.current = current;
-        audioProgressBar.setProgress((int) current);
+        audioProgressBar.setCurrentValue(current);
         curTimeTextView.setText(Helper.secondToString(current));
     }
 
-    public void setOnSeekBar(SeekBar.OnSeekBarChangeListener listener)
+    public void setOnSeekBar(SuperSeekBar.OnSuperSeekBarChangeListener listener)
     {
-        audioProgressBar.setOnSeekBarChangeListener(listener);
+        audioProgressBar.setOnSuperSeekBarChangeListener(listener);
     }
 }

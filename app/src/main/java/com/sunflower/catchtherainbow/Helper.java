@@ -279,6 +279,18 @@ public class Helper
         return bd.doubleValue();
     }
 
+    public static float round(float value, int places)
+    {
+        if (places < 0) throw new IllegalArgumentException();
+
+        if(Float.isNaN(value) || Float.isInfinite(value)) return 0f;
+
+        BigDecimal bd = new BigDecimal(value);
+        bd = bd.setScale(places, RoundingMode.HALF_DOWN);
+
+        return bd.floatValue();
+    }
+
     public static Integer[] getNormalizedBuffer(int []buffer)
     {
         Integer[] res = new Integer[buffer.length];

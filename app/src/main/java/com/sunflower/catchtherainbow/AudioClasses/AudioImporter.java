@@ -113,12 +113,6 @@ public class AudioImporter implements Runnable
             BASS.BASS_CHANNELINFO info = new BASS.BASS_CHANNELINFO();
             BASS.BASS_ChannelGetInfo(mixerHandle, info);
 
-            // make sure that project directory is created
-            Helper.checkDirectory(SuperApplication.getAppDirectory());
-            // path to decoded audio file
-            //String trackDirectory = Environment.getExternalStorageDirectory().toString() + "/Catch The Rainbow" + "/WaveTrackTest/";
-            //boolean created = Helper.createOrRecreateDir(query.destDirectory);
-
             // no directory
             /*if(!created)
             {
@@ -142,7 +136,7 @@ public class AudioImporter implements Runnable
                 //audioData.order(ByteOrder.LITTLE_ENDIAN); // little-endian byte order
                 int bytesRead = BASS.BASS_ChannelGetData(mixerHandle, audioData, bufferSize);
                 // end
-                if(bytesRead == 0)
+                if(bytesRead <= 0)
                 {
                     // notify about progress
                     final ImporterQuery finalQuery = query;
@@ -169,7 +163,7 @@ public class AudioImporter implements Runnable
                 {
                     clip.getSequence().append(audioData, bytesRead/4);
                 }
-                catch (IOException e)
+                catch (IOException | ClassNotFoundException e)
                 {
                     e.printStackTrace();
                 }

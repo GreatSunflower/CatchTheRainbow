@@ -37,14 +37,18 @@
             android:layout_centerInParent="true"
             android:layout_centerVertical="true"
             android:layout_weight="0.15"
-            />
+            android:visibility="gone"/>
     </LinearLayout>
 
     <com.sunflower.catchtherainbow.Views.AudioProgressView
-        android:layout_width="match_parent"
-        android:layout_below="@+id/Sacha"
         android:id="@+id/audioProgressView"
-        android:layout_height="30dp"/>
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_below="@+id/Sacha"
+        android:paddingEnd="1dp"
+        android:paddingLeft="1dp"
+        android:paddingRight="1dp"
+        android:paddingStart="1dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -72,9 +76,9 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_weight="1"
             android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingEnd="70dp">
+            android:orientation="horizontal">
 
             <ImageButton
                 android:id="@+id/playPrev"
@@ -130,6 +134,39 @@
                 android:visibility="gone"
                 app:srcCompat="@drawable/ic_skip_next"/>
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingEnd="1dp"
+            android:paddingRight="1dp">
+
+            <TextView
+                android:id="@+id/zoomText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="right|end"
+                android:lines="1"
+                android:maxLines="1"
+                android:text="S/P:1"
+                android:textColor="@color/colorForeground"
+                android:textSize="13sp"/>
+
+            <TextView
+                android:id="@+id/selectionText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="right|end"
+                android:lines="1"
+                android:maxLines="1"
+                android:text="S:0.0, E:0.0"
+                android:textColor="@color/colorForeground"
+                android:textSize="13sp"/>
         </LinearLayout><![CDATA[
 
 

@@ -1,6 +1,5 @@
 package com.sunflower.catchtherainbow.Views.Editing;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,14 +12,12 @@ import android.view.animation.Animation;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
-import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.AudioClasses.AudioHelper;
 import com.sunflower.catchtherainbow.AudioClasses.AudioIO;
 import com.sunflower.catchtherainbow.AudioClasses.Project;
 import com.sunflower.catchtherainbow.AudioClasses.WaveTrack;
 import com.sunflower.catchtherainbow.Helper;
-import com.sunflower.catchtherainbow.ProjectActivity;
 import com.sunflower.catchtherainbow.R;
 import com.sunflower.catchtherainbow.Views.Helpful.ResizeAnimation;
 import com.sunflower.catchtherainbow.Views.Helpful.Thumb;
@@ -48,7 +45,7 @@ public class MainAreaFragment extends Fragment
     // a reference to sample player
     private AudioIO globalPlayer;
 
-    private TrackFragmentListener mListener;
+    private TrackFragmentListener listener;
 
     private TableLayout tracksLayout;
 
@@ -286,7 +283,9 @@ public class MainAreaFragment extends Fragment
 
     public void setSamplesPerPixel(int samplesPerPixel)
     {
-        if(samplesPerPixel < 1 || samplesPerPixel > WaveTrackView.MAX_SAMPLES_PER_PIXEL)
+        if(samplesPerPixel < 1)
+            samplesPerPixel = 1;
+        else if(samplesPerPixel > WaveTrackView.MAX_SAMPLES_PER_PIXEL)
             return;
 
         for(TrackHolder holder: tracks)
@@ -297,6 +296,9 @@ public class MainAreaFragment extends Fragment
         this.samplesPerPixel = samplesPerPixel;
 
         timeline.setSamplesPerPixel(samplesPerPixel);
+
+        if(listener != null)
+            listener.onZoomChanged(samplesPerPixel);
 
         demandUpdate();
     }
@@ -369,7 +371,7 @@ public class MainAreaFragment extends Fragment
     {
         for (TrackHolder holder : tracks)
         {
-            holder.waveformView.demandUpdate();
+            holder.waveformView.demandFullUpdate();
         }
     }
 
@@ -413,6 +415,9 @@ public class MainAreaFragment extends Fragment
 
                 selection = new SampleRange(startSample, endSample);
 
+                if(listener != null)
+                    listener.onSelectionChanged(selection);
+
                 // Log.e("Selection Update ", "Start : " + startSample + ", End: " + endSample);
 
                 for (TrackHolder holder : tracks)
@@ -425,19 +430,13 @@ public class MainAreaFragment extends Fragment
         @Override
         public void touchEnd()
         {
-            if(mode == Mode.Selection)
+            /*if(mode == Mode.Selection)
             {
                 double start = getSelectionStartTime();
                 double end = getSelectionEndTime();
 
                 Helper.showCuteToast(getContext(), "S : " + Helper.round(start, 2) + ", E: " + Helper.round(end, 2), Gravity.CENTER, Toast.LENGTH_SHORT);
-            }
-        }
-
-        @Override
-        public void fling(float x)
-        {
-
+            }*/
         }
 
         @Override
@@ -449,7 +448,7 @@ public class MainAreaFragment extends Fragment
         @Override
         public void zoomIn()
         {
-            setSamplesPerPixel(samplesPerPixel + 4);
+            setSamplesPerPixel(samplesPerPixel - 4);
         }
 
         @Override
@@ -457,7 +456,7 @@ public class MainAreaFragment extends Fragment
         {
             for(TrackHolder holder: tracks)
             {
-                setSamplesPerPixel(samplesPerPixel - 4);
+                setSamplesPerPixel(samplesPerPixel + 4);
             }
         }
     };
@@ -544,12 +543,6 @@ public class MainAreaFragment extends Fragment
         this.mode = mode;
     }
 
-
-    public interface TrackFragmentListener
-    {
-        void onSelectionChanged(SampleRange newSelection);
-    }
-
     // changes header sizes
     TrackHeaderView.HeaderListener headerListener = new TrackHeaderView.HeaderListener()
     {
@@ -576,7 +569,7 @@ public class MainAreaFragment extends Fragment
                     @Override
                     public void onAnimationEnd(Animation animation)
                     {
-                        trackHolder.waveformView.demandUpdate();
+                        trackHolder.waveformView.demandFullUpdate();
                         timeline.invalidate();
                     }
                     @Override
@@ -592,6 +585,22 @@ public class MainAreaFragment extends Fragment
             headerCollapsed = !headerCollapsed;
         }
     };
+
+    public interface TrackFragmentListener
+    {
+        void onSelectionChanged(SampleRange newSelection);
+        void onZoomChanged(int samplesPerPixel);
+    }
+
+    public TrackFragmentListener getListener()
+    {
+        return listener;
+    }
+
+    public void setListener(TrackFragmentListener listener)
+    {
+        this.listener = listener;
+    }
 
     private void setViewWidth(View view, float newWidth, boolean animated)
     {

@@ -34,17 +34,17 @@ public class Clip implements Serializable
         this.sequence = new AudioSequence(manager, other.getSequence());
     }
 
-    public boolean setSamples(ByteBuffer buffer, long start, long len, AudioInfo format)
+    public boolean setSamples(ByteBuffer buffer, long start, long len, AudioInfo format) throws IOException, ClassNotFoundException
     {
         return sequence.set(buffer, start, len, format);
     }
 
-    public int getSamples(ByteBuffer buffer, long start, int len)
+    public int getSamples(ByteBuffer buffer, long start, int len) throws IOException, ClassNotFoundException
     {
         return sequence.get(buffer, start, len);
     }
 
-    public boolean append(ByteBuffer buffer, long len) throws IOException
+    public boolean append(ByteBuffer buffer, long len) throws IOException, ClassNotFoundException
     {
         return sequence.append(buffer, len);
     }
@@ -62,7 +62,7 @@ public class Clip implements Serializable
         return true;
     }
 
-    public boolean createFromCopy(double t0, double t1, final Clip other)
+    public boolean createFromCopy(double t0, double t1, final Clip other) throws IOException, ClassNotFoundException
     {
         long s0, s1;
 
@@ -81,7 +81,7 @@ public class Clip implements Serializable
 
         return true;
     }
-    public boolean paste(double start, final Clip other)
+    public boolean paste(double start, final Clip other) throws IOException, ClassNotFoundException
     {
         final boolean clipNeedsResampling = other.info.getSampleRate() != info.getSampleRate();
         final boolean clipNeedsNewFormat =  other.sequence.getInfo().format.getSampleSize() != sequence.getInfo().format.getSampleSize();
@@ -122,7 +122,7 @@ public class Clip implements Serializable
     }
 
     //long GetIdealAppendLen() const;
-    public synchronized boolean clear(double startTime, double endTime)
+    public synchronized boolean clear(double startTime, double endTime) throws IOException, ClassNotFoundException
     {
         long startSample, endSample;
 
@@ -138,13 +138,13 @@ public class Clip implements Serializable
 
 
     //long GetIdealAppendLen() const;
-    public synchronized boolean delete(long start, long len)
+    public synchronized boolean delete(long start, long len) throws IOException, ClassNotFoundException
     {
         return sequence.delete(start, len);
     }
 
     // wave data
-    public boolean getWaveData(long startSample, long len, long samplesPerFrame, WaveData waveData)
+    public boolean getWaveData(long startSample, long len, long samplesPerFrame, WaveData waveData) throws IOException, ClassNotFoundException
     {
         return sequence.getWaveData(startSample, len, samplesPerFrame, waveData);
     }
@@ -192,7 +192,7 @@ public class Clip implements Serializable
     {
         long numSamples = sequence.samplesCount;
 
-        double maxLen = offset + (numSamples)/info.sampleRate/info.channels;
+        double maxLen = offset + (float)numSamples/info.sampleRate/info.channels;
         // calculated value is not the length;
         // it is a maximum value and can be negative; no clipping to 0
 

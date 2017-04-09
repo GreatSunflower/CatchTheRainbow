@@ -37,6 +37,7 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.RemoteViews;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sunflower.catchtherainbow.Adapters.PopupSeekbarAdapter;
@@ -58,6 +59,7 @@ import com.sunflower.catchtherainbow.Views.Editing.WaveTrackView;
 import com.sunflower.catchtherainbow.Views.Effects.EffectsHostFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.ExportSongFragment;
 import com.sunflower.catchtherainbow.Views.Helpful.LanguageFragment;
+import com.sunflower.catchtherainbow.Views.Helpful.SuperSeekBar;
 import com.sunflower.catchtherainbow.Views.StartedApp.ProjectStartActivity;
 import com.un4seen.bass.BASS;
 
@@ -79,6 +81,7 @@ public class ProjectActivity extends AppCompatActivity
 
     private ActionMenuView amvMenu;
     private ImageButton playPauseButt, bNext, bPrev, bRecorderStart, bStop, bSettings;
+    private TextView zoomText, selectionText;
     private AudioProgressView progressView;
     private View viewContentProject;
     private AudioVisualizerView visualizerView;
@@ -128,7 +131,6 @@ public class ProjectActivity extends AppCompatActivity
         }
         //////////////////////////////////////////////////////////end permissions///////////////////////
 
-
         viewContentProject = (View) findViewById(R.id.content_project);
 
         // Init toolbar
@@ -172,16 +174,20 @@ public class ProjectActivity extends AppCompatActivity
         bStop.setOnClickListener(this);
         bSettings.setOnClickListener(this);
 
+        // additional info
+        zoomText = (TextView)findViewById(R.id.zoomText);
+        selectionText = (TextView)findViewById(R.id.selectionText);
+
         progressView = (AudioProgressView) findViewById(R.id.audioProgressView);
         progressView.setMax(1.f);
         progressView.setCurrent(0);
-        progressView.setOnSeekBar(new SeekBar.OnSeekBarChangeListener()
+        progressView.setOnSeekBar(new SuperSeekBar.OnSuperSeekBarChangeListener()
         {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean b)
+            public void onProgressChanged(SuperSeekBar seekBar, float progress, boolean fromUser)
             {
-                if (player != null)
-                    progressView.setCurrent(progress);
+                // updates text
+                progressView.setCurrent(progress);
 
                 WaveTrack longestTrack = tracksFragment.findLongestTrack();
 
@@ -191,17 +197,17 @@ public class ProjectActivity extends AppCompatActivity
                 tracksFragment.setOffset(samples);
             }
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar)
+            public void onStartTrackingTouch(SuperSeekBar seekBar)
             {
                 isDragging = true;
             }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar)
+            public void onStopTrackingTouch(SuperSeekBar seekBar)
             {
                 if (player != null)
                 {
-                    player.setPosition(seekBar.getProgress());
+                    player.setPosition(seekBar.getCurrentValue());
                 }
                 isDragging = false;
             }
@@ -218,8 +224,6 @@ public class ProjectActivity extends AppCompatActivity
             Project.openProjectAsync(openProjectWithName, projectListener);
         }
         // ----------------------------- finish handling project----------------------------
-
-
     }
 
     @Override
@@ -227,7 +231,8 @@ public class ProjectActivity extends AppCompatActivity
     {
         if(player != null)
             player.stop();
-        statusHandler.removeCallbacks(updateTimer);
+        if(statusHandler != null)
+            statusHandler.removeCallbacks(updateTimer);
 
         if(tracksFragment != null)
             tracksFragment.stopDrawing();
@@ -342,42 +347,72 @@ public class ProjectActivity extends AppCompatActivity
                 }
 
                 // stereo!!!
-                double start = tracksFragment.getSelectionStartTime();
-                double end = tracksFragment.getSelectionEndTime();
+                double start = tracksFragment.getSelectionStartTime()*2.0;
+                double end = tracksFragment.getSelectionEndTime()*2.0;
 
                 //Helper.showCuteToast(ProjectActivity.this, "S : " + Helper.round(start, 2) + ", E: " + Helper.round(end, 2), Gravity.CENTER);
                 //Log.e("Area! ", "Start : " + start + ", End: " + end);
 
+
                 if (id == R.id.action_remove)
                 {
 
-                    if(selectedTrack.clear(start, end))
+                    try
                     {
-                        player.initialize(false);
-                        tracksFragment.demandUpdate();
+                        if(selectedTrack.clear(start, end))
+                        {
+                            player.initialize(false);
+                            tracksFragment.demandUpdate();
+                        }
+                    }
+                    catch (IOException | ClassNotFoundException e)
+                    {
+                        e.printStackTrace();
                     }
                 }
                 else if (id == R.id.action_copy)
                 {
-                    WaveTrack copiedArea = selectedTrack.copy(start, end);
+                    WaveTrack copiedArea = null;
+                    try
+                    {
+                        copiedArea = selectedTrack.copy(start, end);
+                    }
+                    catch (IOException | ClassNotFoundException e)
+                    {
+                        e.printStackTrace();
+                        return true;
+                    }
 
                     if(copiedArea != null)
                     {
                         bufferedTrack = copiedArea;
-                        Helper.showCuteToast(ProjectActivity.this, ")", Gravity.CENTER, Toast.LENGTH_SHORT);
+                        String message = ") Samples: " + copiedArea.getEndSample();
+                        Helper.showCuteToast(ProjectActivity.this, message, Gravity.CENTER, Toast.LENGTH_LONG);
+                        Log.e("PrAct: ", message);
                     }
                     else Helper.showCuteToast(ProjectActivity.this, "(", Gravity.CENTER, Toast.LENGTH_SHORT);
                 }
                 else if (id == R.id.action_paste)
                 {
+                    long cachedSamples = selectedTrack.getEndSample();
+
                     if(bufferedTrack == null) return false;
-                    if(selectedTrack.paste(start, bufferedTrack))
+                    try
                     {
-                        player.initialize(false);
-                        tracksFragment.demandUpdate();
-                        Helper.showCuteToast(ProjectActivity.this, ")", Gravity.CENTER, Toast.LENGTH_SHORT);
+                        if(selectedTrack.paste(start, bufferedTrack))
+                        {
+                            player.initialize(false);
+                            tracksFragment.demandUpdate();
+                            String message = "). Old samples: " + cachedSamples + ", New samples: " + selectedTrack.getEndSample();
+                            Helper.showCuteToast(ProjectActivity.this, message, Gravity.CENTER, Toast.LENGTH_LONG);
+                            Log.e("PrAct: ", message);
+                        }
+                        else Helper.showCuteToast(ProjectActivity.this, "(", Gravity.CENTER, Toast.LENGTH_SHORT);
                     }
-                    else Helper.showCuteToast(ProjectActivity.this, "(", Gravity.CENTER, Toast.LENGTH_SHORT);
+                    catch (IOException | ClassNotFoundException e)
+                    {
+                        e.printStackTrace();
+                    }
                 }
                 else
                 {
@@ -503,12 +538,16 @@ public class ProjectActivity extends AppCompatActivity
         {
             case R.id.Sacha:
             {
+                if(player == null) break;
+
                 if(player.isPlaying()) player.pause();
                 else player.play();
                 break;
             }
             case R.id.bRecorderStart:
             {
+                if(player == null) break;
+
                 WaveTrack recorderTrack = new WaveTrack(getResources().getString(R.string.name), project.getFileManager());
                 recorderTrack.addClip(new Clip(project.getFileManager(), project.getProjectAudioInfo()));
                 project.addTrack(recorderTrack);
@@ -517,6 +556,8 @@ public class ProjectActivity extends AppCompatActivity
             }
             case R.id.bStop:
             {
+                if(player == null) break;
+
                 player.stop();
                 break;
             }
@@ -527,7 +568,7 @@ public class ProjectActivity extends AppCompatActivity
                 PopupSeekbarAdapter adapter = new PopupSeekbarAdapter();
                 ArrayList<String> list = new ArrayList<String>();
                 list.add("Zoom");
-                list.add("Super Option");
+               //list.add("Super Option");
 
                 ArrayList<Integer> progressions = new ArrayList<Integer>();
                 progressions.add((int)((float)tracksFragment.getSamplesPerPixel()/WaveTrackView.MAX_SAMPLES_PER_PIXEL * 10000f));
@@ -582,19 +623,10 @@ public class ProjectActivity extends AppCompatActivity
     BasePlayer.AudioPlayerListener playerListener = new BasePlayer.AudioPlayerListener()
     {
         @Override
-        public void onInitialized(float totalTime/*final File file*/)
+        public void onInitialized(float totalTime)
         {
             progressView.setMax(totalTime);
-            progressView.setCurrent(0);
-                /*MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-                mmr.setDataSource(file.getAbsolutePath());
-                String artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                String album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-                String title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                audioInfo.setText(artist + " - " + album + " - " + title);
-                mmr.release();*/
-            //waveFormViewContainer.setSoundFile(CheapSoundFile.create(file.getAbsolutePath(), null));
-            //waveFormViewContainer.invalidate();
+            progressView.setCurrent(0f);
         }
 
         @Override
@@ -615,14 +647,18 @@ public class ProjectActivity extends AppCompatActivity
         public void onPause()
         {
             playPauseButt.setImageResource(R.drawable.ic_play);
+            unlockEditing(true);
         }
 
         @Override
         public void onStop()
         {
             playPauseButt.setImageResource(R.drawable.ic_play);
+            progressView.setCurrent(0f);
             bRecorderStart.setEnabled(true);
             unlockEditing(true);
+
+            player.initialize(false);
         }
 
         @Override
@@ -660,6 +696,7 @@ public class ProjectActivity extends AppCompatActivity
             // creates tracks fragment
             tracksFragment = MainAreaFragment.newInstance(project);
             tracksFragment.setGlobalPlayer(player);
+            tracksFragment.setListener(trackAreaListener);
 
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.mainAreaContainer, tracksFragment)
@@ -753,6 +790,24 @@ public class ProjectActivity extends AppCompatActivity
         }
     };
 
+    private MainAreaFragment.TrackFragmentListener trackAreaListener = new MainAreaFragment.TrackFragmentListener()
+    {
+        @Override
+        public void onSelectionChanged(MainAreaFragment.SampleRange newSelection)
+        {
+            double start = tracksFragment.getSelectionStartTime();
+            double end = tracksFragment.getSelectionEndTime();
+
+            selectionText.setText("S:" + Helper.round(start, 2) + ", E:" + Helper.round(end, 2));
+        }
+
+        @Override
+        public void onZoomChanged(int samplesPerPixel)
+        {
+            zoomText.setText("S/P: " + samplesPerPixel);
+        }
+    };
+
     // ---------------------------------SONG CHOOSER LISTENER INTERFACE----------------------------------
 
     @Override
@@ -804,7 +859,7 @@ public class ProjectActivity extends AppCompatActivity
             RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.import_notification);
             contentView.setImageViewResource(R.id.image, R.drawable.app_icon);
             contentView.setTextViewText(R.id.title, "Audio Import");
-            contentView.setTextViewText(R.id.text, "Import progress: 1/" + queries.size());
+            contentView.setTextViewText(R.id.text, "Import progress: 1/" + totalFiles);
 
             builder = new NotificationCompat.Builder(ProjectActivity.this)
                     .setSmallIcon(R.drawable.app_icon)

@@ -2,16 +2,17 @@ package com.sunflower.catchtherainbow.AudioClasses;
 
 import android.util.Log;
 
+import com.sunflower.catchtherainbow.Helper;
 import com.un4seen.bass.BASS;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Date;
 
 /**
  * Created by SuperComputer on 4/5/2017.
  * Streams audio track
  */
-
 
 public class StreamProc implements BASS.STREAMPROC
 {
@@ -28,6 +29,8 @@ public class StreamProc implements BASS.STREAMPROC
 
         try
         {
+            Date startDate = new Date();
+
             int sampleSize = track.track.getInfo().format.getSampleSize();
             samplesRead = track.track.get(buffer, track.currentSample, length / sampleSize) / sampleSize;
 
@@ -42,6 +45,11 @@ public class StreamProc implements BASS.STREAMPROC
 
                 return samplesRead;
             }
+
+            Date endDate = new Date();
+            long difference = endDate.getTime() - startDate.getTime();
+
+            Log.e(LOG_TAG, Helper.millisecondsToSeconds(difference)+", Read: " + samplesRead);
 
             //Log.d(LOG_TAG, String.format("FileProcUserRead: requested {i}, read {i} ", length, bytesRead));
             return samplesRead * sampleSize;

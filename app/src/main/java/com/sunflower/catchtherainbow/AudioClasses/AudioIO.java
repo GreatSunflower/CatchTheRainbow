@@ -1,17 +1,24 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
 import android.app.Activity;
+import android.os.Handler;
 import android.util.Log;
 
+import com.sunflower.catchtherainbow.Helper;
 import com.un4seen.bass.BASS;
 import com.un4seen.bass.BASSmix;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 /**
  * Created by SuperComputer on 3/3/2017.
@@ -105,11 +112,20 @@ public class AudioIO extends BasePlayer
 
     public void stop()
     {
+        stop(true);
+    }
+
+    // lets specify notification setting
+    private void stop(boolean notify)
+    {
         if(state != PlayerState.NotInitialized)
         {
             if(isRecording && recorderTrack != null)
             {
                 BASS.BASS_ChannelStop(recorderTrack.channel);
+
+                // write remaining buffer
+                appender.addToQueue(new TrackAppender.BufferData(tempBuff, tempBuff.position()/4));
 
                 isRecording = false;
                 recorderTrack = null;
@@ -126,7 +142,7 @@ public class AudioIO extends BasePlayer
 
             state = PlayerState.Stopped;
 
-         //   handler.post(new Runnable()
+            if(notify)
             context.runOnUiThread(new Runnable()
             {
                 @Override
@@ -141,6 +157,7 @@ public class AudioIO extends BasePlayer
         } // is init
     }
 
+    private TrackAppender appender;
     public void startRecording(WaveTrack recorderTrack)
     {
         if(recorderTrack == null) return;
@@ -153,6 +170,10 @@ public class AudioIO extends BasePlayer
         this.recorderTrack = new TrackInfo(recHandle, recorderTrack, 0);
 
         initialize(false);
+
+        appender = new TrackAppender(recorderTrack);
+        tempBuff = ByteBuffer.allocateDirect(AudioSequence.maxChunkSize/3);
+        tempBuff.order(ByteOrder.LITTLE_ENDIAN);
 
         isRecording = true;
 
@@ -310,8 +331,7 @@ public class AudioIO extends BasePlayer
             WaveTrack track = waveTracks.get(i);
 
             TrackInfo trackInfo = new TrackInfo(0, track, 0);
-            int channel = BASS.BASS_StreamCreate(track.getInfo().sampleRate, track.getInfo().channels,
-                    BASS.BASS_SAMPLE_FLOAT | BASS.BASS_STREAM_AUTOFREE, new StreamProc(), trackInfo);
+            int channel = 0;
 
             trackInfo.setChannel(channel);
 
@@ -330,8 +350,7 @@ public class AudioIO extends BasePlayer
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATETHREADS, 1);
 
         TrackInfo trackInfo = new TrackInfo(0, waveTrack, 0);
-        int channel = BASS.BASS_StreamCreate(waveTrack.getInfo().sampleRate, waveTrack.getInfo().channels,
-                BASS.BASS_SAMPLE_FLOAT | BASS.BASS_STREAM_AUTOFREE, new StreamProc(), trackInfo);
+        int channel = 0;
 
         trackInfo.setChannel(channel);
 
@@ -346,37 +365,6 @@ public class AudioIO extends BasePlayer
     {
         return tracks;
     }
-
-
-    protected class EndSync implements BASS.SYNCPROC
-    {
-        public void SYNCPROC(int handle, int channel, int data, Object user)
-        {
-          //  TrackInfo track = (TrackInfo)user;
-            Log.e("TIME", "END!"/* + track.track.name*/);
-            final TrackInfo longestTrack = findLongestTrack();
-
-            TrackInfo trackInfo = (TrackInfo)user;
-
-            if(!isRecording && trackInfo == longestTrack)
-            {
-                stop();
-                // notify about the end
-                //handler.post(new Runnable()
-                context.runOnUiThread(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        for (AudioPlayerListener listener : audioPlayerListeners)
-                        {
-                            listener.onCompleted();
-                        }
-                    }
-                });
-            } // if
-        }
-    };
 
     @Override
     public void initialize(boolean autoPlay)
@@ -402,7 +390,7 @@ public class AudioIO extends BasePlayer
     // start - time to start from
     public void initialize(final double start, final boolean autoPlay, final boolean notify)
     {
-        stop();
+        stop(false);
 
         if(tracks.isEmpty()) return;
 
@@ -429,12 +417,9 @@ public class AudioIO extends BasePlayer
         }
 
         BASS.BASS_ChannelPlay(mixer, true);
-
         BASS.BASS_ChannelSetSync(mixer, BASS.BASS_SYNC_END|BASS.BASS_SYNC_MIXTIME, 0, EndSync, 0);*/
         for (int i = 0; i < tracks.size(); i++)
         {
-            //WaveTrack track = waveTracks.get(i);
-
             TrackInfo trackInfo = tracks.get(i); // new TrackInfo(0, track, track.timeToSamples(start));
             AudioInfo audioInfo = trackInfo.track.getInfo();
 
@@ -525,7 +510,9 @@ public class AudioIO extends BasePlayer
     }
     // --------------------------------- Simple getters/setters end----------------------
 
-    private class RecordProc implements BASS.RECORDPROC
+    private ByteBuffer tempBuff = ByteBuffer.allocateDirect(AudioSequence.maxChunkSize);
+
+    protected class RecordProc implements BASS.RECORDPROC
     {
         @Override
         public boolean RECORDPROC(int handle, final ByteBuffer buffer, final int length, Object user)
@@ -533,7 +520,6 @@ public class AudioIO extends BasePlayer
             try
             {
                 buffer.order(ByteOrder.LITTLE_ENDIAN);
-                buffer.rewind();
 
                 //final float []fbuf = new float[length * 2];
                 final int floatLen = length / 2;
@@ -577,17 +563,164 @@ public class AudioIO extends BasePlayer
                 ByteBuffer res = ByteBuffer.allocateDirect(floatLen*4);
                 for(int i = 0; i < floatBuff.length; i++)
                     res.putFloat(floatBuff[i]);*/
+                if(byteBuffer.limit() < tempBuff.limit() - tempBuff.position())
+                {
+                    byteBuffer.rewind();
+                    tempBuff.put(byteBuffer);
+                }
+                else
+                {
+                    appender.addToQueue(new TrackAppender.BufferData(tempBuff, tempBuff.position()/4));
+                    //recorderTrack.getTrack().getClips().get(0).append(tempBuff, recorderTrack.currentSample);
+
+                    tempBuff = ByteBuffer.allocateDirect(AudioSequence.maxChunkSize/3);
+                    tempBuff.order(ByteOrder.LITTLE_ENDIAN);
+                    tempBuff.put(byteBuffer);
+                }
 
                 recorderTrack.currentSample += floatLen;
 
-                recorderTrack.getTrack().getClips().get(0).append(byteBuffer, floatLen);
+                //recorderTrack.getTrack().getClips().get(0).append(byteBuffer, floatLen);
             }
-            catch (IOException e)
+            catch (Exception e)
             {
                 e.printStackTrace();
                 return false;
             }
             return true;
+        }
+    }
+
+    protected class EndSync implements BASS.SYNCPROC
+    {
+        public void SYNCPROC(int handle, int channel, int data, Object user)
+        {
+            TrackInfo track = (TrackInfo)user;
+            Log.e("TIME", "END! " + track.track.name);
+            final TrackInfo longestTrack = findLongestTrack();
+
+            TrackInfo trackInfo = (TrackInfo)user;
+
+            if(!isRecording && trackInfo == longestTrack)
+            {
+                stop();
+                // notify about the end
+                //handler.post(new Runnable()
+                context.runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        for (AudioPlayerListener listener : audioPlayerListeners)
+                        {
+                            listener.onCompleted();
+                        }
+                    }
+                });
+            } // if
+        }
+    } // class
+}
+
+// appends tracks in background
+class TrackAppender implements Runnable
+{
+    private static final String LOG_TAG = "Track Appender";
+
+    private Queue<BufferData> bufferToAppend = new LinkedList<>();
+
+    private WaveTrack track;
+
+    private Handler handler = new Handler();
+
+    private Thread workingThread;
+    // is thread running
+    private boolean isRunning = false;
+    // tells the thread to stop
+    private boolean shouldStop = false;
+
+    public TrackAppender(WaveTrack track)
+    {
+        this.track = track;
+    }
+
+    public void setTrack(WaveTrack track)
+    {
+        this.track = track;
+    }
+
+    public synchronized void addToQueue(BufferData... buffers)
+    {
+        for (BufferData b : buffers)
+            bufferToAppend.add(b);
+
+        // start new thread in case it's not alive
+        if (!isRunning)
+            start();
+    }
+
+    private void start()
+    {
+        shouldStop = false;
+        // create a new thread in case it's not running
+        if (!isRunning)
+        {
+            workingThread = new Thread(this);
+            workingThread.setPriority(Thread.MAX_PRIORITY);
+            workingThread.start();
+        }
+    }
+
+    public void stop()
+    {
+        shouldStop = true;
+    }
+
+    int count = 0;
+
+    // Don not call this method directly!!!!
+    @Override
+    public void run()
+    {
+        isRunning = true;
+
+        BufferData buffer;
+        // go through the queue
+        while((buffer = bufferToAppend.poll()) != null)
+        {
+            Date startDate = new Date();
+            try
+            {
+                track.getClips().get(0).append(buffer.byteBuffer, buffer.len);
+            }
+            catch (IOException | ClassNotFoundException e)
+            {
+                e.printStackTrace();
+            }
+
+            if(shouldStop)
+                break;
+
+            Date endDate = new Date();
+            long difference = endDate.getTime() - startDate.getTime();
+
+            //Log.e("TIME", Helper.millisecondsToSeconds(difference)+"");
+
+            //Log.e(LOG_TAG, "Iter: " + count++ + "");
+        }
+
+        isRunning = false;
+    }
+
+    public static class BufferData
+    {
+        ByteBuffer byteBuffer;
+        int len;
+
+        public BufferData(ByteBuffer byteBuffer, int len)
+        {
+            this.byteBuffer = byteBuffer;
+            this.len = len;
         }
     }
 }

@@ -47,11 +47,11 @@ class WaveRenderer extends Thread
             //---------------limit frame rate to max 60fps----------------------
             timeNow = System.currentTimeMillis();
             timeDelta = timeNow - timePrevFrame;
-            if ( timeDelta < 50)
+            if ( timeDelta < INTERVAL)
             {
                 try
                 {
-                    Thread.sleep(50 - timeDelta);
+                    Thread.sleep(INTERVAL - timeDelta);
                 }
                 catch(InterruptedException ex) { }
             }
@@ -66,8 +66,14 @@ class WaveRenderer extends Thread
 
                 if(track.isSuspended()) continue;
 
-                /*if(track.isDirty())
-                    track.updateData();*/
+                // if nothing is in update queue, leave it
+                if(track.getUpdateQueue().isEmpty()) continue;
+
+                Boolean res = track.getUpdateQueue().poll();
+
+                // needs to be updated
+                if(res)
+                    track.updateData();
 
                 try
                 {
@@ -78,10 +84,10 @@ class WaveRenderer extends Thread
                             track.doDraw(localCanvas);
                     }
                 }
-                catch (Exception ex)
+               /* catch (Exception ex)
                 {
                     Log.e("Renderer", ex.getMessage());
-                }
+                }*/
                 finally
                 {
                     if (localCanvas != null)
@@ -94,7 +100,10 @@ class WaveRenderer extends Thread
     public void addTrack(WaveTrackView textureView)
     {
         if(textureView != null)
+        {
             tracks.add(textureView);
+            textureView.demandFullUpdate();
+        }
     }
 
     public void removeTrack(WaveTrackView textureView)

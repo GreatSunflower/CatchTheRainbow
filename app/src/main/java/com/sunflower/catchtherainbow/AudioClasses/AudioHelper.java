@@ -2,8 +2,12 @@ package com.sunflower.catchtherainbow.AudioClasses;
 
 import android.util.Log;
 
+import com.sunflower.catchtherainbow.Helper;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Date;
 
 /**
  * Created by SuperComputer on 3/16/2017.
@@ -17,11 +21,18 @@ public class AudioHelper
         if(dest == null || orig == null)
             return false;
 
+        int sampleSize = info.format.getSampleSize();
+
    //     byte[] buff = new byte[len];
 //        orig.get(buff, offset, len);
 
         orig.rewind();
-        if(info.format.getSampleSize() == 4)
+
+        byte[] buff = new byte[len * info.format.getSampleSize()];
+        orig.get(buff);
+        dest.put(buff, offset*sampleSize, len*sampleSize);
+
+        /*if(info.format.getSampleSize() == 4)
         {
             float[] buff = new float[len];
             orig.asFloatBuffer().get(buff, offset, len);
@@ -29,7 +40,7 @@ public class AudioHelper
             {
                 dest.putFloat(buff[i]);
             }
-        }
+        }*/
 
   //      dest.put(buff);
 
@@ -41,7 +52,7 @@ public class AudioHelper
         return copySamples(dest, orig, offset, len, info);
     }
 
-    public static boolean appendChunk(AudioChunk chunk, ByteBuffer orig, int addLen, AudioInfo info) throws IOException
+    public static boolean appendChunk(AudioChunk chunk, ByteBuffer orig, int addLen, AudioInfo info) throws IOException, ClassNotFoundException
     {
         if(chunk == null || orig == null)
             return false;
@@ -49,11 +60,12 @@ public class AudioHelper
         long lastChunkSamplesCount = chunk.getSamplesCount();
 
         // original data
-       // byte[] lastChunkBuffer = new byte[(int) lastChunkSamplesCount*info.format.getSampleSize()];
+        //byte[] lastChunkBuffer = new byte[(int) lastChunkSamplesCount*info.format.getSampleSize()];
         ByteBuffer lastChunkWrapper = ByteBuffer.allocateDirect((int) lastChunkSamplesCount*info.format.getSampleSize());
+        lastChunkWrapper.order(ByteOrder.LITTLE_ENDIAN);
         chunk.readToBuffer(lastChunkWrapper, 0, (int)lastChunkSamplesCount);
         lastChunkWrapper.rewind();
-      //  lastChunkWrapper.get(lastChunkBuffer);
+        //lastChunkWrapper.get(lastChunkBuffer);
 
         // data to add
         byte[] addBuffer = new byte[addLen*info.format.getSampleSize()];
@@ -63,8 +75,10 @@ public class AudioHelper
         int newLen = (int) ((addLen + lastChunkSamplesCount) * info.format.getSampleSize());
         // put it all together
         ByteBuffer chunkBuffer = ByteBuffer.allocateDirect(newLen);
+        chunkBuffer.order(ByteOrder.LITTLE_ENDIAN);
         chunkBuffer.put(lastChunkWrapper);
         //orig.rewind();
+        //chunkBuffer.put(orig);
         chunkBuffer.put(addBuffer);
 
         final int newLastChunkSamplesLen = (int) (lastChunkSamplesCount + addLen);

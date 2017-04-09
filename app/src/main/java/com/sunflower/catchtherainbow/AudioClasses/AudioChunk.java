@@ -1,5 +1,9 @@
 package com.sunflower.catchtherainbow.AudioClasses;
 
+import android.util.Log;
+
+import com.sunflower.catchtherainbow.Helper;
+
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -29,6 +33,9 @@ class ChunkHeader implements Serializable
         this.samplesCount = samplesCount;
     }
 }
+
+
+// Byte order should be little-endian!!!
 public class AudioChunk implements Serializable
 {
     // location of the file
@@ -53,14 +60,7 @@ public class AudioChunk implements Serializable
         this.samplesCount = samplesCount;
         this.audioInfo = audioInfo;
 
-        bytesPerFrame = 4*4;/*size of float 3/*firlds*/;
-
-        frames64K = (samplesCount + 65535) / 65536;
-        frames256 = frames64K * 256;
-
-        //int offset64K = headerTagLen;
-        //int offset256 = offset64K + (frames64K * bytesPerFrame);
-        totalSummaryBytes = (frames64K * bytesPerFrame) + (frames256 * bytesPerFrame);
+        updateSummary();
     }
 
     /// Construct a SimpleBlockFile memory structure that will point to an
@@ -87,12 +87,27 @@ public class AudioChunk implements Serializable
         this.rms = rms;
     }
 
+    private void updateSummary()
+    {
+        bytesPerFrame = 3*4;/*size of float 3/*firlds*/;
+
+        frames64K = (samplesCount + 65535) / 65536;
+        frames256 = frames64K * 256;
+
+        //int offset64K = headerTagLen;
+        //int offset256 = offset64K + (frames64K * bytesPerFrame);
+        totalSummaryBytes = (frames64K * bytesPerFrame) + (frames256 * bytesPerFrame);
+    }
+
 
     public boolean writeToDisk(ByteBuffer buffer, int samplesLen) throws IOException
     {
         if(buffer == null) return false;
 
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+
         this.samplesCount = samplesLen;
+        updateSummary();
 
         FileOutputStream fileOutputStream = new FileOutputStream(path);
         // buffer for outputting in ctr format
@@ -136,72 +151,69 @@ public class AudioChunk implements Serializable
     // @param start - first sample to get
     // @param length - number of samples after start
     // @return number of samples read or -1 if the was an error
-    public int readToBuffer(ByteBuffer buffer, long start, long length)
+    public int readToBuffer(ByteBuffer buffer, long start, long length) throws IOException, ClassNotFoundException
     {
+        //buffer.order(ByteOrder.LITTLE_ENDIAN);
+
         int sampleSize = audioInfo.format.getSampleSize();
 
         int read = 0;
 
-        try
+        // startDate = new Date();
+
+        FileInputStream fileInputStream = new FileInputStream(path);
+
+        BufferedInputStream buffStream = new BufferedInputStream(fileInputStream, 4096*2);
+        ObjectInputStream objectInputStream = new ObjectInputStream(buffStream);
+
+        // first read the header
+        ChunkHeader header = (ChunkHeader)objectInputStream.readObject();
+        //objectInputStream.skipBytes(start * 4/* Size of one sample */);
+        objectInputStream.skipBytes((int) (start * sampleSize));
+       // read = (int) fileChannel.read(new ByteBuffer[]{buffer}, start, length);
+
+        /*byte []buff = new byte[(int) (samplesCount * sampleSize)];
+        objectInputStream.readFully(buff);
+        buffer.put(buff, (int)start * sampleSize, (int)length * sampleSize);
+        read =  (int)length * sampleSize;*/
+
+        while (read < length * sampleSize)
         {
-            Date startDate = new Date();
+            if(objectInputStream.available() == 0)
+                break;
 
-            FileInputStream fileInputStream = new FileInputStream(path);
-
-            BufferedInputStream buffStream = new BufferedInputStream(fileInputStream, 4096*2);
-            ObjectInputStream objectInputStream = new ObjectInputStream(buffStream);
-
-            // first read the header
-            ChunkHeader header = (ChunkHeader)objectInputStream.readObject();
-            //objectInputStream.skipBytes(start * 4/* Size of one sample */);
-            objectInputStream.skipBytes((int) (start * sampleSize));
-           // read = (int) fileChannel.read(new ByteBuffer[]{buffer}, start, length);
-
-            while (read < length * sampleSize)
+            if(sampleSize == 4)
             {
-                if(objectInputStream.available() == 0)
-                    break;
-
-                if(sampleSize == 4)
-                {
-                    float b = objectInputStream.readFloat();
-
-                    buffer.putFloat(b);
-                    read += 4;
-                }
-            }
-            /*objectInputStream.skipBytes(start);
-            for (int i = 0; i < length; i++)
-            {
-                if(objectInputStream.available() == 0)
-                    break;
-                //float b = (float) objectInputStream.readFloat();
-               // buffer.putFloat(b);
                 float b = objectInputStream.readFloat();
-                //buffer[i] = b;
+
                 buffer.putFloat(b);
-                read+=4;
+                read += 4;
             }
-            /* byte []arr = new byte[length*sampleSize];
-            read = objectInputStream.read(arr, start*sampleSize, length*sampleSize);
-            buffer.put(arr);*/
-
-            //int read = objectInputStream.read(buffer, start/* * sampleSize*/, length/*/sampleSize*/);
-            //int read = buffer.length;
-
-            objectInputStream.close();
-
-            Date endDate = new Date();
-            long difference = endDate.getTime() - startDate.getTime();
-
-            //Log.e("TIME", difference+"" + ", Read: " + (read/sampleSize) + ", Needed: " + length);
-
-            return read;
         }
-        catch (IOException | ClassNotFoundException e)
+        /*objectInputStream.skipBytes(start);
+        for (int i = 0; i < length; i++)
         {
-            e.printStackTrace();
+            if(objectInputStream.available() == 0)
+                break;
+            //float b = (float) objectInputStream.readFloat();
+           // buffer.putFloat(b);
+            float b = objectInputStream.readFloat();
+            //buffer[i] = b;
+            buffer.putFloat(b);
+            read+=4;
         }
+        /* byte []arr = new byte[length*sampleSize];
+        read = objectInputStream.read(arr, start*sampleSize, length*sampleSize);
+        buffer.put(arr);*/
+
+        //int read = objectInputStream.read(buffer, start/* * sampleSize*/, length/*/sampleSize*/);
+        //int read = buffer.length;
+
+        objectInputStream.close();
+
+       // Date endDate = new Date();
+        //long difference = endDate.getTime() - startDate.getTime();
+        //Log.e("TIME", Helper.millisecondsToSeconds(difference)+"" + ", Read: " + (read/sampleSize) + ", Needed: " + length);
 
         return read;
     }
@@ -251,11 +263,38 @@ public class AudioChunk implements Serializable
         start = Math.min(start, frames256);
         len = Math.min(len, frames256 - start);
 
-        for(int i = (int) start; i < len; i++)
+        int startIndex = (int) (start * 3);
+        int totalLen = (int) (len);
+
+        for(int i = startIndex; i < startIndex+totalLen; i++)
         {
             buffer.putFloat(header.summary256[i]);
         }
 
+        return true;
+    }
+
+    private long getNearestPowerOfN(long n, int pow)
+    {
+        if(n == 0)
+            return 0;
+        while(!isPowerOfN(n, pow))
+        {
+            n++;
+        }
+        return n;
+    }
+
+    private boolean isPowerOfN(long n, int pow)
+    {
+        if(n == 0)
+            return false;
+        while(n != 1)
+        {
+            if(n%pow != 0)
+                return false;
+            n = n/pow;
+        }
         return true;
     }
 
@@ -281,7 +320,15 @@ public class AudioChunk implements Serializable
     void getMinMax(int start, int len, Float outMin, Float outMax, Float outRMS)
     {
         ByteBuffer buffer = ByteBuffer.allocateDirect(len * 4);
-        this.readToBuffer(buffer, start, len);
+        try
+        {
+            this.readToBuffer(buffer, start, len);
+        }
+        catch (IOException | ClassNotFoundException e)
+        {
+            e.printStackTrace();
+            return;
+        }
         float []floatBuffer = new float[len];
         buffer.asFloatBuffer().get(floatBuffer);
 
@@ -322,6 +369,7 @@ public class AudioChunk implements Serializable
         buffer.asFloatBuffer().get(fbuffer);
 
         calcSummaryFromBuffer(fbuffer, len, summary256, summary64K);
+       // buffer.order(ByteOrder.BIG_ENDIAN);
     }
 
     void calcSummaryFromBuffer(float []fbuffer, int len, float []summary256, float []summary64K)
@@ -417,15 +465,15 @@ public class AudioChunk implements Serializable
         }
 
         // Recalc block-level summary (mRMS already calculated)
-        min = summary64K[0];
-        max = summary64K[1];
+        min = Helper.clamp(summary64K[0], -1f, 1f);;
+        max = Helper.clamp(summary64K[1], -1f, 1f);;
 
         for (int i = 1; i < sumLen; i++)
         {
             if (summary64K[3*i] < min)
-                min = summary64K[3*i];
+                min = Helper.clamp(summary64K[3*i], -1f, 1f);
             if (summary64K[3*i+1] > max)
-                max = summary64K[3*i+1];
+                max = Helper.clamp(summary64K[3*i+1], -1f, 1f);
         }
 
         this.min = min;
