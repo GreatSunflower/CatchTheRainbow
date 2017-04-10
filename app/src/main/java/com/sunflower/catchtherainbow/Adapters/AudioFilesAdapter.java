@@ -147,6 +147,9 @@ public class AudioFilesAdapter extends CursorAdapter implements
     public void SetSelectAll(boolean value)
     {
         Cursor cursor = getCursor();
+
+        if(cursor == null) return;
+
         HashMap<Long, Boolean> newSelection = new HashMap<>();
         selectedCount = 0;
         for (int i = 0; i < cursor.getCount(); i++)
@@ -174,6 +177,8 @@ public class AudioFilesAdapter extends CursorAdapter implements
     public AudioFile getSongFromPosition(int position)
     {
         Cursor cur = getCursor();
+        if(cur == null) return null;
+
         cur.moveToPosition(position);
         return Helper.getAudioFileByCursor(context, cur);
     }

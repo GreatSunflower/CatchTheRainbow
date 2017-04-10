@@ -264,7 +264,7 @@ public class AudioChunk implements Serializable
         len = Math.min(len, frames256 - start);
 
         int startIndex = (int) (start * 3);
-        int totalLen = (int) (len);
+        int totalLen = (int) (len)*3;
 
         for(int i = startIndex; i < startIndex+totalLen; i++)
         {

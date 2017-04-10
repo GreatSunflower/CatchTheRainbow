@@ -163,8 +163,9 @@ class ApplyEffectTask extends AsyncTask<Void, Integer, Void>
             totalBytesRead += bytesRead;
             len -= bytesRead;
 
+            float normalizedDiff = Math.max(0, len/((float)range.getLen()*sampleSize)*100f);
 
-            publishProgress((int) ((range.getLen() * sampleSize) / (float)len * 100f));
+            publishProgress((int)(100 - normalizedDiff));
         }
 
         return null;

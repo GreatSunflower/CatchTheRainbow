@@ -526,7 +526,7 @@ public class WaveTrack implements Serializable
         }
     }
 
-    boolean append(ByteBuffer buffer, int len) throws IOException, ClassNotFoundException
+    public boolean append(ByteBuffer buffer, int len) throws IOException, ClassNotFoundException
     {
         return rightmostOrNewClip().append(buffer, len);
     }

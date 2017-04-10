@@ -143,8 +143,6 @@ public class AudioSequence implements Serializable
             }
         }
 
-        Date startDate = new Date();
-
         // temp file count
         int q = 1;
         // append the rest as new chunks
@@ -173,11 +171,6 @@ public class AudioSequence implements Serializable
             samplesCount += chunkLen;
             len -= chunkLen;
         }
-
-        Date endDate = new Date();
-        long difference = endDate.getTime() - startDate.getTime();
-
-        Log.e("TIME", Helper.millisecondsToSeconds(difference)+"");
 
         return true;
     }
@@ -272,14 +265,14 @@ public class AudioSequence implements Serializable
             return false;
 
         ByteBuffer scratch = ByteBuffer.allocateDirect (maxSamples * info.format.getSampleSize());
-        scratch.order(ByteOrder.LITTLE_ENDIAN);
+        //scratch.order(ByteOrder.LITTLE_ENDIAN);
 
         ByteBuffer temp = null;
         if (buffer != null && info.format.getSampleSize() != getInfo().format.getSampleSize())
         {
             long size = AudioHelper.limitSampleBufferSize(maxSamples, len);
             temp = ByteBuffer.allocateDirect((int) (size * info.format.getSampleSize()));
-            temp.order(ByteOrder.LITTLE_ENDIAN);
+            //temp.order(ByteOrder.LITTLE_ENDIAN);
         }
 
         int pos = findChunk(start);
@@ -313,7 +306,7 @@ public class AudioSequence implements Serializable
                 {
                     // Odd partial blocks of silence at start or end.
                     temp = ByteBuffer.allocateDirect((int) (blen * info.format.getSampleSize()));
-                    temp.order(ByteOrder.LITTLE_ENDIAN);
+                   // temp.order(ByteOrder.LITTLE_ENDIAN);
                     AudioHelper.clearSamples(temp, 0, (int) blen, info);
                     // Otherwise write silence just to the portion of the block
                     copyWrite(scratch, temp, chunkPos, bstart, (int) blen);
@@ -381,7 +374,7 @@ public class AudioSequence implements Serializable
         dest.set(new AudioSequence(fileManager, info));
 
         ByteBuffer buffer = ByteBuffer.allocateDirect(maxSamples * info.format.getSampleSize());
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        //buffer.order(ByteOrder.LITTLE_ENDIAN);
 
         int blocklen;
 
@@ -501,7 +494,7 @@ public class AudioSequence implements Serializable
             AudioChunkPos block = pBlock;
             // largerBlockLen is not more than mMaxSamples...
             ByteBuffer buffer = ByteBuffer.allocateDirect((int) (largerBlockLen * sampleSize));
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            //buffer.order(ByteOrder.LITTLE_ENDIAN);
 
             // ...and addedLen is not more than largerBlockLen
             long sAddedLen = addedLen;
@@ -553,7 +546,7 @@ public class AudioSequence implements Serializable
             final long sum = splitLen + sAddedLen;
 
             ByteBuffer sumBuffer = ByteBuffer.allocateDirect((int) (sum * sampleSize));
-            sumBuffer.order(ByteOrder.LITTLE_ENDIAN);
+            //sumBuffer.order(ByteOrder.LITTLE_ENDIAN);
 
             read(sumBuffer, splitBlock, 0, splitPoint);
             src.get(0, sumBuffer, 0, (int) sAddedLen);
@@ -579,7 +572,7 @@ public class AudioSequence implements Serializable
             final long rightLen = rightSplit + srcLastTwoLen;
 
             ByteBuffer sampleBuffer = ByteBuffer.allocateDirect((int) (Math.max(leftLen, rightLen) * sampleSize));
-            sampleBuffer.order(ByteOrder.LITTLE_ENDIAN);
+            //sampleBuffer.order(ByteOrder.LITTLE_ENDIAN);
 
             read(sampleBuffer, splitBlock, 0, splitPoint);
             src.get(0, sampleBuffer, 0, (int) srcFirstTwoLen);
@@ -660,7 +653,7 @@ public class AudioSequence implements Serializable
             long newLen = length - len;
 
             scratch = ByteBuffer.allocateDirect(scratchSize * sampleSize);
-            scratch.order(ByteOrder.LITTLE_ENDIAN);
+            //scratch.order(ByteOrder.LITTLE_ENDIAN);
 
             read(scratch, b, 0, pos);
             read(scratch, b, pos + len, newLen - pos); // pos + len is not more than the length of the block
@@ -705,7 +698,7 @@ public class AudioSequence implements Serializable
             {
                 //if (scratch == null)
                 scratch = ByteBuffer.allocateDirect(scratchSize * sampleSize);
-                scratch.order(ByteOrder.LITTLE_ENDIAN);
+                //scratch.order(ByteOrder.LITTLE_ENDIAN);
 
                 read(scratch, preBlock, 0, preBufferLen);
                 AudioChunk pFile = null;
@@ -729,7 +722,7 @@ public class AudioSequence implements Serializable
 
                 //if (scratch == null)
                 scratch = ByteBuffer.allocateDirect(scratchSize * sampleSize);
-                scratch.order(ByteOrder.LITTLE_ENDIAN);
+                //scratch.order(ByteOrder.LITTLE_ENDIAN);
 
                 read(scratch, preBlock, 0, prepreLen);
                 read(scratch, preBlock, 0, preBufferLen);
@@ -754,7 +747,7 @@ public class AudioSequence implements Serializable
                // if (scratch == null)
                     // Last use of scratch, can ask for smaller
                 scratch = ByteBuffer.allocateDirect((int) (postBufferLen * sampleSize));
-                scratch.order(ByteOrder.LITTLE_ENDIAN);
+                //scratch.order(ByteOrder.LITTLE_ENDIAN);
 
                 // start + len - 1 lies within postBlock
                 long pos = start + len - postBlock.start;
@@ -781,7 +774,7 @@ public class AudioSequence implements Serializable
                 //if (scratch == null)
                     // Last use of scratch, can ask for smaller
                 scratch = ByteBuffer.allocateDirect((int) (sum * sampleSize));
-                scratch.order(ByteOrder.LITTLE_ENDIAN);
+                //scratch.order(ByteOrder.LITTLE_ENDIAN);
 
                 // start + len - 1 lies within postBlock
                 long pos = start + len - postBlock.start;
@@ -830,7 +823,7 @@ public class AudioSequence implements Serializable
             int newLen = (int) ( ((i + 1) * len / num) - offset);
 
             ByteBuffer bufStart = ByteBuffer.allocateDirect ((int) (newLen * info.format.getSampleSize() /*len +*/ /*offset * info.format.getSampleSize()*/));
-            bufStart.order(ByteOrder.LITTLE_ENDIAN);
+            //bufStart.order(ByteOrder.LITTLE_ENDIAN);
 
             bufStart.put(buff, offset, newLen * info.format.getSampleSize());
 
@@ -959,9 +952,9 @@ public class AudioSequence implements Serializable
                     bStart = Math.max(0, bStart / divider);
                    // long inclusiveEndPosition = Math.min(maxSamples / divider - 1, (bLen - 1 - chunkPos.getStart()) / divider);
                     //bLen = 1 + inclusiveEndPosition - bStart;
-                    bLen = bLen / divider;
+                    bLen = bLen / divider * 3;
                     //bLen = bLen/*/divider*/ /*bLen / samplesPerFrame * 6*/;
-                    buffer = ByteBuffer.allocateDirect((int) (bLen * 4));
+                    buffer = ByteBuffer.allocateDirect((int) (bLen * 4 * 3));
                     chunkPos.getChunk().read256(buffer, bStart, bLen);
                     break;
                 case 65536: // summary 65536

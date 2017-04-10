@@ -127,6 +127,8 @@ public class AudioIO extends BasePlayer
                 // write remaining buffer
                 appender.addToQueue(new TrackAppender.BufferData(tempBuff, tempBuff.position()/4));
 
+                appender.waitForEnd();
+
                 isRecording = false;
                 recorderTrack = null;
             }
@@ -172,7 +174,7 @@ public class AudioIO extends BasePlayer
         initialize(false);
 
         appender = new TrackAppender(recorderTrack);
-        tempBuff = ByteBuffer.allocateDirect(AudioSequence.maxChunkSize/3);
+        tempBuff = ByteBuffer.allocateDirect(AudioSequence.maxChunkSize/2);
         tempBuff.order(ByteOrder.LITTLE_ENDIAN);
 
         isRecording = true;
@@ -427,7 +429,7 @@ public class AudioIO extends BasePlayer
             if(recorderTrack != null && trackInfo.getTrack() == recorderTrack.getTrack()) continue;
 
             int channel = BASS.BASS_StreamCreate(audioInfo.sampleRate, audioInfo.channels,
-                    BASS.BASS_SAMPLE_FLOAT | BASS.BASS_STREAM_AUTOFREE, new StreamProc(), trackInfo);
+                    BASS.BASS_SAMPLE_FLOAT | BASS.BASS_SAMPLE_VAM|BASS.BASS_STREAM_AUTOFREE, new StreamProc(), trackInfo);
 
             trackInfo.setChannel(channel);
             trackInfo.setCurrentSample(trackInfo.track.timeToSamples(start));
@@ -532,6 +534,8 @@ public class AudioIO extends BasePlayer
                     //Log.e("Sample: ", num+"");
                 }
 
+                recorderTrack.currentSample += floatLen;
+
                 /*final int floatLen = length * 2;
                 ByteBuffer temp = ByteBuffer.allocateDirect(floatLen*4);
                 //temp.order(ByteOrder.LITTLE_ENDIAN);
@@ -571,14 +575,12 @@ public class AudioIO extends BasePlayer
                 else
                 {
                     appender.addToQueue(new TrackAppender.BufferData(tempBuff, tempBuff.position()/4));
-                    //recorderTrack.getTrack().getClips().get(0).append(tempBuff, recorderTrack.currentSample);
+                    //recorderTrack.track.append(tempBuff, (int) recorderTrack.currentSample);
 
-                    tempBuff = ByteBuffer.allocateDirect(AudioSequence.maxChunkSize/3);
+                    tempBuff = ByteBuffer.allocateDirect(AudioSequence.maxChunkSize/2);
                     tempBuff.order(ByteOrder.LITTLE_ENDIAN);
                     tempBuff.put(byteBuffer);
                 }
-
-                recorderTrack.currentSample += floatLen;
 
                 //recorderTrack.getTrack().getClips().get(0).append(byteBuffer, floatLen);
             }
@@ -674,6 +676,35 @@ class TrackAppender implements Runnable
     public void stop()
     {
         shouldStop = true;
+    }
+
+    public void stopSync()
+    {
+        shouldStop = true;
+        boolean retry = true;
+        while (retry)
+        {
+            try
+            {
+                workingThread.join();
+                retry = false;
+            }
+            catch (InterruptedException e) {}
+        }
+    }
+
+    public void waitForEnd()
+    {
+        boolean retry = true;
+        while (retry)
+        {
+            try
+            {
+                workingThread.join();
+                retry = false;
+            }
+            catch (InterruptedException e) {}
+        }
     }
 
     int count = 0;

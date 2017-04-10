@@ -69,14 +69,31 @@ class WaveRenderer extends Thread
                 // if nothing is in update queue, leave it
                 if(track.getUpdateQueue().isEmpty()) continue;
 
-                Boolean res = track.getUpdateQueue().poll();
-
-                // needs to be updated
-                if(res)
-                    track.updateData();
-
                 try
                 {
+                    Boolean res = track.getUpdateQueue().poll();
+
+                    if(res == null)
+                    {
+                        res = true;
+                    }
+                    else if(!res)
+                    {
+                        for(Boolean b: track.getUpdateQueue())
+                        {
+                            if(b)
+                            {
+                                res = true;
+                                break;
+                            }
+                        }
+                    }
+                    track.getUpdateQueue().clear();
+
+                    // needs to be updated
+                    if(res)
+                        track.updateData();
+
                     localCanvas = track.lockCanvas(null);
                     synchronized (lock)
                     {
@@ -84,10 +101,10 @@ class WaveRenderer extends Thread
                             track.doDraw(localCanvas);
                     }
                 }
-               /* catch (Exception ex)
+                catch (Exception ex)
                 {
                     Log.e("Renderer", ex.getMessage());
-                }*/
+                }
                 finally
                 {
                     if (localCanvas != null)

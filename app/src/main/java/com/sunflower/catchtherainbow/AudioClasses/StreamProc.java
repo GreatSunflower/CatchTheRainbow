@@ -29,7 +29,7 @@ public class StreamProc implements BASS.STREAMPROC
 
         try
         {
-            Date startDate = new Date();
+           // Date startDate = new Date();
 
             int sampleSize = track.track.getInfo().format.getSampleSize();
             samplesRead = track.track.get(buffer, track.currentSample, length / sampleSize) / sampleSize;
@@ -46,11 +46,9 @@ public class StreamProc implements BASS.STREAMPROC
                 return samplesRead;
             }
 
-            Date endDate = new Date();
+           /* Date endDate = new Date();
             long difference = endDate.getTime() - startDate.getTime();
-
-            Log.e(LOG_TAG, Helper.millisecondsToSeconds(difference)+", Read: " + samplesRead);
-
+            Log.e(LOG_TAG, Helper.millisecondsToSeconds(difference)+", Read: " + samplesRead);*/
             //Log.d(LOG_TAG, String.format("FileProcUserRead: requested {i}, read {i} ", length, bytesRead));
             return samplesRead * sampleSize;
         }

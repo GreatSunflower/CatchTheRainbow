@@ -191,6 +191,7 @@ public class MainAreaFragment extends Fragment
         trackView.setListener(waveTrackViewListener);
         trackView.setTag(trow);
         trackView.setOffset(offset);
+        trackView.setSamplesPerPixel(samplesPerPixel);
         trackView.setSelection(selection);
         trow.addView(trackView, 1);
 
@@ -531,6 +532,10 @@ public class MainAreaFragment extends Fragment
     public void setSelection(SampleRange selection)
     {
         this.selection = selection;
+        for (TrackHolder holder : tracks)
+        {
+            holder.waveformView.setSelection(selection);
+        }
     }
 
     public Mode getMode()

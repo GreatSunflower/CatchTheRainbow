@@ -350,15 +350,14 @@ public class ProjectActivity extends AppCompatActivity
                 //Helper.showCuteToast(ProjectActivity.this, "S : " + Helper.round(start, 2) + ", E: " + Helper.round(end, 2), Gravity.CENTER);
                 //Log.e("Area! ", "Start : " + start + ", End: " + end);
 
-
                 if (id == R.id.action_remove)
                 {
-
                     try
                     {
                         if(selectedTrack.clear(start, end))
                         {
                             player.initialize(false);
+                            tracksFragment.setSelection(new MainAreaFragment.SampleRange(0,1));
                             tracksFragment.demandUpdate();
                         }
                     }
@@ -399,6 +398,7 @@ public class ProjectActivity extends AppCompatActivity
                         if(selectedTrack.paste(start, bufferedTrack))
                         {
                             player.initialize(false);
+                            tracksFragment.setSelection(new MainAreaFragment.SampleRange(0,1));
                             tracksFragment.demandUpdate();
                             String message = "). Old samples: " + cachedSamples + ", New samples: " + selectedTrack.getEndSample();
                             Helper.showCuteToast(ProjectActivity.this, message, Gravity.CENTER, Toast.LENGTH_LONG);
@@ -426,9 +426,7 @@ public class ProjectActivity extends AppCompatActivity
                     // force to create views
                     getSupportFragmentManager().executePendingTransactions();
                     //hostFragment.setTrack(selectedTrack);
-
                 }
-
                 break;
             }
         }
@@ -446,10 +444,9 @@ public class ProjectActivity extends AppCompatActivity
 
         if (id == R.id.nav_newTrack)
         {
-
-            /////////////////////////////////////////
-
-
+            WaveTrack recorderTrack = new WaveTrack(getResources().getString(R.string.name), project.getFileManager());
+            recorderTrack.addClip(new Clip(project.getFileManager(), project.getProjectAudioInfo()));
+            project.addTrack(recorderTrack);
         }
         if (id == R.id.nav_import)
         {
@@ -630,7 +627,7 @@ public class ProjectActivity extends AppCompatActivity
         public void onInitialized(float totalTime)
         {
             progressView.setMax(totalTime);
-            progressView.setCurrent(0f);
+            //progressView.setCurrent(0f);
         }
 
         @Override

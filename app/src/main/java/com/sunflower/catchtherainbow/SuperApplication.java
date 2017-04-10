@@ -56,6 +56,8 @@ public class SuperApplication extends Application
             }
         }
         // plugins end
+
+        //BASS.BASS_SetConfig(BASS.BASS_CONFIG_DEV_BUFFER, 15000);
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_BUFFER, 5000);
         BASS.BASS_SetConfig(BASS.BASS_CONFIG_REC_BUFFER, 5000);
         //BASS.BASS_SetConfig(BASS.BASS_CONFIG_UPDATEPERIOD, 100);

@@ -196,7 +196,10 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
                     return true;
                 }
 
-                listener.touchMove(event.getX());
+                float res = event.getX();
+                if(res < 0) res = 0;
+
+                listener.touchMove(res);
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
@@ -374,6 +377,7 @@ public class WaveTrackView extends TextureView implements TextureView.SurfaceTex
     public void startDrawing()
     {
         isSuspended = false;
+        demandDrawUpdate();
       /*  stopDrawing();
 
         drawThread = new CDrawThread(getContext());
